@@ -34,6 +34,9 @@ include:
   /usr/include/
   ${CURRENT_DIR}/include/
 
+cout:
+  compiling sources: ${SOURCES}
+
 exec:
   -std=c++17
   ${SOURCES}
