@@ -112,7 +112,7 @@ void makeit::parse(makeit::project* project, std::vector<std::string> lines, std
       for (unsigned int j = 1; j < elements.size(); j++)
       {
         init_rvalue(project, elements.at(j), directory);
-        system(("git " + elements.at(j)).c_str());
+        system(("git clone " + elements.at(j)).c_str());
       }
       system(("dir " + directory).c_str());
     }
