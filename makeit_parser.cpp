@@ -3,6 +3,7 @@
 #include "string_utils.h"
 
 #include <iostream>
+#include <stdlib.h>
 #include <boost/filesystem.hpp>
 
 static const std::string BUILD_PATH = "MakeItFiles";
@@ -72,6 +73,7 @@ void makeit::parse(makeit::project* project, std::vector<std::string> lines, std
       }
     }else if (line=="exec:")
     {
+      std::cout << "==> [INFO] creating executable...\n";
       get_elements(lines, i, level, elements);
       project->exec = new makeit::execute;
       project->exec->version = elements.at(0);
@@ -80,6 +82,7 @@ void makeit::parse(makeit::project* project, std::vector<std::string> lines, std
       init_rvalue(project, project->exec->sources, directory);
       init_rvalue(project, project->exec->libs, directory);
       makefile(project, directory);
+      std::cout << "==> [INFO] Makefile created\n";
     }else if (line=="cout:")
     {
       get_elements(lines, i, level, elements);
@@ -99,6 +102,19 @@ void makeit::parse(makeit::project* project, std::vector<std::string> lines, std
         else
           project->libraryDirs.append("-L" + element + " ");
       }
+    }else if (line=="dependencies")
+    {
+      get_elements(lines, i, level, elements);
+      std::string depFolder = elements.at(0);
+      depFolder = string_utils::fix_path(depFolder, true);
+      std::cout << "==> [INFO] downloading dependencies...\n";
+      system(("dir " + depFolder).c_str());
+      for (unsigned int j = 1; j < elements.size(); j++)
+      {
+        init_rvalue(project, elements.at(j), directory);
+        system(("git " + elements.at(j)).c_str());
+      }
+      system(("dir " + directory).c_str());
     }
   }
 }

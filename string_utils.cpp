@@ -64,6 +64,16 @@ std::string string_utils::directory(const std::string &filepath)
   return filepath.substr(0, end);
 }
 
+std::string string_utils::fix_path(const std::string &filepath, bool folder)
+{
+  std::string fixed;
+  fixed.append(filepath);
+  replace(fixed, "\\", "/");
+  if (folder && filepath.at(filepath.size() - 1) != '/')
+    fixed+='/';
+  return fixed;
+}
+
 /* get index of char */
 unsigned int string_utils::index(std::string &string, char c)
 {
