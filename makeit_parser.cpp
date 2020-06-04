@@ -102,7 +102,7 @@ void makeit::parse(makeit::project* project, std::vector<std::string> lines, std
         else
           project->libraryDirs.append("-L" + element + " ");
       }
-    }else if (line=="dependencies")
+    }else if (line=="dependencies:")
     {
       get_elements(lines, i, level, elements);
       std::string depFolder = elements.at(0);
