@@ -1,5 +1,17 @@
 #include "string_utils.h"
 
+bool string_utils::starts_with(const std::string &string, const std::string &with)
+{
+  if (with.size() > string.size())
+    return false;
+  for (unsigned int i = 0; i < with.length(); i++)
+  {
+    if (string.at(i) != with.at(i))
+      return false;
+  }
+  return true;
+}
+
 /* splitting string */
 std::vector<std::string> string_utils::split(std::string &str, char delimeter)
 {

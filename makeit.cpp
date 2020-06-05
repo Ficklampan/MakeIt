@@ -12,7 +12,11 @@ int main(int argc, char** argv)
   }
   std::string directory = argv[1];
   std::cout << "making { " << directory << " }\n";
-  makeit::parse(nullptr, directory);
+  if (makeit::parse(nullptr, directory) != 1)
+  {
+    std::cout << "makeit failed, errors occurred\n";
+    return 0;
+  }
   std::cout << "making complete!\n";
   return 0;
 }

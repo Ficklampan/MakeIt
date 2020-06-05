@@ -32,10 +32,10 @@ static void init_rvalue(makeit::project* project, std::string &rvalue, std::stri
 {
   for (const auto &[key, value] : project->vars)
     string_utils::replace(rvalue, "${" + key + "}", value);
-  string_utils::replace(rvalue, "${CURRENT_DIR}", directory.substr(0, directory.size() - 1));
+  string_utils::replace(rvalue, "${CURRENT_DIR}", (directory.at(directory.size() - 1) == '/' ? directory.substr(0, directory.size() - 1) : directory));
 }
 
-void makeit::parse(makeit::project* project, std::vector<std::string> lines, std::string &directory, unsigned int level, unsigned int offset, unsigned int length)
+int makeit::parse(makeit::project* project, std::vector<std::string> lines, std::string &directory, unsigned int level, unsigned int offset, unsigned int length)
 {
   std::vector<std::string> elements;
   for (unsigned int i = offset; i < length; i++)
@@ -104,37 +104,64 @@ void makeit::parse(makeit::project* project, std::vector<std::string> lines, std
       }
     }else if (line=="dependencies:")
     {
+      std::cout << "==> [INFO] checking dependencies...\n";
       get_elements(lines, i, level, elements);
+      init_rvalue(project, elements.at(0), directory);
       std::string depFolder = elements.at(0);
       depFolder = string_utils::fix_path(depFolder, true);
-      std::cout << "==> [INFO] downloading dependencies...\n";
-      system(("dir " + depFolder).c_str());
+      if (elements.size() > 1)
+        std::cout << "==> [INFO] downloading dependencies...\n";
+      else
+      {
+        std::cout << "==> [WARN] no dependencies found\n";
+        return 0;
+      }
       for (unsigned int j = 1; j < elements.size(); j++)
       {
         init_rvalue(project, elements.at(j), directory);
-        system(("git clone " + elements.at(j)).c_str());
+        if (elements.at(j).empty())
+          continue;
+        std::vector<std::string> args = string_utils::split(elements.at(j), ' ');
+        if (args.size() < 2)
+        {
+          std::cout << "    [ERROR] name not specified, skipping...\n";
+          continue;
+        }
+        std::string link = args.at(0);
+        std::string name = args.at(1);
+        std::string depFilepath = depFolder + name;
+        if (boost::filesystem::is_directory(depFilepath))
+        {
+          std::cout << "    `" << depFilepath << "` already exists, skipping...\n";
+          continue;
+        }
+        if (string_utils::starts_with(link, "git@"))
+        {
+          std::cout << "    cloning `" << link << "` to `" << depFilepath << "`\n";
+          system(("git clone " + link + " " + depFilepath).c_str());
+        }
       }
-      system(("dir " + directory).c_str());
     }
   }
+  return 1;
 }
 
-void makeit::parse(makeit::project* project, std::vector<std::string> lines, std::string &directory)
+int makeit::parse(makeit::project* project, std::vector<std::string> lines, std::string &directory)
 {
-  parse(project, lines, directory, 0, 0, lines.size());
+  return parse(project, lines, directory, 0, 0, lines.size());
 }
 
-void makeit::parse(makeit::project* project, std::string &directory)
+int makeit::parse(makeit::project* project, std::string &directory)
 {
   if (directory.at(directory.size() - 1) != '/')
     directory+='/';
   std::string filepath = directory + "MakeIt.txt";
   std::string source = std::string((char*) file_utils::read_file(filepath));
   std::vector<std::string> lines = string_utils::split(source, '\n');
-  parse(project, lines, directory);
+  return parse(project, lines, directory);
 }
 
-void makeit::makefile(makeit::project* project, std::string &directory)
+int makeit::makefile(makeit::project* project, std::string &directory)
 {
   if (directory.at(directory.size() - 1) != '/')
     directory+='/';
@@ -183,4 +210,5 @@ void makeit::makefile(makeit::project* project, std::string &directory)
   source.append("\trm -f $(OUTD)/*.o\n");
 
   file_utils::write_file(directory + "Makefile", (unsigned char*) &source.at(0), source.size());
+  return 1;
 }
