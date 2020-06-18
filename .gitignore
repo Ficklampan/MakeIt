@@ -3,3 +3,4 @@ makeit.o
 makeit_parser.o
 file_utils.o
 string_utils.o
+buildd.sh

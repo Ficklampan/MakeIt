@@ -35,6 +35,58 @@ static void init_rvalue(makeit::project* project, std::string &rvalue, std::stri
   string_utils::replace(rvalue, "${CURRENT_DIR}", (directory.at(directory.size() - 1) == '/' ? directory.substr(0, directory.size() - 1) : directory));
 }
 
+static void init_filepath(std::string &filepath)
+{
+  uint32_t lastSplit = 0;
+  for (uint32_t i = 0; i < filepath.size(); i++)
+  {
+    char c = filepath.at(i);
+    if (c == '/')
+      lastSplit = i;
+  }
+  std::string directory = filepath.substr(0, lastSplit + 1);
+  std::string fileName, fileExt;
+  file_utils::get_file_name(filepath, fileName, fileExt);
+  if (fileExt.empty())
+    fileExt+='*';
+  filepath.clear();
+  std::cout << "  checking directory `" << directory << "`\n";
+  std::vector<std::string> files = file_utils::find_files(directory, fileName, fileExt);
+  for (const std::string &file : files)
+    filepath.append(file + " ");
+}
+
+static void process_flags(std::vector<std::string> &flags, uint32_t off, uint32_t len)
+{
+  for (uint32_t i = off; i < len; i++)
+  {
+    std::string &flag = flags.at(i);
+    std::vector<std::string> flag_args = string_utils::split(flag, ';');
+    if (flag_args.size() == 0)
+      continue;
+    if (flag_args.at(0)=="mv") // move
+    {
+      if (flag_args.size() < 3)
+      {
+        std::cout << "  [ERR] missing arguments, at line[" << (i + 1) << "]\n";
+        continue;
+      }
+      system(("mv " + flag_args.at(1) + " " + flag_args.at(2)).c_str());
+    }else if (flag_args.at(0)=="rm") // remove
+    {
+      if (flag_args.size() < 2)
+      {
+        std::cout << "  [ERR] missing arguments, at line[" << (i + 1) << "]\n";
+        continue;
+      }
+      system(("rm " + flag_args.at(1)).c_str());
+    }else if (flag_args.at(0)=="upkg") // unpack
+    {
+
+    }
+  }
+}
+
 int makeit::parse(makeit::project* project, std::vector<std::string> lines, std::string &directory, unsigned int level, unsigned int offset, unsigned int length)
 {
   std::vector<std::string> elements;
@@ -71,18 +123,29 @@ int makeit::parse(makeit::project* project, std::vector<std::string> lines, std:
         init_rvalue(project, element, directory);
         parse(project, element);
       }
-    }else if (line=="exec:")
+    }else if (line=="makefile:")
     {
-      std::cout << "==> [INFO] creating executable...\n";
+      std::cout << "==> [INFO] constructing makefile...\n";
       get_elements(lines, i, level, elements);
+      if (elements.size() < 1)
+      {
+        std::cout << "  [ERR] no arguments. at line[" << (i + 1) << "]\n";
+        return 0;
+      }else if (elements.size() < 4)
+      {
+        std::cout << "  [ERR] too few arguments. at line[" << (i + 1) << "]\n";
+        return 0;
+      }
       project->exec = new makeit::execute;
       project->exec->version = elements.at(0);
       project->exec->sources = elements.at(1);
-      project->exec->libs = elements.at(2);
+      project->exec->headers = elements.at(2);
+      project->exec->libs = elements.at(3);
       init_rvalue(project, project->exec->sources, directory);
+      init_rvalue(project, project->exec->headers, directory);
       init_rvalue(project, project->exec->libs, directory);
       makefile(project, directory);
-      std::cout << "==> [INFO] Makefile created\n";
+      std::cout << "==> [INFO] Makefile successfully constructed!\n";
     }else if (line=="cout:")
     {
       get_elements(lines, i, level, elements);
@@ -113,7 +176,7 @@ int makeit::parse(makeit::project* project, std::vector<std::string> lines, std:
         std::cout << "==> [INFO] downloading dependencies...\n";
       else
       {
-        std::cout << "==> [WARN] no dependencies found\n";
+        std::cout << "  no dependencies found.\n";
         return 0;
       }
       for (unsigned int j = 1; j < elements.size(); j++)
@@ -124,22 +187,93 @@ int makeit::parse(makeit::project* project, std::vector<std::string> lines, std:
         std::vector<std::string> args = string_utils::split(elements.at(j), ' ');
         if (args.size() < 2)
         {
-          std::cout << "    [ERROR] name not specified, skipping...\n";
+          std::cout << "  [ERR] name not specified. at line[" << (i + 1) << "]\n";
           continue;
         }
         std::string link = args.at(0);
         std::string name = args.at(1);
+
         std::string depFilepath = depFolder + name;
         if (boost::filesystem::is_directory(depFilepath))
         {
-          std::cout << "    `" << depFilepath << "` already exists, skipping...\n";
+          std::cout << "    `" << depFilepath << "` already exists, ignored.\n";
           continue;
         }
         if (string_utils::starts_with(link, "git@"))
         {
           std::cout << "    cloning `" << link << "` to `" << depFilepath << "`\n";
           system(("git clone " + link + " " + depFilepath).c_str());
+        }else
+        {
+          std::cout << "    downloading `" << link << "` to `" << depFilepath << "`\n";
+
         }
+        if (args.size() > 2)
+          process_flags(args, 2, args.size());
+      }
+    }else if (line=="verify:")
+    {
+      get_elements(lines, i, level, elements);
+      if (elements.size() < 1)
+      {
+        std::cout << "  [ERR] no target specified. at line[" << (i + 1) << "]\n";
+        return 0;
+      }
+      bool abort = false;
+      for (std::string &var_name : elements)
+      {
+        std::string &var_value = project->vars[var_name];
+        std::vector<std::string> var_elements = string_utils::split(var_value, ' ');
+        unsigned int found = 0;
+        std::vector<std::string> missing;
+        for (const std::string &str : var_elements)
+        {
+          if (!boost::filesystem::exists(str))
+            missing.push_back(str);
+          else
+            found++;
+        }
+        std::cout << found << "/" << var_elements.size() << " files found.\n";
+        for (const std::string &str : missing)
+          std::cout << "  [ERR] `" << str << "` not found\n";
+        if (!missing.empty())
+          abort = true;
+      }
+      if (abort)
+        return 0;
+    }else if (line=="define:")
+    {
+      get_elements(lines, i, level, elements);
+      for (const std::string &str : elements)
+      {
+        std::vector<std::string> args = string_utils::split(str, ' ');
+        if (args.size() == 0)
+          continue;
+        std::string def_name = args.at(0);
+        project->definitions.append("-D" + def_name + " ");
+      }
+    }else if (line=="do:")
+    {
+      get_elements(lines, i, level, elements);
+      for (std::string &element : elements)
+        init_rvalue(project, element, directory);
+      process_flags(elements, 0, elements.size());
+    }else if (line=="find:")
+    {
+      get_elements(lines, i, level, elements);
+      if (elements.size() < 2)
+      {
+        std::cout << "  [ERR] too few arguments. at line[" << (i + 1) << "]\n";
+        return 0;
+      }
+      std::string append_to = elements.at(0);
+      for (uint32_t i = 1; i < elements.size(); i++)
+      {
+        std::string element = elements.at(i);
+        init_rvalue(project, element, directory);
+        init_filepath(element);
+        project->vars[append_to].clear();
+        project->vars[append_to].append(element);
       }
     }
   }
@@ -174,6 +308,8 @@ int makeit::makefile(makeit::project* project, std::string &directory)
   source.append(project->name + "\n");
   source.append("SRC = ");
   source.append(project->exec->sources + "\n");
+  source.append("HEADERS = ");
+  source.append(project->exec->headers + "\n");
   source.append("OBJ = ");
 
   for (std::string &str : src_array)
@@ -190,6 +326,7 @@ int makeit::makefile(makeit::project* project, std::string &directory)
   source.append("OUTD = " + BUILD_PATH + "\n");
   source.append("LIBD = " + project->libraryDirs + "\n");
   source.append("INCD = " + project->includeDirs + "\n");
+  source.append("DEFS = " + project->definitions + "\n");
 
   source.append("LIBS = ");
   for (std::string &str : lib_array)
@@ -197,17 +334,17 @@ int makeit::makefile(makeit::project* project, std::string &directory)
   source.append("\n\n");
 
   /* compile sources */
-  source.append("$(OUTD)/%.o: %.cpp $(SRC)\n");
-  source.append("\t$(CC) -c -o $@ $< $(INCD) $(CFLAGS)\n\n");
+  source.append("$(OUTD)/%.o: %.cpp $(HEADERS)\n");
+  source.append("\t$(CC) -c -o $@ $< $(CFLAGS) $(INCD) $(DEFS)\n\n");
 
   /* link */
   source.append("$(NAME): $(OBJ)\n");
-  source.append("\t$(CC) -o $@ $^ $(LIBD) $(LIBS) $(CFLAGS)\n\n");
+  source.append("\t$(CC) -o $@ $^ $(LIBD) $(LIBS)\n\n");
 
   /* cleanup */
   source.append(".PHONY: clean\n\n");
   source.append("clean:\n");
-  source.append("\trm -f $(OUTD)/*.o\n");
+  source.append("\trm -f $(OBJ)\n");
 
   file_utils::write_file(directory + "Makefile", (unsigned char*) &source.at(0), source.size());
   return 1;

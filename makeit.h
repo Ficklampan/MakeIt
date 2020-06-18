@@ -8,13 +8,14 @@
 namespace makeit {
 
   struct execute {
-    std::string sources, libs;
+    std::string sources, headers, libs;
     std::string version;
   };
 
   struct project {
     std::string name;
     std::map<std::string, std::string> vars;
+    std::string definitions;
     std::string includeDirs;
     std::string libraryDirs;
     execute* exec;

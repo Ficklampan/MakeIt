@@ -13,14 +13,13 @@ bool string_utils::starts_with(const std::string &string, const std::string &wit
 }
 
 /* splitting string */
-std::vector<std::string> string_utils::split(std::string &str, char delimeter)
+std::vector<std::string> string_utils::split(const std::string &str, char delimeter)
 {
   std::vector<std::string> strings;
   unsigned int start = 0, end = 0;
   for (unsigned int i = 0; i < str.size(); i++)
   {
-    char &c = str.at(i);
-    if (c==delimeter)
+    if (str.at(i)==delimeter)
     {
       strings.emplace_back(&str.at(start), end);
       start = i + 1;
