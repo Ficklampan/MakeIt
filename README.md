@@ -23,6 +23,10 @@ append:
   HEADERS
   ${CURRENT_DIR}/src/headers/**.hpp // `**` = search sub directories
 
+find: // finds all files with a pattern. needed if you look above
+  HEADERS // append to
+  ${HEADERS} // files to search
+
 append: // appends glfw and GLEW to LIBS
   LIBS
   glfw
@@ -44,6 +48,10 @@ cout: // print text
 
 dependencies: // not done !!!
   git@something something // param[0]: clone/download link, param[1] target directory
+
+define: // the same thing as `#define` in c
+  USE_FLOAT
+  DEBUG_MODE
 
 verify: // check if files exists
   SOURCES
