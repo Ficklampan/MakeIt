@@ -1,5 +1,11 @@
 # MakeIt
 
+inte klart för fem öre
+
+CMake was too hard so i made my own thingy heheh.
+I know the code is not good! I just wanted the thing.
+I'm gonna clean it up when i have a keyboard under my fingers
+
 example:
 -
 `
