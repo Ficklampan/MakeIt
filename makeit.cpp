@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "makeit.h"
-#include "makeit_parser.h"
+#include "makeit.hpp"
+#include "makeit_parser.hpp"
 
 int main(int argc, char** argv)
 {
@@ -12,11 +12,14 @@ int main(int argc, char** argv)
   }
   std::string directory = argv[1];
   std::cout << "making { " << directory << " }\n";
-  if (makeit::parse(nullptr, directory) != 1)
+  makeit::Parser parser;
+  parser.init();
+  int result = parser.parse(nullptr, directory);
+  if (result != 1)
   {
-    std::cout << "makeit failed, errors occurred\n";
+    std::cout << "MakeIt failed, errors occurred\n";
     return 0;
   }
-  std::cout << "making complete!\n";
+  std::cout << "MakeIt Survived!\n";
   return 0;
 }

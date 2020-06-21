@@ -1,4 +1,4 @@
-#include "string_utils.h"
+#include "string_utils.hpp"
 
 bool string_utils::starts_with(const std::string &string, const std::string &with)
 {
