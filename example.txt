@@ -3,9 +3,15 @@ project:
 
 include:
   "en fil",
-  "en till fil",
+  "en till fil \"med grejer\"",
   "ännu en till fil",
   "okej nu räcker det"
 
 define:
   "DEBUG"
+
+   annat:
+      [true],
+      [false],
+      [83],
+      [0.78]

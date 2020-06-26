@@ -1,4 +1,5 @@
 #include "MakeIt.h"
+#include "texts.h"
 #include "utils/FileUtils.h"
 
 #include <stdio.h>
@@ -26,24 +27,39 @@ int main(int argc, char** argv)
 
 int makeit_parse_data(makeit_project* project, const string data)
 {
+  // the data must end with a ',' for it to work correct
   char* str_buffer = malloc(data.length);
+
   uint32_t index = 0;
-  char in_str = 0;
+  char data_type = 0;
   for (uint32_t i = 0; i < data.length; i++)
   {
     char c = data.ptr[i];
     char last = i > 0 ? data.ptr[i - 1] : 0;
-    if (c == '"' && last != '\\')
+
+    // checking for string
+    if (c == '"' && last != '\\' && (data_type == 0 || data_type == 1))
     {
-      str_buffer[index++] = '"';
-      in_str = in_str == 0 ? 1 : 0;
+      if (data_type == 1)
+        str_buffer[index++] = '$';
+      data_type = data_type == 0 ? 1 : 0;
+      continue;
+    }else if ((c == '[' || c == ']') && last != '\\' && (data_type == 0 || data_type == 2))
+    {
+      if (data_type == 2)
+        str_buffer[index++] = '&';
+      data_type = data_type == 0 ? 2 : 0;
       continue;
     }
-    if (in_str == 1)
+
+    // appending data type
+    if (data_type != 0)
     {
-      str_buffer[index++] = c;
+      if (!(c == '\\' && last != '\\'))
+        str_buffer[index++] = c;
       continue;
     }
+
     if (c == ' ' || c == '\n')
       continue;
     else if (last == ' ' || last == '\n')
@@ -51,6 +67,7 @@ int makeit_parse_data(makeit_project* project, const string data)
     str_buffer[index++] = c;
   }
   str_buffer[index] = 0;
+  printf("==> Parsing data: `%s`\n", str_buffer);
   string fixed = {index, str_buffer};
   uint32_t argc;
   string* args = string_split(&fixed, ';', &argc);
@@ -76,9 +93,45 @@ int makeit_parse_file(makeit_project* project, const char* filepath)
 
 int makeit_process_function(makeit_project* project, const string func, const string* args, uint32_t argc)
 {
-  printf("function: %s\n", func.ptr);
-  printf("  has:\n");
+  if (func.ptr == NULL)
+  {
+    printf(":: nullptr string\n");
+    return 0;
+  }
+  if (strcmp("project", func.ptr))
+  {
+    if (argc < 1)
+    {
+      printf(ERR_TOO_FEW_ARGS, func.ptr);
+      return 0;
+    }
+    project = (makeit_project*) calloc(sizeof(makeit_project), 1);
+    project->name = args[0];
+  }else if (strcmp("directory", func.ptr))
+  {
+    if (argc < 1)
+    {
+      printf(ERR_NO_DIR_SPEC, func.ptr);
+      return 0;
+    }
+
+  }
+  return 1;
+}
+
+int makeit_init_values(makeit_project* project, string* args, uint32_t argc)
+{
   for (uint32_t i = 0; i < argc; i++)
-    printf("    %s\n", args[i].ptr);
+  {
+    if (makeit_init_value(project, args[i]) != 1)
+      return 0;
+  }
+  return 1;
+}
+
+int makeit_init_value(makeit_project* project, string str)
+{
+  if (string_contains(args[i], "$(CURRENT_DIR)"))
+    
   return 1;
 }
