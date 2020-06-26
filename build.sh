@@ -1,2 +1,2 @@
-g++ -c makeit.cpp makeit_parser.cpp file_utils.cpp string_utils.cpp -std=c++17
-g++ -o makeit makeit.o makeit_parser.o file_utils.o string_utils.o -lboost_filesystem
+gcc -c src/MakeIt.c src/utils/List.c src/utils/FileUtils.c src/utils/String.c
+gcc -o makeit MakeIt.o List.o FileUtils.o String.o

@@ -1,6 +1,4 @@
 makeit
-makeit.o
-makeit_parser.o
-file_utils.o
-string_utils.o
+*.o
 buildd.sh
+src/old/

@@ -1,0 +1,11 @@
+project:
+  "MurderEngine"
+
+include:
+  "en fil",
+  "en till fil",
+  "ännu en till fil",
+  "okej nu räcker det"
+
+define:
+  "DEBUG"
