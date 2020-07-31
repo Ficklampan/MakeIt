@@ -27,7 +27,7 @@ void* map_pull(map* m, const char* key)
 {
   for (uint32_t i = 0; i < m->used; i++)
   {
-    if (strcmp(m->keys[i], key))
+    if (strcmp(m->keys[i], key) == 0)
       return m->values[i];
   }
   return NULL;

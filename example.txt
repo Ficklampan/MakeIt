@@ -9,21 +9,8 @@
   okej nu\ räcker\ det
 <<
 
->> define1:
+>> define:
   DEBUG
-  >> define1.1:
-    INSIDE
-    OUT
-    >> define2.1:
-      heres jhony
-    <<
-    YouTubesss
-  <<
-  >> define1.2:
-    why
-  <<
-  LOL
-  IPOP
 <<
 
 >> variable:

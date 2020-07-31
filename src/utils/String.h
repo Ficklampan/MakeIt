@@ -16,5 +16,6 @@ char** strsplit(char* str, char d, uint32_t* size);
 char* strapnd(char* str, const char* c);
 char* strapndc(char* str, char c);
 char* strreplace(char* str, const char* what, const char* to, uint32_t* length);
+char* strjoin(const char* str1, const char* str2);
 
 #endif

@@ -20,7 +20,9 @@ int main(int argc, char** argv)
   printf("==> Initializing MakeIt...\n");
   const char* filepath = argv[1];
   printf("==> Parsing `%s`\n", filepath);
-  if (makeit_parse_file(NULL, filepath) != 1)
+  makeit_project* project = calloc(sizeof(makeit_project), 1);
+  project->directory = filepath;
+  if (makeit_parse_file(project, filepath) != 1)
   {
     printf(":: Failed to parse `%s`\n", filepath);
     return 1;
@@ -29,20 +31,30 @@ int main(int argc, char** argv)
   return 0;
 }
 
+int makeit_init_project(makeit_project* project, const char* name)
+{
+  project->name = name;
+  project->vars = calloc(sizeof(map), 1);
+  return 1;
+}
+
 int makeit_parse_data(makeit_project* project, const char* data)
 {
-  // the data must end with a ',' for it to work correct
   uint32_t data_length = strlen(data);
 
+  /* function name string buffer */
   string_buffer* func = calloc(sizeof(string_buffer), 1);
   string_buffer_init(func, 512);
 
+  /* element value string buffer */
   string_buffer* element = calloc(sizeof(string_buffer), 1);
   string_buffer_init(element, 512);
 
+  /* array of elements in function */
   array* elements = calloc(sizeof(array), 1);
   array_init(elements, 4);
 
+  /* current state */
   uint8_t data_type = 0;
 
   for (uint32_t i = 0; i < data_length; i++)
@@ -57,25 +69,24 @@ int makeit_parse_data(makeit_project* project, const char* data)
     }else if (data_type == 1 && c == ':')
     {
       data_type = 2;
-      printf("func: %s\n", func->str);
-      string_buffer_clear(func);
-      array_clear(elements);
       continue;
     }else if (data_type == 2 && c == '<' && last == '<')
     {
       data_type = 0;
-      //for (uint32_t j = 0; j < elements->used; i++)
-        //printf("  var[%i]: %s\n", j, (char*) elements->values[i]);
+      makeit_process_functions(project, func->str, elements);
+      string_buffer_clear(func);
+      array_clear(elements);
       continue;
     }
     else if (data_type == 2 && c == '\n')
     {
       if (element->length > 0)
       {
-        printf("  var[%i]: %s\n", elements->used, element->str);
+        if (!makeit_init_value(project, &element->str))
+          return 0;
+        array_push(elements, element->str);
         element = calloc(sizeof(string_buffer), 1);
         string_buffer_init(element, 512);
-        array_push(elements, element->str);
       }
       continue;
     }
@@ -92,53 +103,23 @@ int makeit_parse_file(makeit_project* project, const char* filepath)
 {
   uint32_t length;
   uint8_t* data = file_utils_read(filepath, &length);
-  return makeit_parse_data(NULL, (char*) data);
-}
-
-int makeit_process_function(makeit_project* project, const char* func, const char** args, uint32_t argc)
-{
-  if (func == NULL)
-  {
-    printf(":: nullptr string\n");
-    return 0;
-  }
-  printf("==> func %s has:\n", func);
-  for (uint32_t i = 0; i < argc; i++)
-    printf("  %s\n", args[i]);
-
-  makeit_init_values(project, args, argc);
-  makeit_process_functions(project, func, args, argc);
-  return 1;
-}
-
-// functions that replaces variable pointers to variable
-int makeit_init_values(makeit_project* project, char** args, uint32_t argc)
-{
-  for (uint32_t i = 0; i < argc; i++)
-  {
-    if (makeit_init_value(project, &args[i]) != 1)
-      return 0;
-  }
-  return 1;
+  return makeit_parse_data(project, (char*) data);
 }
 
 int makeit_init_value(makeit_project* project, char** str)
 {
-  for (uint32_t i = 0; i < project->vars.used; i++)
+  if (project->vars == NULL)
+    return 1;
+  for (uint32_t i = 0; i < project->vars->used; i++)
   {
-    char* element_key = project->vars.keys[i];
-    char* element_value = project->vars.values[i];
+    char* element_key = project->vars->keys[i];
+    string_buffer* element_value = (string_buffer*) project->vars->values[i];
 
-    char* key = "$(";
-    key = strapnd(key, element_key);
-    key = strapnd(key, ")");
-
-    printf("the key: %s\n", key); // remove
+    char* key = strjoin(strjoin("$(", element_key), ")\0");
 
     uint32_t length;
-    strreplace(*str, key, element_value, &length);
-    *str = strreplace(*str, key, element_value, &length);
+    strreplace(*str, key, element_value->str, &length);
+    *str = strreplace(*str, key, element_value->str, &length);
   }
   return 1;
 }
-// -------------------------------------------------- //

@@ -101,14 +101,7 @@ char* strreplace(char* str, const char* what, const char* to, uint32_t* length)
   {
     if (match >= len2)
     {
-      for (uint32_t j = 0; j < len3; j++)
-      {
-        *length++;
-        if (output != NULL)
-          output[index++] = to[j];
-      }
-      match = 0;
-      start = 0;
+      goto append_new_string;
       continue;
     }else if (str[i] == what[match])
     {
@@ -133,7 +126,39 @@ char* strreplace(char* str, const char* what, const char* to, uint32_t* length)
       output[index++] = str[i];
     i++;
   }
+
+  /* appending the 'to' string */
+  append_new_string: {
+    if (match >= len2)
+    {
+      for (uint32_t j = 0; j < len3; j++)
+      {
+        *length++;
+        if (output != NULL)
+          output[index++] = to[j];
+      }
+      match = 0;
+      start = 0;
+    }
+  };
+
+  /* ending the string */
   if (output != NULL)
     output[index] = '\0';
   return output;
+}
+
+char* strjoin(const char* str1, const char* str2)
+{
+  uint32_t len1 = strlen(str1);
+  uint32_t len2 = strlen(str2);
+
+
+
+  char* joined = malloc(len1 + len2);
+  for (uint32_t i = 0; i < len1; i++)
+    joined[i] = str1[i];
+  for (uint32_t i = 0; i < len2; i++)
+    joined[i + len1] = str2[i];
+  return joined;
 }
