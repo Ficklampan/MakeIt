@@ -4,16 +4,17 @@
 #include "Type.h"
 
 typedef struct {
-  uint32_t length;
-  char* ptr;
-} string;
+  char* str;
+  uint32_t length, allocated;
+} string_buffer;
 
-string string_make(const char* ptr);
-string string_empty();
-string* string_split(string* str, char d, uint32_t* size);
-void string_append(string* str, char c);
-void string_clear(string* str);
-int string_index(string* str, const char* what);
-void string_replace(string* str, const char* what, const char* to);
+void string_buffer_init(string_buffer* str_buff, uint32_t initial_size);
+void string_buffer_append(string_buffer* str_buff, char c);
+void string_buffer_clear(string_buffer* str_buff);
+
+char** strsplit(char* str, char d, uint32_t* size);
+char* strapnd(char* str, const char* c);
+char* strapndc(char* str, char c);
+char* strreplace(char* str, const char* what, const char* to, uint32_t* length);
 
 #endif

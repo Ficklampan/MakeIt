@@ -1,17 +1,40 @@
-project:
+>> project:
   "MurderEngine"
+<<
 
-include:
-  "en fil",
-  "en till fil \"med grejer\"",
-  "ännu en till fil",
-  "okej nu räcker det"
+>> include:
+  en fil
+  en\ till\ fil \"med grejer\"
+  ännu en till fil
+  okej nu\ räcker\ det
+<<
 
-define:
-  "DEBUG"
+>> define1:
+  DEBUG
+  >> define1.1:
+    INSIDE
+    OUT
+    >> define2.1:
+      heres jhony
+    <<
+    YouTubesss
+  <<
+  >> define1.2:
+    why
+  <<
+  LOL
+  IPOP
+<<
 
-   annat:
-      [true],
-      [false],
-      [83],
-      [0.78]
+>> variable:
+  testar
+<<
+
+>> append:
+  testar
+  hejsan\ alla\ barn!
+<<
+
+>> cout:
+  $(testar)
+<<

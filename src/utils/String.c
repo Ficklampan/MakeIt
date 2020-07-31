@@ -1,86 +1,139 @@
 #include "String.h"
 
-#include <stdlib.h>
 #include <stdio.h> // remove
+#include <stdlib.h>
 #include <string.h>
 
-string string_make(const char* ptr)
+void string_buffer_init(string_buffer* str_buff, uint32_t initial_size)
 {
-  string str = {strlen(ptr), ptr};
-  return str;
+  str_buff->str = malloc(initial_size);
+  str_buff->str[0] = '\0';
+  str_buff->length = 0;
+  str_buff->allocated = initial_size;
 }
 
-string string_empty()
+void string_buffer_append(string_buffer* str_buff, char c)
 {
-  string str = {0, malloc(1)};
-  str.ptr[0] = 0;
-  return str;
-}
-
-string* string_split(string* str, char d, uint32_t* size)
-{
-  uint32_t length = 1;
-  for (uint32_t i = 0; i < str->length; i++)
+  if (str_buff->length + 1 >= str_buff->allocated)
   {
-    if (str->ptr[i] == d)
+    str_buff->allocated*=2;
+    str_buff->str = realloc(str_buff->str, str_buff->allocated);
+  }
+  str_buff->str[str_buff->length++] = c;
+  str_buff->str[str_buff->length] = '\0';
+}
+
+void string_buffer_clear(string_buffer* str_buff)
+{
+  str_buff->str[0] = '\0';
+  str_buff->length = 0;
+}
+
+char** strsplit(char* str, char d, uint32_t* size)
+{
+  uint32_t len = strlen(str);
+  uint32_t length = 1;
+  for (uint32_t i = 0; i < len; i++)
+  {
+    if (str[i] == d)
     {
-      str->ptr[i] = 0;
+      str[i] = 0;
       length++;
       continue;
     }
   }
-  string* str_arr = (string*) calloc(sizeof(string), length);
-  uint32_t index = 0, i = 0;
-  while (index < length)
+  char** strs = calloc(sizeof(char*), length);
+  uint32_t index = 0;
+  for (uint32_t i = 0; i < length; i++)
   {
-    uint32_t str_len = strlen(&str->ptr[i]);
-    str_arr[index].length = str_len;
-    str_arr[index].ptr = &str->ptr[i];
-    index++;
-    i+=str_len + 1;
+    strs[i] = &str[index];
+    index+=strlen(strs[i]) + 1;
   }
   *size = length;
-  return str_arr;
+  return strs;
 }
-
-void string_append(string* str, char c)
+char* strapnd(char* str, const char* apnd)
 {
-  str->ptr = realloc(str->ptr, str->length + 2);
-  str->ptr[str->length] = c;
-  str->ptr[str->length + 1] = 0;
-  str->length++;
-}
-
-void string_clear(string* str)
-{
-  if (str->length > 0)
-    str->ptr[0] = 0;
-  str->length = 0;
-}
-
-int string_index(string* str, const char* what)
-{
-  uint32_t str_len = strlen(what);
-  if (str_len > str->length)
-    return -1;
-  uint32_t index = 0;
-  int start_index = -1;
-  for (uint32_t i = 0; i < str->length; i++)
+  uint32_t len2 = strlen(apnd);
+  if (str != NULL)
   {
-    if (str->ptr[i] == what[index])
-    {
-      if (start_index < 0)
-        start_index = index;
-      index++;
-    }else
-      index = 0;
-    if (index >= str_len)
-      return start_index;
+    uint32_t len1 = strlen(str);
+    str = realloc(str, len1 + len2);
+    for (uint32_t j = 0; j < len2; j++)
+      str[len1 + j] = apnd[j];
+  }else
+  {
+    str = malloc(len2);
+    for (uint32_t j = 0; j < len2; j++)
+      str[j] = apnd[j];
   }
-  return -1;
+  return str;
+}
+char* strapndc(char* str, char c)
+{
+  if (str != NULL)
+  {
+    uint32_t len = strlen(str);
+    str = realloc(str, len + 1);
+    str[len] = c;
+  }else
+  {
+    str = malloc(1);
+    str[0] = c;
+  }
+  return str;
 }
 
-void string_replace(string* str, const char* what, const char* to)
+// not very pretty
+char* strreplace(char* str, const char* what, const char* to, uint32_t* length)
 {
-  // ömm
+  uint32_t len1 = strlen(str);
+  uint32_t len2 = strlen(what);
+  uint32_t len3 = strlen(to);
+
+  char* output = *length == 0 ? NULL : malloc(*length);
+  uint32_t index = 0;
+
+  uint32_t match = 0;
+  uint32_t start = 0;
+  uint32_t i = 0;
+  while (i < len1)
+  {
+    if (match >= len2)
+    {
+      for (uint32_t j = 0; j < len3; j++)
+      {
+        *length++;
+        if (output != NULL)
+          output[index++] = to[j];
+      }
+      match = 0;
+      start = 0;
+      continue;
+    }else if (str[i] == what[match])
+    {
+      if (match == 0)
+        start = i;
+      match++;
+      i++;
+      continue;
+    }else if (match > 0)
+    {
+      for (uint32_t j = 0; j < match; j++)
+      {
+        *length++;
+        if (output != NULL)
+          output[index++] = str[start + j];
+      }
+      match = 0;
+      start = 0;
+    }
+    *length++;
+    if (output != NULL)
+      output[index++] = str[i];
+    i++;
+  }
+  if (output != NULL)
+    output[index] = '\0';
+  return output;
 }
