@@ -1,12 +1,18 @@
 #ifndef MAKEIT_H
   #define MAKEIT_H
 
+#include "utils/Map.h"
+
 #define DEBUG
 
 typedef struct {
   char* name;
   map* vars;
+  array* include_paths;
+  array* lib_paths;
+  array* definitions;
   char* directory;
+  char* filepath;
 } makeit_project;
 
 int makeit_init_project(makeit_project* project, const char* name);

@@ -1,0 +1,48 @@
+>> project:
+  MurderEngine
+<<
+
+>> include:
+  /usr/include
+<<
+
+>> library:
+  /usr/lib
+<<
+
+>> define:
+  DEBUG
+<<
+
+>> variable:
+  sources
+  headers
+  libs
+<<
+
+>> append: sources
+  src/Test.cpp
+  src/Engine.cpp
+  src/stuff/Maths.cpp
+<<
+
+>> append: headers
+  src/include/Keyboard.hpp
+  src/include/Header.hpp
+<<
+
+>> append: libs
+  GLFW
+  GLEW
+<<
+
+>> cout:
+  $(sources)
+<<
+
+>> makefile:
+  -std=c++17
+  $(sources)
+  $(headers)
+  $(libs)
+<<
