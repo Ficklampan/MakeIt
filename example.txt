@@ -15,13 +15,22 @@
 
 >> variable:
   testar
+  lolipop
 <<
 
 >> append:
   testar
   hejsan\ alla\ barn!
+  idag\ ska\ vi\ lära\ grejor
+<<
+
+>> append:
+  lolipop
+  glubba
+  förfan
 <<
 
 >> cout:
   $(testar)
+  $(lolipop)
 <<

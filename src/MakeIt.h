@@ -1,6 +1,8 @@
 #ifndef MAKEIT_H
   #define MAKEIT_H
 
+#define DEBUG
+
 typedef struct {
   char* name;
   map* vars;

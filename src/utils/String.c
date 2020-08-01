@@ -29,123 +29,36 @@ void string_buffer_clear(string_buffer* str_buff)
   str_buff->length = 0;
 }
 
-char** strsplit(char* str, char d, uint32_t* size)
-{
-  uint32_t len = strlen(str);
-  uint32_t length = 1;
-  for (uint32_t i = 0; i < len; i++)
-  {
-    if (str[i] == d)
-    {
-      str[i] = 0;
-      length++;
-      continue;
-    }
-  }
-  char** strs = calloc(sizeof(char*), length);
-  uint32_t index = 0;
-  for (uint32_t i = 0; i < length; i++)
-  {
-    strs[i] = &str[index];
-    index+=strlen(strs[i]) + 1;
-  }
-  *size = length;
-  return strs;
-}
-char* strapnd(char* str, const char* apnd)
-{
-  uint32_t len2 = strlen(apnd);
-  if (str != NULL)
-  {
-    uint32_t len1 = strlen(str);
-    str = realloc(str, len1 + len2);
-    for (uint32_t j = 0; j < len2; j++)
-      str[len1 + j] = apnd[j];
-  }else
-  {
-    str = malloc(len2);
-    for (uint32_t j = 0; j < len2; j++)
-      str[j] = apnd[j];
-  }
-  return str;
-}
-char* strapndc(char* str, char c)
-{
-  if (str != NULL)
-  {
-    uint32_t len = strlen(str);
-    str = realloc(str, len + 1);
-    str[len] = c;
-  }else
-  {
-    str = malloc(1);
-    str[0] = c;
-  }
-  return str;
-}
-
 // not very pretty
-char* strreplace(char* str, const char* what, const char* to, uint32_t* length)
+char* strreplace(const char* str, const char* what, const char* to)
 {
   uint32_t len1 = strlen(str);
   uint32_t len2 = strlen(what);
   uint32_t len3 = strlen(to);
 
-  char* output = *length == 0 ? NULL : malloc(*length);
-  uint32_t index = 0;
+  string_buffer* output = calloc(sizeof(string_buffer), 1);
+  string_buffer_init(output, len1);
 
-  uint32_t match = 0;
-  uint32_t start = 0;
-  uint32_t i = 0;
-  while (i < len1)
+  for (uint32_t i = 0; i < len1; i++)
   {
-    if (match >= len2)
+    char match = (i < len1 - len2 + 1) ? 1 : 0;
+    for (uint32_t j = 0; j < len2 && (i + j) < len1; j++)
     {
-      goto append_new_string;
-      continue;
-    }else if (str[i] == what[match])
-    {
-      if (match == 0)
-        start = i;
-      match++;
-      i++;
-      continue;
-    }else if (match > 0)
-    {
-      for (uint32_t j = 0; j < match; j++)
+      if (str[i + j] != what[j])
       {
-        *length++;
-        if (output != NULL)
-          output[index++] = str[start + j];
+        match = 0;
+        break;
       }
-      match = 0;
-      start = 0;
     }
-    *length++;
-    if (output != NULL)
-      output[index++] = str[i];
-    i++;
-  }
-
-  /* appending the 'to' string */
-  append_new_string: {
-    if (match >= len2)
+    if (match == 1)
     {
       for (uint32_t j = 0; j < len3; j++)
-      {
-        *length++;
-        if (output != NULL)
-          output[index++] = to[j];
-      }
-      match = 0;
-      start = 0;
-    }
-  };
-
-  /* ending the string */
-  if (output != NULL)
-    output[index] = '\0';
-  return output;
+        string_buffer_append(output, to[j]);
+      i+=len2 - 1;
+    }else
+      string_buffer_append(output, str[i]);
+  }
+  return output->str;
 }
 
 char* strjoin(const char* str1, const char* str2)

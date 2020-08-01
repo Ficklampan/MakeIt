@@ -35,6 +35,7 @@ int makeit_init_project(makeit_project* project, const char* name)
 {
   project->name = name;
   project->vars = calloc(sizeof(map), 1);
+  map_init(project->vars, 8);
   return 1;
 }
 
@@ -114,12 +115,11 @@ int makeit_init_value(makeit_project* project, char** str)
   {
     char* element_key = project->vars->keys[i];
     string_buffer* element_value = (string_buffer*) project->vars->values[i];
+    if (element_value->length == 0)
+      continue;
 
     char* key = strjoin(strjoin("$(", element_key), ")\0");
-
-    uint32_t length;
-    strreplace(*str, key, element_value->str, &length);
-    *str = strreplace(*str, key, element_value->str, &length);
+    *str = strreplace(*str, key, element_value->str);
   }
   return 1;
 }

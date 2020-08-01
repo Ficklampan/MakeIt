@@ -3,6 +3,9 @@
 
 int makeit_process_functions(makeit_project* project, const char* func, const array* elements)
 {
+  #ifdef DEBUG
+    printf("[DEBUG] ==> processing function: %s\n", func);
+  #endif
   if (strcmp(func, "project") == 0)
   {
     if (elements->used < 1)
@@ -26,10 +29,12 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
       printf(ERR_NO_VAR_NAME_SPECIFIED, func);
       return 0;
     }
-    string_buffer* value = calloc(sizeof(string_buffer), 1);
-    string_buffer_init(value, 512);
     for (uint32_t i = 0; i < elements->used; i++)
+    {
+      string_buffer* value = calloc(sizeof(string_buffer), 1);
+      string_buffer_init(value, 512);
       map_push(project->vars, elements->values[i], value);
+    }
   }else if (strcmp(func, "append") == 0)
   {
     if (elements->used < 2)
@@ -59,7 +64,7 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
     for (uint32_t i = 0; i < elements->used; i++)
     {
 
-      printf("[cout] ==> %s\n", elements->values[i]);
+      printf("[cout] ==> %s\n", (char*) elements->values[i]);
     }
   }
   return 1;
