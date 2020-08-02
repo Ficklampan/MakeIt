@@ -18,7 +18,7 @@ void string_buffer_append(string_buffer* str_buff, char* str);
 void string_buffer_clear(string_buffer* str_buff);
 void string_buffer_sync(string_buffer* str_buff);
 
-array* strsplit(const char* str, char delimeter);
+array* strsplit(char* str, char delimeter);
 char* strreplace(const char* str, const char* what, const char* to);
 char* strjoin(const char* str1, const char* str2);
 char* strtrim(const char* str);

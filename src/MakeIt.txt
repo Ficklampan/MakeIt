@@ -1,0 +1,15 @@
+>> append: sources
+  $(current_dir)/MakeIt.c
+  $(current_dir)/MakeItFunc.c
+  $(current_dir)/MakeFile.c
+  $(current_dir)/MemPool.c
+  $(current_dir)/Config.c
+<<
+
+>> directory:
+  $(current_dir)/utils
+<<
+
+>> cout:
+  källor!!!
+<<

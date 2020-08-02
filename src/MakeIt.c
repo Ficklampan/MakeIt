@@ -1,38 +1,108 @@
+#include "MakeIt.h"
+
 #include "utils/FileUtils.h"
 #include "utils/String.h"
 #include "utils/Map.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <getopt.h>
 
+#include "Config.h"
 #include "MemPool.h"
 
 #include "texts.h"
-#include "MakeIt.h"
 #include "MakeItFunc.h"
+
+static struct option long_options[] = {
+  {"help", no_argument, 0, 'h'},
+  {"trace", no_argument, 0, 't'},
+  {"debug", no_argument, 0, 'd'},
+  {"functions", no_argument, 0, 'f'},
+  {"info", required_argument, 0, 'i'}
+};
+
+void usage()
+{
+  printf("Usage: makeit [flags] [directory/file]\n");
+  printf("Flags:\n");
+  printf("  -t, --trace                  Enable tracing\n");
+  printf("  -d, --debug                  Enable debugging\n");
+  printf("  -h, --help                   Prints this message and exit\n");
+  printf("  -d, --debug                  Prints this message and exit\n\n");
+  printf("  -f, --functions              Prints all functions\n");
+  printf("  -i FUNCTION, --info=FUNCTION\n                               Prints info about a function\n");
+  printf("Report bugs at <https://github.com/Ficklampan/MakeIt/issues>\n");
+}
 
 int main(int argc, char** argv)
 {
-  if (argc < 2)
+  /* get options */
+  int option_index = 0;
+  int c;
+  while ((c = getopt_long(argc, argv, "tdhfi:", long_options, &option_index)) != -1)
   {
-    printf(":: no directory specified\n");
-    return 1;
+    switch (c)
+    {
+      case 't':
+        config_set_trace(true);
+      break;
+      case 'd':
+        config_set_debug(true);
+      break;
+      case 'h':
+        usage();
+        return 0;
+      break;
+      case 'f':
+        usage_function("");
+        return 0;
+      break;
+      case 'i':
+        usage_function(optarg);
+        return 0;
+      break;
+      case '?':
+        printf(":: unknown option '%c'.\n", (char) c);
+        return 0;
+      break;
+      default:
+        abort();
+      break;
+    }
   }
-  printf("==> Initializing MakeIt...\n");
+
+  //printf("==> Initializing MakeIt...\n");
+  /* init */
   MemPool* mem_pool = (MemPool*) calloc(sizeof(MemPool), 1);
   mem_pool_init(mem_pool, 1024);
   mem_pool_bind(mem_pool);
 
   makeit_project* project = (makeit_project*) mem_calloc(sizeof(makeit_project), 1);
 
-  /* init directory and filepath */
-  project->directory = strpathfix(argv[1]);
-  project->filepath = strjoin(strjoin(project->directory, "/"), "MakeIt.txt");
+  /* default filepath */
+  char* filepath = "./MakeIt.txt";
 
-  printf("==> Parsing `%s`\n", project->filepath);
+  /* if a filepath was specified then use that */
+  if (optind < argc)
+    filepath = argv[optind];
+
+  if (!file_utils_exists(filepath))
+  {
+    printf(":: file not found `%s`.\n", filepath);
+    return 1;
+  }
+
+  /* init directory and filepath */
+  project->directory = strpathfix(strdir(filepath));
+  project->filepath = filepath;
+
+  if (config_trace())
+    printf("==> Parsing `%s`\n", project->filepath);
+  file_utils_mkdir(strjoin(project->directory, "/MakeItFiles"));
   if (makeit_parse_file(project, project->filepath) != 1)
   {
-    printf(":: errors occurred while parsing file `%s`\n", project->filepath);
+    printf(":: errors occurred while parsing file `%s`.\n", project->filepath);
     mem_afree();
     return 1;
   }
@@ -41,7 +111,7 @@ int main(int argc, char** argv)
   return 0;
 }
 
-int makeit_init_project(makeit_project* project, char* name)
+int makeit_init_project(makeit_project* project, char* name, char* lang)
 {
   project->name = name;
   project->vars = calloc(sizeof(map), 1);
@@ -135,7 +205,6 @@ int makeit_parse_data(makeit_project* project, const char* data, const char* dir
 int makeit_parse_file(makeit_project* project, const char* filepath)
 {
   const char* directory = strdir(filepath);
-  printf("dir: %s\n", directory);
   uint32_t length;
   uint8_t* data = file_utils_read(filepath, &length);
   return makeit_parse_data(project, (char*) data, directory);

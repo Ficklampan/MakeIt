@@ -1,5 +1,6 @@
 >> project:
-  MurderEngine
+  MakeIt
+  c++
 <<
 
 >> include:
@@ -20,17 +21,8 @@
   libs
 <<
 
->> append: sources
-  $(current_dir)/src/MakeIt.c
-  $(current_dir)/src/MakeItFunc.c
-  $(current_dir)/src/MakeFile.c
-  $(current_dir)/src/utils/FileUtils.c
-  $(current_dir)/src/utils/Map.c
-  $(current_dir)/src/utils/String.c
-<<
-
 >> directory:
-  $(current_dir)/src/utils
+  $(current_dir)/src
 <<
 
 >> append: headers
@@ -47,15 +39,10 @@
   GLEW
 <<
 
->> cout:
-  sources: $(sources)
-  headers: $(headers)
-  libs: $(libs)
-<<
-
 >> makefile:
   none
   $(sources)
   $(headers)
   $(libs)
+  cpp
 <<

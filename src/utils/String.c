@@ -41,7 +41,7 @@ void string_buffer_sync(string_buffer* str_buff)
   str_buff->length = strlen(str_buff->str);
 }
 
-array* strsplit(const char* str, char delimeter)
+array* strsplit(char* str, char delimeter)
 {
   uint32_t len = strlen(str);
   uint32_t length = 1;
@@ -150,7 +150,7 @@ char* strdir(const char* str)
 char* strfname(char* str)
 {
   uint32_t start = strlastiof(str, '/');
-  return strsub(str, start, strlen(str));
+  return strsub(str, start + 1, strlen(str));
 }
 
 char* strfilext(const char* str, const char* ext)
@@ -162,7 +162,7 @@ char* strfilext(const char* str, const char* ext)
 
 char* strsub(const char* str, uint32_t start, uint32_t end)
 {
-  char* output = (char*) malloc(end - start);
+  char* output = (char*) calloc(sizeof(char), end - start);
   for (uint32_t i = start; i < end; i++)
     output[i - start] = str[i];
   return output;
