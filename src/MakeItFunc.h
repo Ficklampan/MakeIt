@@ -3,6 +3,6 @@
 
 #include "MakeIt.h"
 
-int makeit_process_functions(makeit_project* project, const char* func, const array* elements);
+int makeit_process_functions(makeit_project* project, const char* func, const array* elements, const char* directory);
 
 #endif

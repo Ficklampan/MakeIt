@@ -21,14 +21,25 @@
 <<
 
 >> append: sources
-  src/Test.cpp
-  src/Engine.cpp
-  src/stuff/Maths.cpp
+  $(current_dir)/src/MakeIt.c
+  $(current_dir)/src/MakeItFunc.c
+  $(current_dir)/src/MakeFile.c
+  $(current_dir)/src/utils/FileUtils.c
+  $(current_dir)/src/utils/Map.c
+  $(current_dir)/src/utils/String.c
+<<
+
+>> directory:
+  $(current_dir)/src/utils
 <<
 
 >> append: headers
-  src/include/Keyboard.hpp
-  src/include/Header.hpp
+  $(current_dir)/src/*.h
+<<
+
+>> search:
+  headers
+  $(headers)
 <<
 
 >> append: libs
@@ -37,11 +48,13 @@
 <<
 
 >> cout:
-  $(sources)
+  sources: $(sources)
+  headers: $(headers)
+  libs: $(libs)
 <<
 
 >> makefile:
-  -std=c++17
+  none
   $(sources)
   $(headers)
   $(libs)

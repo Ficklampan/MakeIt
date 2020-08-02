@@ -41,7 +41,7 @@ void string_buffer_sync(string_buffer* str_buff)
   str_buff->length = strlen(str_buff->str);
 }
 
-char** strsplit(char* str, char delimeter, uint32_t* size)
+array* strsplit(const char* str, char delimeter)
 {
   uint32_t len = strlen(str);
   uint32_t length = 1;
@@ -54,17 +54,17 @@ char** strsplit(char* str, char delimeter, uint32_t* size)
       continue;
     }
   }
-  char** str_arr = (char**) calloc(sizeof(char*), length);
+  array* arr = (array*) calloc(sizeof(array), 1);
+  array_init(arr, length);
   uint32_t index = 0, i = 0;
   while (index < length)
   {
     uint32_t str_len = strlen(&str[i]);
-    str_arr[index] = &str[i];
+    array_push(arr, &str[i]);
     index++;
     i+=str_len + 1;
   }
-  *size = length;
-  return str_arr;
+  return arr;
 }
 
 // not very pretty
@@ -104,13 +104,12 @@ char* strjoin(const char* str1, const char* str2)
   uint32_t len1 = strlen(str1);
   uint32_t len2 = strlen(str2);
 
-
-
-  char* joined = malloc(len1 + len2);
+  char* joined = (char*) calloc(sizeof(char), len1 + len2);
+  uint32_t index = 0;
   for (uint32_t i = 0; i < len1; i++)
-    joined[i] = str1[i];
+    joined[index++] = str1[i];
   for (uint32_t i = 0; i < len2; i++)
-    joined[i + len1] = str2[i];
+    joined[index++] = str2[i];
   return joined;
 }
 
@@ -132,19 +131,26 @@ char* strtrim(const char* str)
   return output;
 }
 
-char* strpathfix(char* str)
+char* strpathfix(const char* str)
 {
   uint32_t len = strlen(str);
-  if (str[len - 1] == '/')
-    return str;
-  char* output = malloc(len + 2);
+  char* output = (char*) malloc(len + 1);
   for (uint32_t i = 0; i < len; i++)
     output[i] = str[i];
-  output[len] = '/';
-
-  /* ending the string */
-  output[len + 1] = '\0';
+  output[len] = '\0';
   return output;
+}
+
+char* strdir(const char* str)
+{
+  uint32_t end = strlastiof(str, '/');
+  return strsub(str, 0, end);
+}
+
+char* strfname(char* str)
+{
+  uint32_t start = strlastiof(str, '/');
+  return strsub(str, start, strlen(str));
 }
 
 char* strfilext(const char* str, const char* ext)
@@ -156,7 +162,7 @@ char* strfilext(const char* str, const char* ext)
 
 char* strsub(const char* str, uint32_t start, uint32_t end)
 {
-  char* output = malloc(end - start);
+  char* output = (char*) malloc(end - start);
   for (uint32_t i = start; i < end; i++)
     output[i - start] = str[i];
   return output;
@@ -165,12 +171,31 @@ char* strsub(const char* str, uint32_t start, uint32_t end)
 uint32_t strlastiof(const char* str, char c)
 {
   uint32_t len = strlen(str);
-  for (uint32_t i = 0; i < len; i++)
+  for (uint32_t i = len - 1; i >= 0; i--)
   {
     if (str[i] == c)
       return i;
   }
   return 0;
+}
+
+bool strcnts(const char* str, const char* what)
+{
+  uint32_t len1 = strlen(str);
+  uint32_t len2 = strlen(what);
+
+  uint32_t j = 0;
+  for (uint32_t i = 0; i < len1; i++)
+  {
+    if (str[i] == what[j])
+    {
+      j++;
+      if (j >= len2)
+        return true;
+    }else
+      j = 0;
+  }
+  return false;
 }
 
 char strempty(const char* str)

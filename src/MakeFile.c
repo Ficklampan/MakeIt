@@ -1,12 +1,16 @@
 #include "MakeFile.h"
 
 #include "utils/String.h"
+#include "utils/FileUtils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-int make_makefile(const char* name, const char* directory, const char* filepath, const char* flags, array* sources, array* headers, array* libs, array* include_paths, array* lib_paths, array* definitions, const char* build_path, char** info)
+int make_makefile(char* name, char* directory, char* filepath, char* flags, char* sources, char* headers, char* libs, array* include_paths, array* lib_paths, array* definitions, char* build_path, char** info)
 {
+  array* sources_arr = strsplit(sources, ' ');
+  array* libs_arr = strsplit(libs, ' ');
+
   string_buffer* source = calloc(sizeof(string_buffer), 1);
   string_buffer_init(source, 1024);
 
@@ -16,26 +20,18 @@ int make_makefile(const char* name, const char* directory, const char* filepath,
 
   /* appending sources */
   string_buffer_append(source, "SRC = ");
-  for (uint32_t i = 0; i < sources->used; i++)
-  {
-    string_buffer_append(source, sources->values[i]);
-    string_buffer_appendc(source, ' ');
-  }
+  string_buffer_append(source, sources);
   string_buffer_append(source, "\n");
 
   /* appending headers */
   string_buffer_append(source, "HEADERS = ");
-  for (uint32_t i = 0; i < headers->used; i++)
-  {
-    string_buffer_append(source, headers->values[i]);
-    string_buffer_appendc(source, ' ');
-  }
+  string_buffer_append(source, headers);
   string_buffer_append(source, "\n");
 
   string_buffer_append(source, "OBJ = ");
-  for (uint32_t i = 0; i < sources->used; i++)
+  for (uint32_t i = 0; i < sources_arr->used; i++)
   {
-    if (strempty(sources->values[i]))
+    if (strempty(sources_arr->values[i]))
       continue;
 
     /* building the object path */
@@ -44,7 +40,7 @@ int make_makefile(const char* name, const char* directory, const char* filepath,
     string_buffer_append(path, directory);
     string_buffer_append(path, build_path);
     string_buffer_appendc(path, '/');
-    char* filext = strfilext(sources->values[i], "o");
+    char* filext = strfilext(sources_arr->values[i], "o");
     string_buffer_append(path, strsub(filext, strlen(directory), strlen(filext)));
 
     string_buffer_append(source, path->str);
@@ -100,13 +96,13 @@ int make_makefile(const char* name, const char* directory, const char* filepath,
   string_buffer_append(source, "\n");
 
   string_buffer_append(source, "LIBS = ");
-  for (uint32_t i = 0; i < libs->used; i++)
+  for (uint32_t i = 0; i < libs_arr->used; i++)
   {
-    if (strempty(libs->values[i]))
+    if (strempty(libs_arr->values[i]))
       continue;
 
     string_buffer_append(source, "-l");
-    string_buffer_append(source, libs->values[i]);
+    string_buffer_append(source, libs_arr->values[i]);
     string_buffer_appendc(source, ' ');
   }
   string_buffer_append(source, "\n");
@@ -124,6 +120,6 @@ int make_makefile(const char* name, const char* directory, const char* filepath,
   string_buffer_append(source, "clean:\n");
   string_buffer_append(source, "\trm -f $(OBJ)\n");
 
-  file_utils_write(filepath, source->str, source->length);
+  file_utils_write(filepath, (uint8_t*) source->str, source->length);
   return 1;
 }

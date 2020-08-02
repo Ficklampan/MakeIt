@@ -1,5 +1,4 @@
+.other
 makeit
 *.o
 buildd.sh
-src/clang/
-src/cpplang/

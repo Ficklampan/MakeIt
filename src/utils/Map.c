@@ -11,7 +11,7 @@ void map_init(map* m, uint32_t initial_size)
   m->used = 0;
 }
 
-void map_push(map* m, const char* key, const void* value)
+void map_push(map* m, char* key, void* value)
 {
   if (m->used >= m->size)
   {
@@ -40,7 +40,7 @@ void array_init(array* a, uint32_t initial_size)
   a->used = 0;
 }
 
-void array_push(array* a, const void* value)
+void array_push(array* a, void* value)
 {
   if (a->used >= a->size)
   {
