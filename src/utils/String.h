@@ -17,6 +17,7 @@ void string_buffer_appendc(string_buffer* str_buff, char c);
 void string_buffer_append(string_buffer* str_buff, char* str);
 void string_buffer_clear(string_buffer* str_buff);
 void string_buffer_sync(string_buffer* str_buff);
+void string_buffer_delete(string_buffer* str_buff);
 
 array* strsplit(char* str, char delimeter);
 char* strreplace(const char* str, const char* what, const char* to);
@@ -30,6 +31,7 @@ char* strfilext(const char* str, const char* ext);
 char* strsub(const char* str, uint32_t start, uint32_t end);
 uint32_t strlastiof(const char* str, char c);
 bool strcnts(const char* str, const char* what);
+bool strendc(const char* str, const char c);
 char strempty(const char* str);
 
 #endif

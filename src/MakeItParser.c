@@ -1,0 +1,49 @@
+#include "MakeItParser.h"
+
+#include <stdlib.h>
+
+static void push_string(array* values, string_buffer* str_buffer)
+{
+  if (str_buffer->length > 0 && !strempty(str_buffer->str))
+  {
+    char* str = strtrim(str_buffer->str);
+    if (!strempty(str_buffer->str))
+      array_push(values, str);
+    string_buffer_clear(str_buffer);
+  }
+}
+
+array* makeit_parser_parse_data(const char* data)
+{
+  uint32_t data_length = strlen(data);
+
+  array* elements = (array*) calloc(sizeof(array), 1);
+  array_init(elements, 32);
+
+  string_buffer* str_buffer = (string_buffer*) calloc(sizeof(string_buffer), 1);
+  string_buffer_init(str_buffer, 64);
+
+  func_element* elem = NULL;
+
+  for (uint32_t i = 0; i < data_length; i++)
+  {
+    char c = data[i];
+
+    if (c == ':')
+    {
+      elem = (func_element*) calloc(sizeof(func_element), 1);
+      elem->name = (char*) calloc(sizeof(char), str_buffer->length + 1);
+      elem->variables = (array*) calloc(sizeof(array), 1);
+      array_init(elem->variables, 8);
+
+      strcpy(elem->name, str_buffer->str);
+      string_buffer_clear(str_buffer);
+      array_push(elements, elem);
+      continue;
+    }else if (c == '\n' || c == ',')
+      push_string(elem->variables, str_buffer);
+    else
+      string_buffer_appendc(str_buffer, c);
+  }
+  return elements;
+}

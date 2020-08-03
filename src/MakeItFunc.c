@@ -20,7 +20,7 @@ static const char* FUNC_COUT_INFO = "Print stuff to the console";
 static const char* FUNC_SYSTEM_INFO = "Execute system commands";
 static const char* FUNC_DEFINE_INFO = "Add definitions to the compiler (like '#define SOMETHING' in C)";
 static const char* FUNC_SEARCH_INFO = "Searching for files with a pattern and adding it to the specified variable";
-static const char* FUNC_MAKEFILE_INFO = "Create 'Makefile'";
+static const char* FUNC_MAKEFILE_INFO = "Generates a GNU Makefile";
 
 static const char* FUNC_PROJECT_INFO_FULL   = "  param[0]: name (project name)\n  param[1]: language[C/C++] (programming language)\n";
 static const char* FUNC_INCLUDE_INFO_FULL   = "  param[+0]: directory/file (directory with a MakeIt script)\n";
@@ -28,9 +28,9 @@ static const char* FUNC_VARIABLE_INFO_FULL  = "  param[+0]: name (variable name)
 static const char* FUNC_APPEND_INFO_FULL    = "  param[0]: variable (what variable to append)\n  param[+1]: data\n";
 static const char* FUNC_COUT_INFO_FULL      = "  param[+0]: message\n";
 static const char* FUNC_SYSTEM_INFO_FULL    = "  param[+0]: command (system command)\n";
-static const char* FUNC_DEFINE_INFO_FULL    = "  param[+0]: name\n";
+static const char* FUNC_DEFINE_INFO_FULL    = "  param[+0]: name (define something in MakeIt)\n";
 static const char* FUNC_SEARCH_INFO_FULL    = "  param[0]: variable (what variable to append found files)\n  param[+1]: pattern (filepath pattern e.g: 'src/include/*.h')\n";
-static const char* FUNC_MAKEFILE_INFO_FULL  = "  param[0]: flags (compiler flags)\n  param[1]: sources (a string of source files)\n  param[2]: headers (a string of header files)\n  param[3]: libs (a string of libraries)\n  param[4]: source file extension (e.g: 'cpp' / 'c')\n";
+static const char* FUNC_MAKEFILE_INFO_FULL  = "  param[0]: flags (compiler flags)\n  param[1]: sources (a string of source files)\n  param[2]: headers (a string of header files)\n  param[3]: libs (a string of libraries)\n  param[4]: include_paths (include directories)\n  param[5]: library_paths (library directories)\n  param[6] definitions (like '#define SOMETHING' but in the compiler)\n";
 
 void usage_function(const char* func)
 {
@@ -166,6 +166,14 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
     array_clear(value);
     for (uint32_t i = 1; i < elements->used; i++)
       file_utils_find(strdir(elements->values[i]), elements->values[i], value, true);
+  }else if (strcmp(func, "dependencies") == 0)
+  {
+    if (elements->used < 1)
+    {
+      printf(ERR_TOO_FEW_ARGS, "+1", elements->used, func);
+      return 0;
+    }
+
   }else if (strcmp(func, "makefile") == 0)
   {
     if (elements->used < 7)

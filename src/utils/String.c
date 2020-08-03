@@ -41,6 +41,12 @@ void string_buffer_sync(string_buffer* str_buff)
   str_buff->length = strlen(str_buff->str);
 }
 
+void string_buffer_delete(string_buffer* str_buff)
+{
+  free(str_buff->str);
+  free(str_buff);
+}
+
 array* strsplit(char* str, char delimeter)
 {
   uint32_t len = strlen(str);
@@ -204,6 +210,14 @@ bool strcnts(const char* str, const char* what)
       j = 0;
   }
   return false;
+}
+
+bool strendc(const char* str, const char c)
+{
+  uint32_t len = strlen(str);
+  if (len == 0)
+    return false;
+  return str[len - 1] == c;
 }
 
 char strempty(const char* str)

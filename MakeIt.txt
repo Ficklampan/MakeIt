@@ -1,51 +1,24 @@
->> project:
+project:
   MakeIt
   c
-<<
 
->> define:
-  DEBUG
-<<
-
->> variable:
+variable:
   sources
   headers
-  include_paths
-  library_paths
-  definitions
-<<
 
->> append: headers
+append: headers
   $(current_dir)/src/*.h
-<<
 
->> search:
+search:
   headers
   $(headers)
-<<
 
->> include:
+include:
   $(current_dir)/src
-<<
 
->> append: include_paths
-  /usr/include
-<<
-
->> append: library_paths
-  /usr/lib
-<<
-
->> append: definitions
-  DEBUG
-<<
-
->> makefile:
+makefile:
+  none, $(sources), $(headers)
   none
-  $(sources)
-  $(headers)
   none
-  $(include_paths)
-  $(library_paths)
-  $(definitions)
-<<
+  none
+  none

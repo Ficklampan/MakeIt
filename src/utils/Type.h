@@ -1,6 +1,7 @@
 #ifndef TYPE_H
   #define TYPE_H
 
+#include <stddef.h>
 #include <stdbool.h>
 
 typedef unsigned int uint8_t;

@@ -3,6 +3,7 @@
 #include "utils/FileUtils.h"
 #include "utils/String.h"
 #include "utils/Map.h"
+#include "utils/Time.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +13,7 @@
 #include "MemPool.h"
 
 #include "texts.h"
+#include "MakeItParser.h"
 #include "MakeItFunc.h"
 
 static struct option long_options[] = {
@@ -29,7 +31,8 @@ void usage()
   printf("  -t, --trace                  Enable tracing\n");
   printf("  -d, --debug                  Enable debugging\n");
   printf("  -h, --help                   Prints this message and exit\n");
-  printf("  -d, --debug                  Prints this message and exit\n\n");
+  printf("  -m, --millis                 See how long it took to make it\n");
+  printf("  -d, --debug                  Prints this message and exit\n");
   printf("  -f, --functions              Prints all functions\n");
   printf("  -i FUNCTION, --info=FUNCTION\n                               Prints info about a function\n");
   printf("Report bugs at <https://github.com/Ficklampan/MakeIt/issues>\n");
@@ -40,7 +43,7 @@ int main(int argc, char** argv)
   /* get options */
   int option_index = 0;
   int c;
-  while ((c = getopt_long(argc, argv, "tdhfi:", long_options, &option_index)) != -1)
+  while ((c = getopt_long(argc, argv, "tdhmfi:", long_options, &option_index)) != -1)
   {
     switch (c)
     {
@@ -49,6 +52,9 @@ int main(int argc, char** argv)
       break;
       case 'd':
         config_set_debug(true);
+      break;
+      case 'm':
+        config_set_millis(true);
       break;
       case 'h':
         usage();
@@ -72,8 +78,9 @@ int main(int argc, char** argv)
     }
   }
 
-  //printf("==> Initializing MakeIt...\n");
   /* init */
+  uint64_t start_millis = time_millis();
+
   MemPool* mem_pool = (MemPool*) calloc(sizeof(MemPool), 1);
   mem_pool_init(mem_pool, 1024);
   mem_pool_bind(mem_pool);
@@ -106,7 +113,12 @@ int main(int argc, char** argv)
     mem_afree();
     return 1;
   }
-  printf("==> MakeIt made it without errors!\n");
+  uint64_t end_millis = time_millis();
+  printf("==> MakeIt made it without errors");
+  if (config_millis())
+    printf(", in %i milliseconds!\n", (end_millis - start_millis));
+  else
+    printf("!\n");
   mem_afree();
   return 0;
 }
@@ -133,77 +145,25 @@ int makeit_init_project(makeit_project* project, char* name, char* lang)
 
 int makeit_parse_data(makeit_project* project, const char* data, const char* directory)
 {
-  uint32_t data_length = strlen(data);
-
-  /* function name string buffer */
-  string_buffer* func = calloc(sizeof(string_buffer), 1);
-  string_buffer_init(func, 512);
-
-  /* element value string buffer */
-  string_buffer* element = calloc(sizeof(string_buffer), 1);
-  string_buffer_init(element, 512);
-
-  /* array of elements in function */
-  array* elements = calloc(sizeof(array), 1);
-  array_init(elements, 4);
-
-  /* current state */
-  uint8_t data_type = 0;
-
-  for (uint32_t i = 0; i < data_length; i++)
+  array* tokens = makeit_parser_parse_data(data);
+  for (uint32_t i = 0; i < tokens->used; i++)
   {
-    char c = data[i];
-    char last = i > 0 ? data[i - 1] : 0;
+    func_element* elem = (func_element*) tokens->values[i];
 
-    /* check if function start point */
-    if (c == '>' && last == '>')
+    /* debug stuff */
+    if (config_debug())
     {
-      data_type = 1;
-      continue;
-
-    /* check if end of function name */
-    }else if (data_type == 1 && c == ':')
-    {
-      data_type = 2;
-      continue;
-
-    /* check if function has ended */
-    }else if (data_type == 2 && c == '<' && last == '<')
-    {
-      data_type = 0;
-      if (makeit_process_functions(project, func->str, elements, directory) != 1)
-        return 0;
-      string_buffer_clear(func);
-      array_clear(elements);
-      continue;
-    /* if new line: add current variable */
-    }else if (data_type == 2 && c == '\n')
-    {
-      if (element->length > 0)
-      {
-        element->str = strtrim(element->str);
-        string_buffer_sync(element);
-
-        /* check agian because we modified the string */
-        if (element->length > 0)
-        {
-          if (makeit_init_value(project, &element->str, directory) != 1)
-            return 0;
-          array_push(elements, element->str);
-          element = calloc(sizeof(string_buffer), 1);
-          string_buffer_init(element, 512);
-        }
-      }
-      continue;
+      printf("==> [debug] function[%s]:\n", elem->name);
+      for (uint32_t j = 0; j < elem->variables->used; j++)
+        printf("==> [debug] var[%s]\n", (char*) elem->variables->values[j]);
     }
-
-    /* append function name */
-    if (data_type == 1 && c != ' ' && c != '>' && c != '<')
-      string_buffer_appendc(func, c);
-
-    /* append variable data */
-    else if (data_type == 2 && c != '>' && c != '<')
-      string_buffer_appendc(element, c);
+    for (uint32_t j = 0; j < elem->variables->used; j++)
+    {
+      if (makeit_init_value(project, (char**) &elem->variables->values[j], directory) != 1)
+        return 0;
+    }
+    if (makeit_process_functions(project, elem->name, elem->variables, directory) != 1)
+      return 0;
   }
   return 1;
 }
