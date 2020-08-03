@@ -10,7 +10,6 @@
 >> variable:
   sources
   headers
-  libs
   include_paths
   library_paths
   definitions
@@ -29,11 +28,6 @@
   $(current_dir)/src
 <<
 
->> append: libs
-  GLFW
-  GLEW
-<<
-
 >> append: include_paths
   /usr/include
 <<
@@ -50,7 +44,7 @@
   none
   $(sources)
   $(headers)
-  $(libs)
+  none
   $(include_paths)
   $(library_paths)
   $(definitions)

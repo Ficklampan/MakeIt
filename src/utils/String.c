@@ -44,6 +44,8 @@ void string_buffer_sync(string_buffer* str_buff)
 array* strsplit(char* str, char delimeter)
 {
   uint32_t len = strlen(str);
+  if (len == 0)
+    return NULL;
   uint32_t length = 1;
   for (uint32_t i = 0; i < len; i++)
   {

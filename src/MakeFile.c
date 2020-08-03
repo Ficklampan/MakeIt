@@ -26,7 +26,7 @@ int make_makefile(char* name, char* directory, char* filepath, char* flags,
 
   /* sources */
   string_buffer_append(source, "SRC = ");
-  for (uint32_t i = 0; i < sources->used; i++)
+  for (uint32_t i = 0; sources != NULL && i < sources->used; i++)
   {
     string_buffer_append(source, sources->values[i]);
     if (i < sources->used - 1)
@@ -36,7 +36,7 @@ int make_makefile(char* name, char* directory, char* filepath, char* flags,
 
   /* headers */
   string_buffer_append(source, "HEADERS = ");
-  for (uint32_t i = 0; i < headers->used; i++)
+  for (uint32_t i = 0; headers != NULL && i < headers->used; i++)
   {
     string_buffer_append(source, headers->values[i]);
     if (i < headers->used - 1)
@@ -46,7 +46,7 @@ int make_makefile(char* name, char* directory, char* filepath, char* flags,
 
   /* objects */
   string_buffer_append(source, "OBJ = ");
-  for (uint32_t i = 0; i < sources->used; i++)
+  for (uint32_t i = 0; sources != NULL && i < sources->used; i++)
   {
     char* obj = strjoin(build_path, strfilext(strsub(sources->values[i], strlen(directory), strlen(sources->values[i])), "o"));
     char* obj_dir = strdir(obj);
@@ -69,7 +69,7 @@ int make_makefile(char* name, char* directory, char* filepath, char* flags,
 
   /* libraries */
   string_buffer_append(source, "LIBS = ");
-  for (uint32_t i = 0; i < libs->used; i++)
+  for (uint32_t i = 0; libs != NULL && i < libs->used; i++)
   {
     string_buffer_append(source, "-l");
     string_buffer_append(source, libs->values[i]);
@@ -80,7 +80,7 @@ int make_makefile(char* name, char* directory, char* filepath, char* flags,
 
   /* definitions */
   string_buffer_append(source, "DEFS = ");
-  for (uint32_t i = 0; i < definitions->used; i++)
+  for (uint32_t i = 0; definitions != NULL && i < definitions->used; i++)
   {
     string_buffer_append(source, "-D");
     string_buffer_append(source, definitions->values[i]);
@@ -96,7 +96,7 @@ int make_makefile(char* name, char* directory, char* filepath, char* flags,
 
   /* include directories */
   string_buffer_append(source, "IDIR = ");
-  for (uint32_t i = 0; i < include_paths->used; i++)
+  for (uint32_t i = 0; include_paths != NULL && i < include_paths->used; i++)
   {
     string_buffer_append(source, "-I");
     string_buffer_append(source, include_paths->values[i]);
@@ -107,7 +107,7 @@ int make_makefile(char* name, char* directory, char* filepath, char* flags,
 
   /* library directories */
   string_buffer_append(source, "LDIR = ");
-  for (uint32_t i = 0; i < lib_paths->used; i++)
+  for (uint32_t i = 0; lib_paths != NULL && i < lib_paths->used; i++)
   {
     string_buffer_append(source, "-L");
     string_buffer_append(source, lib_paths->values[i]);
@@ -116,11 +116,11 @@ int make_makefile(char* name, char* directory, char* filepath, char* flags,
   }
   string_buffer_append(source, "\n\n");
 
-  string_buffer_append(source, "$(OUTD)/%.o: %.* $(HEADERS)\n");
-  string_buffer_append(source, "	$(CC) -c -o $@ $< $(CFLAGS) $(INCD) $(DEFS)\n\n");
+  string_buffer_append(source, "$(BDIR)/%.o: %.* $(HEADERS)\n");
+  string_buffer_append(source, "	$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(DEFS)\n\n");
 
   string_buffer_append(source, "$(NAME): $(OBJ)\n");
-  string_buffer_append(source, "	$(CC) -o $@ $^ $(LIBD) $(LIBS)\n\n");
+  string_buffer_append(source, "	$(CC) -o $@ $^ $(LDIR) $(LIBS)\n\n");
 
   string_buffer_append(source, ".PHONY: clean\n\n");
 

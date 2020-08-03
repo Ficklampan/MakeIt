@@ -6,15 +6,6 @@
   $(current_dir)/Config.c
 <<
 
->> append: sources
-  $(current_dir)/delete/delete1.cpp
-  $(current_dir)/delete/delete2.cpp
-  $(current_dir)/delete/deleteme.cxx
-  $(current_dir)/delete/justtesting.cxx
-  $(current_dir)/delete/moretest.cxx
-  $(current_dir)/delete/whynot.c
-<<
-
 >> include:
   $(current_dir)/utils
 <<
