@@ -3,14 +3,6 @@
   c++
 <<
 
->> include:
-  /usr/include
-<<
-
->> library:
-  /usr/lib
-<<
-
 >> define:
   DEBUG
 <<
@@ -19,10 +11,9 @@
   sources
   headers
   libs
-<<
-
->> directory:
-  $(current_dir)/src
+  include_paths
+  library_paths
+  definitions
 <<
 
 >> append: headers
@@ -34,9 +25,25 @@
   $(headers)
 <<
 
+>> include:
+  $(current_dir)/src
+<<
+
 >> append: libs
   GLFW
   GLEW
+<<
+
+>> append: include_paths
+  /usr/include
+<<
+
+>> append: library_paths
+  /usr/lib
+<<
+
+>> append: definitions
+  DEBUG
 <<
 
 >> makefile:
@@ -44,5 +51,7 @@
   $(sources)
   $(headers)
   $(libs)
-  cpp
+  $(include_paths)
+  $(library_paths)
+  $(definitions)
 <<

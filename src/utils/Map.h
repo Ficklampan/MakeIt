@@ -15,7 +15,7 @@ typedef struct {
 } array;
 
 void map_init(map* m, uint32_t initial_size);
-void map_push(map* m, char* key, void* value);
+void* map_push(map* m, char* key, void* value);
 void* map_pull(map* m, const char* key);
 
 void array_init(array* a, uint32_t initial_size);

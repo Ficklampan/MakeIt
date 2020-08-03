@@ -3,7 +3,3 @@
   $(current_dir)/Map.c
   $(current_dir)/String.c
 <<
-
->> cout:
-  extra!!!
-<<

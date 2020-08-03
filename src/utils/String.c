@@ -6,7 +6,7 @@
 
 void string_buffer_init(string_buffer* str_buff, uint32_t initial_size)
 {
-  str_buff->str = malloc(initial_size);
+  str_buff->str = calloc(sizeof(char), initial_size);
   str_buff->str[0] = '\0';
   str_buff->length = 0;
   str_buff->allocated = initial_size;
@@ -122,7 +122,7 @@ char* strtrim(const char* str)
     start++;
   while (str[end] == ' ')
     end--;
-  char* output = malloc(end - start + 1);
+  char* output = (char*) calloc(sizeof(char), end - start + 1);
   for (uint32_t i = start; i < end; i++)
     output[i - start] = str[i];
 
@@ -134,7 +134,7 @@ char* strtrim(const char* str)
 char* strpathfix(const char* str)
 {
   uint32_t len = strlen(str);
-  char* output = (char*) malloc(len + 1);
+  char* output = (char*) calloc(sizeof(char), len + 1);
   for (uint32_t i = 0; i < len; i++)
     output[i] = str[i];
   output[len] = '\0';
@@ -153,6 +153,12 @@ char* strfname(char* str)
   return strsub(str, start + 1, strlen(str));
 }
 
+char* strfext(char* str)
+{
+  uint32_t start = strlastiof(str, '.');
+  return strsub(str, start + 1, strlen(str));
+}
+
 char* strfilext(const char* str, const char* ext)
 {
   uint32_t index = strlastiof(str, '.');
@@ -162,7 +168,7 @@ char* strfilext(const char* str, const char* ext)
 
 char* strsub(const char* str, uint32_t start, uint32_t end)
 {
-  char* output = (char*) calloc(sizeof(char), end - start);
+  char* output = (char*) calloc(sizeof(char), end - start + 1);
   for (uint32_t i = start; i < end; i++)
     output[i - start] = str[i];
   return output;

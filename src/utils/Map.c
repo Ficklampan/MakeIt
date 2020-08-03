@@ -11,7 +11,7 @@ void map_init(map* m, uint32_t initial_size)
   m->used = 0;
 }
 
-void map_push(map* m, char* key, void* value)
+void* map_push(map* m, char* key, void* value)
 {
   if (m->used >= m->size)
   {
@@ -21,6 +21,7 @@ void map_push(map* m, char* key, void* value)
   }
   m->keys[m->used] = key;
   m->values[m->used++] = value;
+  return value;
 }
 
 void* map_pull(map* m, const char* key)

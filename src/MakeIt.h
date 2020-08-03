@@ -3,15 +3,16 @@
 
 #include "utils/Map.h"
 
-#define NDEBUG
+enum lang_t {
+  LANG_C, LANG_CPP
+};
 
 typedef struct {
   char* name;
-  char* lang;
+  enum lang_t lang;
   map* vars;
-  array* include_paths;
-  array* lib_paths;
   array* definitions;
+
   char* directory;
   char* filepath;
 } makeit_project;

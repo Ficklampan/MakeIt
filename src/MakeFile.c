@@ -6,120 +6,126 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int make_makefile(char* name, char* directory, char* filepath, char* flags, char* sources, char* headers, char* libs, array* include_paths, array* lib_paths, array* definitions, char* build_path, char* src_ext, char** info)
+int make_makefile(char* name, char* directory, char* filepath, char* flags,
+  array* sources,
+  array* headers,
+  array* libs,
+  array* include_paths,
+  array* lib_paths,
+  array* definitions,
+  char* build_path, char** info)
 {
   string_buffer* source = calloc(sizeof(string_buffer), 1);
   string_buffer_init(source, 1024);
 
+  char* compiler = "gcc";
+
   string_buffer_append(source, "NAME = ");
   string_buffer_append(source, name);
-  string_buffer_append(source, "\n");
+  string_buffer_append(source, "\n\n");
 
-  /* appending sources */
+  /* sources */
   string_buffer_append(source, "SRC = ");
-  string_buffer_append(source, sources);
-  string_buffer_append(source, "\n");
-
-  /* appending headers */
-  string_buffer_append(source, "HEADERS = ");
-  string_buffer_append(source, headers);
-  string_buffer_append(source, "\n");
-
-  /* convert 'sources' and 'libs' to arrays */
-  array* sources_arr = strsplit(sources, ' ');
-  array* libs_arr = strsplit(libs, ' ');
-
-  string_buffer_append(source, "OBJ = ");
-  for (uint32_t i = 0; i < sources_arr->used; i++)
+  for (uint32_t i = 0; i < sources->used; i++)
   {
-    if (strempty(sources_arr->values[i]))
-      continue;
-
-    /* building the object path */
-    string_buffer* path = (string_buffer*) calloc(sizeof(string_buffer), 1);
-    string_buffer_init(path, 128);
-    string_buffer_append(path, build_path);
-    char* filext = strfilext(sources_arr->values[i], "o");
-    string_buffer_append(path, strsub(filext, strlen(directory), strlen(filext)));
-
-    string_buffer_append(source, path->str);
-    string_buffer_appendc(source, ' ');
-    file_utils_mkdir(strdir(path->str));
+    string_buffer_append(source, sources->values[i]);
+    if (i < sources->used - 1)
+      string_buffer_appendc(source, ' ');
   }
-
   string_buffer_append(source, "\n");
 
-  string_buffer_append(source, "CC = g++\n");
+  /* headers */
+  string_buffer_append(source, "HEADERS = ");
+  for (uint32_t i = 0; i < headers->used; i++)
+  {
+    string_buffer_append(source, headers->values[i]);
+    if (i < headers->used - 1)
+      string_buffer_appendc(source, ' ');
+  }
+  string_buffer_append(source, "\n");
+
+  /* objects */
+  string_buffer_append(source, "OBJ = ");
+  for (uint32_t i = 0; i < sources->used; i++)
+  {
+    char* obj = strjoin(build_path, strfilext(strsub(sources->values[i], strlen(directory), strlen(sources->values[i])), "o"));
+    char* obj_dir = strdir(obj);
+    string_buffer_append(source, obj);
+    if (i < sources->used - 1)
+      string_buffer_appendc(source, ' ');
+    file_utils_mkdir(obj_dir);
+  }
+  string_buffer_append(source, "\n\n");
+
+  /* compiler */
+  string_buffer_append(source, "CC = ");
+  string_buffer_append(source, compiler);
+  string_buffer_appendc(source, '\n');
+
+  /* flags */
   string_buffer_append(source, "CFLAGS = ");
   string_buffer_append(source, flags);
-  string_buffer_append(source, "\n\n");
+  string_buffer_appendc(source, '\n');
 
-  string_buffer_append(source, "OUTD = ");
-  string_buffer_append(source, build_path);
-  string_buffer_append(source, "\n");
-
-  string_buffer_append(source, "LIBD = ");
-  for (uint32_t i = 0; i < lib_paths->used; i++)
+  /* libraries */
+  string_buffer_append(source, "LIBS = ");
+  for (uint32_t i = 0; i < libs->used; i++)
   {
-    if (strempty(lib_paths->values[i]))
-      continue;
-
-    string_buffer_append(source, "-L");
-    string_buffer_append(source, lib_paths->values[i]);
-    string_buffer_appendc(source, ' ');
+    string_buffer_append(source, "-l");
+    string_buffer_append(source, libs->values[i]);
+    if (i < libs->used - 1)
+      string_buffer_appendc(source, ' ');
   }
-  string_buffer_append(source, "\n");
+  string_buffer_appendc(source, '\n');
 
-  string_buffer_append(source, "INCD = ");
-  for (uint32_t i = 0; i < include_paths->used; i++)
-  {
-    if (strempty(include_paths->values[i]))
-      continue;
-
-    string_buffer_append(source, "-I");
-    string_buffer_append(source, include_paths->values[i]);
-    string_buffer_appendc(source, ' ');
-  }
-  string_buffer_append(source, "\n\n");
-
+  /* definitions */
   string_buffer_append(source, "DEFS = ");
   for (uint32_t i = 0; i < definitions->used; i++)
   {
-    if (strempty(definitions->values[i]))
-      continue;
-
     string_buffer_append(source, "-D");
     string_buffer_append(source, definitions->values[i]);
-    string_buffer_appendc(source, ' ');
+    if (i < definitions->used - 1)
+      string_buffer_appendc(source, ' ');
   }
-  string_buffer_append(source, "\n");
+  string_buffer_appendc(source, '\n');
 
-  string_buffer_append(source, "LIBS = ");
-  for (uint32_t i = 0; i < libs_arr->used; i++)
+  /* build path */
+  string_buffer_append(source, "BDIR = ");
+  string_buffer_append(source, build_path);
+  string_buffer_appendc(source, '\n');
+
+  /* include directories */
+  string_buffer_append(source, "IDIR = ");
+  for (uint32_t i = 0; i < include_paths->used; i++)
   {
-    if (strempty(libs_arr->values[i]))
-      continue;
+    string_buffer_append(source, "-I");
+    string_buffer_append(source, include_paths->values[i]);
+    if (i < include_paths->used - 1)
+      string_buffer_appendc(source, ' ');
+  }
+  string_buffer_appendc(source, '\n');
 
-    string_buffer_append(source, "-l");
-    string_buffer_append(source, libs_arr->values[i]);
-    string_buffer_appendc(source, ' ');
+  /* library directories */
+  string_buffer_append(source, "LDIR = ");
+  for (uint32_t i = 0; i < lib_paths->used; i++)
+  {
+    string_buffer_append(source, "-L");
+    string_buffer_append(source, lib_paths->values[i]);
+    if (i < lib_paths->used - 1)
+      string_buffer_appendc(source, ' ');
   }
   string_buffer_append(source, "\n\n");
 
-  /* compile sources */
-  string_buffer_append(source, "$(OUTD)/%.o: %.");
-  string_buffer_append(source, src_ext);
-  string_buffer_append(source, " $(HEADERS)\n");
-  string_buffer_append(source, "\t$(CC) -c -o $@ $< $(CFLAGS) $(INCD) $(DEFS)\n\n");
+  string_buffer_append(source, "$(OUTD)/%.o: %.* $(HEADERS)\n");
+  string_buffer_append(source, "	$(CC) -c -o $@ $< $(CFLAGS) $(INCD) $(DEFS)\n\n");
 
-  /* link */
   string_buffer_append(source, "$(NAME): $(OBJ)\n");
-  string_buffer_append(source, "\t$(CC) -o $@ $^ $(LIBD) $(LIBS)\n\n");
+  string_buffer_append(source, "	$(CC) -o $@ $^ $(LIBD) $(LIBS)\n\n");
 
-  /* cleanup */
   string_buffer_append(source, ".PHONY: clean\n\n");
+
   string_buffer_append(source, "clean:\n");
-  string_buffer_append(source, "\trm -f $(OBJ)\n");
+  string_buffer_append(source, "	rm -f $(OBJ)\n");
 
   file_utils_write(filepath, (uint8_t*) source->str, source->length);
   return 1;

@@ -25,6 +25,7 @@ char* strtrim(const char* str);
 char* strpathfix(const char* str);
 char* strdir(const char* str);
 char* strfname(char* str);
+char* strfext(char* str);
 char* strfilext(const char* str, const char* ext);
 char* strsub(const char* str, uint32_t start, uint32_t end);
 uint32_t strlastiof(const char* str, char c);

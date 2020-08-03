@@ -114,13 +114,19 @@ int main(int argc, char** argv)
 int makeit_init_project(makeit_project* project, char* name, char* lang)
 {
   project->name = name;
+  if (strcmp(lang, "c") == 0)
+    project->lang = LANG_C;
+  else if (strcmp(lang, "c++") == 0 || strcmp(lang, "cpp") == 0 || strcmp(lang, "cxx") == 0)
+    project->lang = LANG_CPP;
+  else
+  {
+    printf(":: unknown language `%s`.", lang);
+    return 0;
+  }
+
   project->vars = calloc(sizeof(map), 1);
-  project->include_paths = calloc(sizeof(array), 1);
-  project->lib_paths = calloc(sizeof(array), 1);
   project->definitions = calloc(sizeof(array), 1);
   map_init(project->vars, 8);
-  array_init(project->include_paths, 8);
-  array_init(project->lib_paths, 8);
   array_init(project->definitions, 8);
   return 1;
 }
