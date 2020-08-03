@@ -186,6 +186,7 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
       strsplit(elements->values[4], ' '),
       strsplit(elements->values[5], ' '),
       strsplit(elements->values[6], ' '),
+      project->lang == LANG_C ? "c" : "c++",
       strjoin(project->directory, "/MakeItFiles"), &info_log))
     {
       printf(ERR_MAKEFILE_FAILED, info_log);

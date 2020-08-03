@@ -4,12 +4,13 @@
 #include "utils/Map.h"
 
 int make_makefile(char* name, char* directory, char* filepath, char* flags,
-  array* sources, 
+  array* sources,
   array* headers,
   array* libs,
   array* include_paths,
   array* lib_paths,
   array* definitions,
+  char* lang,
   char* build_path, char** info);
 
 #endif

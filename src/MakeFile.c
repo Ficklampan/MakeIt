@@ -13,12 +13,13 @@ int make_makefile(char* name, char* directory, char* filepath, char* flags,
   array* include_paths,
   array* lib_paths,
   array* definitions,
+  char* lang,
   char* build_path, char** info)
 {
   string_buffer* source = calloc(sizeof(string_buffer), 1);
   string_buffer_init(source, 1024);
 
-  char* compiler = "gcc";
+  char* compiler = strcmp(lang, "c") == 0 ? "gcc" : (strcmp(lang, "c++") == 0 ? "g++" : "gcc");
 
   string_buffer_append(source, "NAME = ");
   string_buffer_append(source, name);

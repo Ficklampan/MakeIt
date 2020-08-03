@@ -1,6 +1,6 @@
 >> project:
   MakeIt
-  c++
+  c
 <<
 
 >> define:
