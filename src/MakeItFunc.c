@@ -12,15 +12,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static const char* FUNC_PROJECT_INFO = "Specifying the project's name and language";
-static const char* FUNC_INCLUDE_INFO = "Include external MakeIt scripts";
-static const char* FUNC_VARIABLE_INFO = "Creating variable(s) placeholder";
-static const char* FUNC_APPEND_INFO = "Append data to a variable";
-static const char* FUNC_COUT_INFO = "Print stuff to the console";
-static const char* FUNC_SYSTEM_INFO = "Execute system commands";
-static const char* FUNC_DEFINE_INFO = "Add definitions to the compiler (like '#define SOMETHING' in C)";
-static const char* FUNC_SEARCH_INFO = "Searching for files with a pattern and adding it to the specified variable";
-static const char* FUNC_MAKEFILE_INFO = "Generates a GNU Makefile";
+static const char* FUNC_PROJECT_INFO        = "Specifying the project's name and language";
+static const char* FUNC_INCLUDE_INFO        = "Include external MakeIt scripts";
+static const char* FUNC_VARIABLE_INFO       = "Creating variable(s) placeholder";
+static const char* FUNC_APPEND_INFO         = "Append data to a variable";
+static const char* FUNC_COUT_INFO           = "Print stuff to the console";
+static const char* FUNC_SYSTEM_INFO         = "Execute system commands";
+static const char* FUNC_DEFINE_INFO         = "Add definitions to the compiler (like '#define SOMETHING' in C)";
+static const char* FUNC_SEARCH_INFO         = "Searching for files with a pattern and adding it to the specified variable";
+static const char* FUNC_MAKEFILE_INFO       = "Generates a GNU Makefile";
 
 static const char* FUNC_PROJECT_INFO_FULL   = "  param[0]: name (project name)\n  param[1]: language[C/C++] (programming language)\n";
 static const char* FUNC_INCLUDE_INFO_FULL   = "  param[+0]: directory/file (directory with a MakeIt script)\n";

@@ -34,7 +34,7 @@ void usage()
   printf("  -m, --millis                 See how long it took to make it\n");
   printf("  -d, --debug                  Prints this message and exit\n");
   printf("  -f, --functions              Prints all functions\n");
-  printf("  -i FUNCTION, --info=FUNCTION\n                               Prints info about a function\n");
+  printf("  -i FUNCTION, --info=FUNCTION\n                               Prints info about a function\n\n");
   printf("Report bugs at <https://github.com/Ficklampan/MakeIt/issues>\n");
 }
 
