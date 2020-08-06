@@ -7,7 +7,7 @@
 #include "utils/String.h"
 #include "utils/FileUtils.h"
 
-#include "texts.h"
+#include "Texts.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,9 +20,10 @@ static const char* FUNC_COUT_INFO           = "Print stuff to the console";
 static const char* FUNC_SYSTEM_INFO         = "Execute system commands";
 static const char* FUNC_DEFINE_INFO         = "Add definitions to the compiler (like '#define SOMETHING' in C)";
 static const char* FUNC_SEARCH_INFO         = "Searching for files with a pattern and adding it to the specified variable";
+static const char* FUNC_DEPEND_INFO         = "Add dependencies using URIs / URLs";
 static const char* FUNC_MAKEFILE_INFO       = "Generates a GNU Makefile";
 
-static const char* FUNC_PROJECT_INFO_FULL   = "  param[0]: name (project name)\n  param[1]: language[C/C++] (programming language)\n";
+static const char* FUNC_PROJECT_INFO_FULL   = "  param[0]: name (project name)\n  param[1]: language[C/C++] (programming language)\n  param[2]: version (project version)\n  param[3] (*optinal): dependency directory\n";
 static const char* FUNC_INCLUDE_INFO_FULL   = "  param[+0]: directory/file (directory with a MakeIt script)\n";
 static const char* FUNC_VARIABLE_INFO_FULL  = "  param[+0]: name (variable name)";
 static const char* FUNC_APPEND_INFO_FULL    = "  param[0]: variable (what variable to append)\n  param[+1]: data\n";
@@ -30,6 +31,7 @@ static const char* FUNC_COUT_INFO_FULL      = "  param[+0]: message\n";
 static const char* FUNC_SYSTEM_INFO_FULL    = "  param[+0]: command (system command)\n";
 static const char* FUNC_DEFINE_INFO_FULL    = "  param[+0]: name (define something in MakeIt)\n";
 static const char* FUNC_SEARCH_INFO_FULL    = "  param[0]: variable (what variable to append found files)\n  param[+1]: pattern (filepath pattern e.g: 'src/include/*.h')\n";
+static const char* FUNC_DEPEND_INFO_FULL    = "  param[0]: dependency (URI / URL)\n";
 static const char* FUNC_MAKEFILE_INFO_FULL  = "  param[0]: flags (compiler flags)\n  param[1]: sources (a string of source files)\n  param[2]: headers (a string of header files)\n  param[3]: libs (a string of libraries)\n  param[4]: include_paths (include directories)\n  param[5]: library_paths (library directories)\n  param[6] definitions (like '#define SOMETHING' but in the compiler)\n";
 
 void usage_function(const char* func)
@@ -45,6 +47,7 @@ void usage_function(const char* func)
     printf("  'system'                     %s\n", FUNC_SYSTEM_INFO);
     printf("  'define'                     %s\n", FUNC_DEFINE_INFO);
     printf("  'search'                     %s\n", FUNC_SEARCH_INFO);
+    printf("  'dependencies'               %s\n", FUNC_DEPEND_INFO);
     printf("  'makefile'                   %s\n\n", FUNC_MAKEFILE_INFO);
     printf("Use '-i <function>' for more info about a function.\n");
   }else
@@ -57,6 +60,7 @@ void usage_function(const char* func)
     else if (strcmp(func, "system") == 0) printf("system:\n  %s\n\nUsage:\n%s\n", FUNC_SYSTEM_INFO, FUNC_SYSTEM_INFO_FULL);
     else if (strcmp(func, "define") == 0) printf("define:\n  %s\n\nUsage:\n%s\n", FUNC_DEFINE_INFO, FUNC_DEFINE_INFO_FULL);
     else if (strcmp(func, "search") == 0) printf("search:\n  %s\n\nUsage:\n%s\n", FUNC_SEARCH_INFO, FUNC_SEARCH_INFO_FULL);
+    else if (strcmp(func, "dependencies") == 0) printf("dependencies:\n  %s\n\nUsage:\n%s\n", FUNC_DEPEND_INFO, FUNC_DEPEND_INFO_FULL);
     else if (strcmp(func, "makefile") == 0) printf("makefile:\n  %s\n\nUsage:\n%s\n", FUNC_MAKEFILE_INFO, FUNC_MAKEFILE_INFO_FULL);
     else
       printf(":: unknown function `%s`.", func);
@@ -69,12 +73,14 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
     printf("[DEBUG] ==> processing function: %s\n", func);
   if (strcmp(func, "project") == 0)
   {
-    if (elements->used < 2)
+    if (elements->used < 3)
     {
-      printf(ERR_TOO_FEW_ARGS, "2", elements->used, func);
+      printf(ERR_TOO_FEW_ARGS, "+3", elements->used, func);
       return 0;
     }
-    if (makeit_init_project(project, elements->values[0], elements->values[1]) != 1)
+    if (elements->used > 3)
+      project->deps_directory = elements->values[2];
+    if (makeit_init_project(project, elements->values[0], elements->values[1], elements->values[2]) != 1)
       return 0;
   }else if (strcmp(func, "include") == 0)
   {
@@ -173,7 +179,16 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
       printf(ERR_TOO_FEW_ARGS, "+1", elements->used, func);
       return 0;
     }
+    if (project->deps_directory == NULL)
+    {
+      printf(ERR_DEPS_DIR_NOT_SPECIFIED);
+      return 0;
+    }
+    for (uint32_t i = 0; i < elements->used; i++)
+    {
+      char* dependency = elements->values[i];
 
+    }
   }else if (strcmp(func, "makefile") == 0)
   {
     if (elements->used < 7)
@@ -187,14 +202,14 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
     char* makefile_path = strjoin(project->directory, "/Makefile");
     char* info_log;
 
-    if (!make_makefile(project->name, project->directory, makefile_path, elements->values[0],
+    if (!make_makefile(project->name, project->version, project->directory, makefile_path, elements->values[0],
       strsplit(elements->values[1], ' '),
       strsplit(elements->values[2], ' '),
       strsplit(elements->values[3], ' '),
       strsplit(elements->values[4], ' '),
       strsplit(elements->values[5], ' '),
       strsplit(elements->values[6], ' '),
-      project->lang == LANG_C ? "c" : "c++",
+      project->lang == LANG_CPP ? "c++" : "c",
       strjoin(project->directory, "/MakeItFiles"), &info_log))
     {
       printf(ERR_MAKEFILE_FAILED, info_log);

@@ -3,7 +3,6 @@ append: sources
   $(current_dir)/MakeItParser.c
   $(current_dir)/MakeItFunc.c
   $(current_dir)/MakeFile.c
-  $(current_dir)/MemPool.c
   $(current_dir)/Config.c
 
 include:

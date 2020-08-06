@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int make_makefile(char* name, char* directory, char* filepath, char* flags,
+int make_makefile(char* name, char* version, char* directory, char* filepath, char* flags,
   array* sources,
   array* headers,
   array* libs,
@@ -23,6 +23,14 @@ int make_makefile(char* name, char* directory, char* filepath, char* flags,
 
   string_buffer_append(source, "NAME = ");
   string_buffer_append(source, name);
+  string_buffer_appendc(source, '\n');
+  string_buffer_append(source, "VERSION = ");
+  string_buffer_append(source, version);
+  string_buffer_append(source, "NAMEV = ");
+  string_buffer_append(source, name);
+  string_buffer_appendc(source, '-');
+  string_buffer_append(source, version);
+  string_buffer_appendc(source, '\n');
   string_buffer_append(source, "\n\n");
 
   /* sources */
@@ -120,7 +128,7 @@ int make_makefile(char* name, char* directory, char* filepath, char* flags,
   string_buffer_append(source, "$(BDIR)/%.o: %.* $(HEADERS)\n");
   string_buffer_append(source, "	$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(DEFS)\n\n");
 
-  string_buffer_append(source, "$(NAME): $(OBJ)\n");
+  string_buffer_append(source, "$(NAMEV): $(OBJ)\n");
   string_buffer_append(source, "	$(CC) -o $@ $^ $(LDIR) $(LIBS)\n\n");
 
   string_buffer_append(source, ".PHONY: clean\n\n");

@@ -3,7 +3,7 @@
 
 #include "utils/Map.h"
 
-int make_makefile(char* name, char* directory, char* filepath, char* flags,
+int make_makefile(char* name, char* version, char* directory, char* filepath, char* flags,
   array* sources,
   array* headers,
   array* libs,

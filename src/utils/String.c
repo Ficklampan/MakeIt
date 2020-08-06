@@ -2,12 +2,9 @@
 
 #include <stdlib.h>
 
-#include <stdio.h> // remove
-
 void string_buffer_init(string_buffer* str_buff, uint32_t initial_size)
 {
   str_buff->str = calloc(sizeof(char), initial_size);
-  str_buff->str[0] = '\0';
   str_buff->length = 0;
   str_buff->allocated = initial_size;
 }
@@ -185,7 +182,7 @@ char* strsub(const char* str, uint32_t start, uint32_t end)
 uint32_t strlastiof(const char* str, char c)
 {
   uint32_t len = strlen(str);
-  for (uint32_t i = len - 1; i >= 0; i--)
+  for (uint32_t i = len - 1; i != 0; i--)
   {
     if (str[i] == c)
       return i;

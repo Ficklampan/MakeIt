@@ -10,9 +10,8 @@
 #include <getopt.h>
 
 #include "Config.h"
-#include "MemPool.h"
 
-#include "texts.h"
+#include "Texts.h"
 #include "MakeItParser.h"
 #include "MakeItFunc.h"
 
@@ -81,11 +80,7 @@ int main(int argc, char** argv)
   /* init */
   uint64_t start_millis = time_millis();
 
-  MemPool* mem_pool = (MemPool*) calloc(sizeof(MemPool), 1);
-  mem_pool_init(mem_pool, 1024);
-  mem_pool_bind(mem_pool);
-
-  makeit_project* project = (makeit_project*) mem_calloc(sizeof(makeit_project), 1);
+  makeit_project* project = (makeit_project*) calloc(sizeof(makeit_project), 1);
 
   /* default filepath */
   char* filepath = "./MakeIt.txt";
@@ -110,7 +105,6 @@ int main(int argc, char** argv)
   if (makeit_parse_file(project, project->filepath) != 1)
   {
     printf(":: errors occurred while parsing file `%s`.\n", project->filepath);
-    mem_afree();
     return 1;
   }
   uint64_t end_millis = time_millis();
@@ -119,20 +113,20 @@ int main(int argc, char** argv)
     printf(", in %i milliseconds!\n", (end_millis - start_millis));
   else
     printf("!\n");
-  mem_afree();
   return 0;
 }
 
-int makeit_init_project(makeit_project* project, char* name, char* lang)
+int makeit_init_project(makeit_project* project, char* name, char* version, char* lang)
 {
   project->name = name;
+  project->version = version;
   if (strcmp(lang, "c") == 0)
     project->lang = LANG_C;
   else if (strcmp(lang, "c++") == 0 || strcmp(lang, "cpp") == 0 || strcmp(lang, "cxx") == 0)
     project->lang = LANG_CPP;
   else
   {
-    printf(":: unknown language `%s`.", lang);
+    printf(":: unknown language `%s`.\n", lang);
     return 0;
   }
 
