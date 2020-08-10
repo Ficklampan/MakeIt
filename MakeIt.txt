@@ -19,7 +19,3 @@ include:
 
 makefile:
   none, $(sources), $(headers)
-  none
-  none
-  none
-  none

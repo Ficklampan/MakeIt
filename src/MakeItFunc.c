@@ -38,7 +38,7 @@ static const char* FUNC_DEPEND_INFO_FULL    = "  param[+0]: dependency (URI / UR
 static const char* FUNC_LIBRARY_INFO_FULL    = "  param[+0]: library (compiler flag '-l<lib>')\n";
 static const char* FUNC_LIBRARY_DIR_INFO_FULL    = "  param[+0]: library directory (directory to search for libraries)\n";
 static const char* FUNC_INCLUDE_DIR_INFO_FULL    = "  param[+0]: include directory (directory with headers or something)\n";
-static const char* FUNC_MAKEFILE_INFO_FULL  = "  param[0]: flags (compiler flags)\n  param[1]: sources (a string of source files)\n  param[2]: headers (a string of header files)\n  param[3]: libs (a string of libraries)\n  param[4]: include_paths (include directories)\n  param[5]: library_paths (library directories)\n  param[6] definitions (like '#define SOMETHING' but in the compiler)\n";
+static const char* FUNC_MAKEFILE_INFO_FULL  = "  param[0]: flags (compiler flags)\n  param[1]: sources (a string of source files)\n  param[2]: headers (a string of header files)\n";
 
 void usage_function(const char* func)
 {
@@ -249,14 +249,15 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
       array_push(project->idirs, elements->values[i]);
   }else if (strcmp(func, "makefile") == 0)
   {
-    if (elements->used < 7)
+    if (elements->used < 3)
     {
       printf(ERR_TOO_FEW_ARGS, "3", elements->used, func);
       return 0;
+    }else if (elements->used > 3)
+    {
+      printf(ERR_TOO_MANY_ARGS, "3", elements->used, func);
+      return 0;
     }
-    if (config_trace())
-      printf(INFO_CONSTRUCT_MAKEFILE);
-
     char* makefile_path = strjoin(project->directory, "/Makefile");
     char* info_log;
 
@@ -274,8 +275,6 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
       printf(ERR_MAKEFILE_FAILED, info_log);
       return 0;
     }
-    if (config_trace())
-      printf(INFO_CONSTRUCT_MAKEFILE_DONE);
   }
   return 1;
 }
