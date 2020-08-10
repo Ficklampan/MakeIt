@@ -20,6 +20,7 @@ static const char* FUNC_COUT_INFO           = "Print stuff to the console";
 static const char* FUNC_SYSTEM_INFO         = "Execute system commands";
 static const char* FUNC_DEFINE_INFO         = "Add definitions to the compiler (like '#define SOMETHING' in C)";
 static const char* FUNC_SEARCH_INFO         = "Searching for files with a pattern and adding it to the specified variable";
+static const char* FUNC_VERIFY_INFO         = "Check if files exists";
 static const char* FUNC_DEPEND_INFO         = "Add dependencies using URIs / URLs";
 static const char* FUNC_LIBRARY_INFO        = "Add libraries to the compiler";
 static const char* FUNC_LIBRARY_DIR_INFO    = "Add library directories to the compiler";
@@ -34,6 +35,7 @@ static const char* FUNC_COUT_INFO_FULL      = "  param[+0]: message\n";
 static const char* FUNC_SYSTEM_INFO_FULL    = "  param[+0]: command (system command)\n";
 static const char* FUNC_DEFINE_INFO_FULL    = "  param[+0]: name\n";
 static const char* FUNC_SEARCH_INFO_FULL    = "  param[0]: variable (what variable to append found files)\n  param[+1]: pattern (filepath pattern e.g: 'src/include/*.h')\n";
+static const char* FUNC_VERIFY_INFO_FULL    = "  param[+0]: file(s) (relative/absolute filepath)\n";
 static const char* FUNC_DEPEND_INFO_FULL    = "  param[+0]: dependency (URI / URL)\n";
 static const char* FUNC_LIBRARY_INFO_FULL    = "  param[+0]: library (compiler flag '-l<lib>')\n";
 static const char* FUNC_LIBRARY_DIR_INFO_FULL    = "  param[+0]: library directory (directory to search for libraries)\n";
@@ -53,6 +55,7 @@ void usage_function(const char* func)
     printf("  'system'                     %s\n", FUNC_SYSTEM_INFO);
     printf("  'define'                     %s\n", FUNC_DEFINE_INFO);
     printf("  'search'                     %s\n", FUNC_SEARCH_INFO);
+    printf("  'verify'                     %s\n", FUNC_VERIFY_INFO);
     printf("  'dependencies'               %s\n", FUNC_DEPEND_INFO);
     printf("  'library'                    %s\n", FUNC_LIBRARY_INFO);
     printf("  'library_dir'                %s\n", FUNC_LIBRARY_DIR_INFO);
@@ -69,6 +72,7 @@ void usage_function(const char* func)
     else if (strcmp(func, "system") == 0) printf("system:\n  %s\n\nUsage:\n%s\n", FUNC_SYSTEM_INFO, FUNC_SYSTEM_INFO_FULL);
     else if (strcmp(func, "define") == 0) printf("define:\n  %s\n\nUsage:\n%s\n", FUNC_DEFINE_INFO, FUNC_DEFINE_INFO_FULL);
     else if (strcmp(func, "search") == 0) printf("search:\n  %s\n\nUsage:\n%s\n", FUNC_SEARCH_INFO, FUNC_SEARCH_INFO_FULL);
+    else if (strcmp(func, "verify") == 0) printf("verify:\n  %s\n\nUsage:\n%s\n", FUNC_VERIFY_INFO, FUNC_VERIFY_INFO_FULL);
     else if (strcmp(func, "dependencies") == 0) printf("dependencies:\n  %s\n\nUsage:\n%s\n", FUNC_DEPEND_INFO, FUNC_DEPEND_INFO_FULL);
     else if (strcmp(func, "library") == 0) printf("library:\n  %s\n\nUsage:\n%s\n", FUNC_LIBRARY_INFO, FUNC_LIBRARY_INFO_FULL);
     else if (strcmp(func, "library_dir") == 0) printf("library_dir:\n  %s\n\nUsage:\n%s\n", FUNC_LIBRARY_DIR_INFO, FUNC_LIBRARY_DIR_INFO_FULL);
@@ -247,6 +251,40 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
     }
     for (uint32_t i = 0; i < elements->used; i++)
       array_push(project->idirs, elements->values[i]);
+  }else if (strcmp(func, "verify") == 0)
+  {
+    if (elements->used < 1)
+    {
+      printf(ERR_TOO_FEW_ARGS, "+1", elements->used, func);
+      return 0;
+    }
+    uint32_t total = 0;
+    array* missing = (array*) calloc(sizeof(array), 1);
+    array_init(missing, 8);
+    for (uint32_t i = 0; i < elements->used; i++)
+    {
+      array* files = strsplit(elements->values[i], ' ');
+      for (uint32_t j = 0; j < files->used; j++)
+      {
+        if (!file_utils_exists(files->values[j]))
+          array_push(missing, files->values[j]);
+        total++;
+      }
+    }
+    uint32_t found = total - missing->used;
+
+    // add some nice colors
+    if (missing->used > 0) printf("\e[33m");
+    else printf("\e[32m");
+    
+    printf("==> [%i/%i] files found\e[0m\n", found, total);
+    if (missing->used > 0)
+    {
+      printf(":: missing:\n");
+      for (uint32_t i = 0; i < missing->used; i++)
+        printf("  `%s`\n", (char*) missing->values[i]);
+      return 0;
+    }
   }else if (strcmp(func, "makefile") == 0)
   {
     if (elements->used < 3)

@@ -14,6 +14,9 @@ search:
   headers
   $(headers)
 
+verify:
+  $(headers)
+
 include:
   $(current_dir)/src
 

@@ -128,7 +128,7 @@ int make_makefile(char* name, char* version, char* directory, char* filepath, ch
 
   string_buffer_append(source, "$(BDIR)/%.o: %.* $(HEADERS)\n");
   string_buffer_append(source, "\t$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(DEFS) && ");
-  string_buffer_append(source, "echo Compiling [$<]\n\n");
+  string_buffer_append(source, "echo \e[32m[0/80] $<\e[0m\n\n");
 
   string_buffer_append(source, "$(NAMEV): $(OBJ)\n");
   string_buffer_append(source, "\t$(CC) -o $@ $^ $(LDIR) $(LIBS)\n\n");

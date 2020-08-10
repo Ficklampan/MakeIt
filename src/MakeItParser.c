@@ -3,6 +3,7 @@
 #include "utils/Type.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 static void push_string(array* values, string_buffer* str_buffer)
 {
@@ -15,9 +16,8 @@ static void push_string(array* values, string_buffer* str_buffer)
   }
 }
 
-array* makeit_parser_parse_data(const char* data, uint32_t data_length)
+int makeit_parser_parse_data(const char* data, uint32_t data_length, array* elements)
 {
-  array* elements = (array*) calloc(sizeof(array), 1);
   array_init(elements, 32);
 
   string_buffer* str_buffer = (string_buffer*) calloc(sizeof(string_buffer), 1);
@@ -60,5 +60,10 @@ array* makeit_parser_parse_data(const char* data, uint32_t data_length)
     else
       string_buffer_appendc(str_buffer, c);
   }
-  return elements;
+  if (ignr)
+  {
+    printf(":: ignore flag not ended.\n");
+    return 0;
+  }
+  return 1;
 }

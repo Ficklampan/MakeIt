@@ -15,7 +15,7 @@ IDIR =
 LDIR = 
 
 $(BDIR)/%.o: %.* $(HEADERS)
-	$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(DEFS) && echo Compiling [$<]
+	$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(DEFS) && echo [32m[0/80] $<[0m
 
 $(NAMEV): $(OBJ)
 	$(CC) -o $@ $^ $(LDIR) $(LIBS)

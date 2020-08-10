@@ -104,7 +104,7 @@ int main(int argc, char** argv)
   file_utils_mkdir(strjoin(project->directory, "/MakeItFiles"));
   if (makeit_parse_file(project, project->filepath) != 1)
   {
-    printf(":: errors occurred while parsing file `%s`.\n", project->filepath);
+    printf("\e[31m:: errors occurred while parsing file `%s`.\e[0m\n", project->filepath);
     return 1;
   }
   uint64_t end_millis = time_millis();
@@ -139,7 +139,9 @@ int makeit_init_project(makeit_project* project, char* name, char* version, char
 
 int makeit_parse_data(makeit_project* project, const char* data, uint32_t data_length, const char* directory)
 {
-  array* tokens = makeit_parser_parse_data(data, data_length);
+  array* tokens = (array*) calloc(sizeof(array), 1);
+  if (makeit_parser_parse_data(data, data_length, tokens) != 1)
+    return 0;
   for (uint32_t i = 0; i < tokens->used; i++)
   {
     func_element* elem = (func_element*) tokens->values[i];
