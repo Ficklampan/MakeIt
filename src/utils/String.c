@@ -109,7 +109,7 @@ char* strjoin(const char* str1, const char* str2)
   uint32_t len1 = strlen(str1);
   uint32_t len2 = strlen(str2);
 
-  char* joined = (char*) calloc(sizeof(char), len1 + len2);
+  char* joined = (char*) calloc(sizeof(char), len1 + len2 + 1);
   uint32_t index = 0;
   for (uint32_t i = 0; i < len1; i++)
     joined[index++] = str1[i];
@@ -130,9 +130,6 @@ char* strtrim(const char* str)
   char* output = (char*) calloc(sizeof(char), end - start + 1);
   for (uint32_t i = start; i < end; i++)
     output[i - start] = str[i];
-
-  /* ending the string */
-  output[len - start] = '\0';
   return output;
 }
 
@@ -142,7 +139,6 @@ char* strpathfix(const char* str)
   char* output = (char*) calloc(sizeof(char), len + 1);
   for (uint32_t i = 0; i < len; i++)
     output[i] = str[i];
-  output[len] = '\0';
   return output;
 }
 

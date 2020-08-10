@@ -26,6 +26,7 @@ int make_makefile(char* name, char* version, char* directory, char* filepath, ch
   string_buffer_appendc(source, '\n');
   string_buffer_append(source, "VERSION = ");
   string_buffer_append(source, version);
+  string_buffer_appendc(source, '\n');
   string_buffer_append(source, "NAMEV = ");
   string_buffer_append(source, name);
   string_buffer_appendc(source, '-');
@@ -126,15 +127,16 @@ int make_makefile(char* name, char* version, char* directory, char* filepath, ch
   string_buffer_append(source, "\n\n");
 
   string_buffer_append(source, "$(BDIR)/%.o: %.* $(HEADERS)\n");
-  string_buffer_append(source, "	$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(DEFS)\n\n");
+  string_buffer_append(source, "\t$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(DEFS) && ");
+  string_buffer_append(source, "echo [0%]: compiling $<\n\n");
 
   string_buffer_append(source, "$(NAMEV): $(OBJ)\n");
-  string_buffer_append(source, "	$(CC) -o $@ $^ $(LDIR) $(LIBS)\n\n");
+  string_buffer_append(source, "\t$(CC) -o $@ $^ $(LDIR) $(LIBS)\n\n");
 
   string_buffer_append(source, ".PHONY: clean\n\n");
 
   string_buffer_append(source, "clean:\n");
-  string_buffer_append(source, "	rm -f $(OBJ)\n");
+  string_buffer_append(source, "\trm -f $(OBJ)\n");
 
   file_utils_write(filepath, (uint8_t*) source->str, source->length);
   return 1;

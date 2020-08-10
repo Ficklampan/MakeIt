@@ -137,9 +137,9 @@ int makeit_init_project(makeit_project* project, char* name, char* version, char
   return 1;
 }
 
-int makeit_parse_data(makeit_project* project, const char* data, const char* directory)
+int makeit_parse_data(makeit_project* project, const char* data, uint32_t data_length, const char* directory)
 {
-  array* tokens = makeit_parser_parse_data(data);
+  array* tokens = makeit_parser_parse_data(data, data_length);
   for (uint32_t i = 0; i < tokens->used; i++)
   {
     func_element* elem = (func_element*) tokens->values[i];
@@ -167,7 +167,9 @@ int makeit_parse_file(makeit_project* project, const char* filepath)
   const char* directory = strdir(filepath);
   uint32_t length;
   uint8_t* data = file_utils_read(filepath, &length);
-  return makeit_parse_data(project, (char*) data, directory);
+  if (config_debug())
+    printf("==> [debug] file[%s]\n", filepath);
+  return makeit_parse_data(project, (char*) data, length, directory);
 }
 
 static const char VAR_SEPARATOR = ' ';

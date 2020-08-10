@@ -8,7 +8,7 @@ variable:
   headers
 
 append: headers
-  $(current_dir)/src/*.h
+  $(current_dir)/src/@.h
 
 search:
   headers

@@ -77,13 +77,13 @@ bool file_utils_pattern_match(const char* filepath, const char* pattern)
     char pc = pattern[j];
     char pc_next = j < len2 - 1 ? pattern[j + 1] : '\0';
 
-    if (nc != pc && pc != '*')
+    if (nc != pc && pc != '@')
     {
       match = false;
       break;
-    }else if (pc == '*' && nc == pc_next)
+    }else if (pc == '@' && nc == pc_next)
       j+=2;
-    else if (pc != '*')
+    else if (pc != '@')
       j++;
   }
   return match;

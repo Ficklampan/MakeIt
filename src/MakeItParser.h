@@ -10,6 +10,6 @@ typedef struct {
 } func_element;
 
 void makeit_parser_next_token(array* tokens, string_buffer* str_buffer, char c);
-array* makeit_parser_parse_data(const char* data);
+array* makeit_parser_parse_data(const char* data, uint32_t data_length);
 
 #endif

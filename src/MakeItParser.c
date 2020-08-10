@@ -1,5 +1,7 @@
 #include "MakeItParser.h"
 
+#include "utils/Type.h"
+
 #include <stdlib.h>
 
 static void push_string(array* values, string_buffer* str_buffer)
@@ -13,10 +15,8 @@ static void push_string(array* values, string_buffer* str_buffer)
   }
 }
 
-array* makeit_parser_parse_data(const char* data)
+array* makeit_parser_parse_data(const char* data, uint32_t data_length)
 {
-  uint32_t data_length = strlen(data);
-
   array* elements = (array*) calloc(sizeof(array), 1);
   array_init(elements, 32);
 
@@ -25,9 +25,24 @@ array* makeit_parser_parse_data(const char* data)
 
   func_element* elem = NULL;
 
+  bool ignr = false;
+
   for (uint32_t i = 0; i < data_length; i++)
   {
     char c = data[i];
+    char last = i > 0 ? data[i - 1] : '\0';
+    char next = i < data_length - 1 ? data[i + 1] : '\0';
+
+    if (c == '/' && next == '*')
+      ignr = true;
+    else if (last == '*' && c == '/')
+    {
+      ignr = false;
+      continue;
+    }
+
+    if (ignr)
+      continue;
 
     if (c == ':')
     {
