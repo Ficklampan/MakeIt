@@ -17,7 +17,6 @@
 
 static struct option long_options[] = {
   {"help", no_argument, 0, 'h'},
-  {"trace", no_argument, 0, 't'},
   {"debug", no_argument, 0, 'd'},
   {"functions", no_argument, 0, 'f'},
   {"info", required_argument, 0, 'i'}
@@ -27,13 +26,12 @@ void usage()
 {
   printf("Usage: makeit [flags] [directory/file]\n");
   printf("Flags:\n");
-  printf("  -t, --trace                  Enable tracing\n");
   printf("  -d, --debug                  Enable debugging\n");
   printf("  -h, --help                   Prints this message and exit\n");
   printf("  -m, --millis                 See how long it took to make it\n");
   printf("  -d, --debug                  Prints this message and exit\n");
   printf("  -f, --functions              Prints all functions\n");
-  printf("  -i FUNCTION, --info=FUNCTION\n                               Prints info about a function\n\n");
+  printf("  -i FUNC, --info=FUNC         Prints info about a function\n\n");
   printf("Report bugs at <https://github.com/Ficklampan/MakeIt/issues>\n");
 }
 
@@ -42,13 +40,10 @@ int main(int argc, char** argv)
   /* get options */
   int option_index = 0;
   int c;
-  while ((c = getopt_long(argc, argv, "tdhmfi:", long_options, &option_index)) != -1)
+  while ((c = getopt_long(argc, argv, "dhmfi:", long_options, &option_index)) != -1)
   {
     switch (c)
     {
-      case 't':
-        config_set_trace(true);
-      break;
       case 'd':
         config_set_debug(true);
       break;
@@ -99,8 +94,6 @@ int main(int argc, char** argv)
   project->directory = strpathfix(strdir(filepath));
   project->filepath = filepath;
 
-  if (config_trace())
-    printf("==> Parsing `%s`\n", project->filepath);
   file_utils_mkdir(strjoin(project->directory, "/MakeItFiles"));
   if (makeit_parse_file(project, project->filepath) != 1)
   {

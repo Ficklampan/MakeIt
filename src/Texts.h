@@ -11,6 +11,8 @@ static const char* ERR_FAILED_PARSING = ":: failed to parse file `%s`.\n";
 static const char* ERR_DEPS_DIR_NOT_SPECIFIED = ":: dependency directory not specified, at %s.\n";
 static const char* ERR_UNKNOWN = ":: unknown %s '%s', at %s.\n";
 
+static const char* WARN_SEARCH_NOT_FOUND = "!! no files was found with pattern '%s'.\n";
+
 static const char* INFO_CONSTRUCT_MAKEFILE = "==> [...] constructing makefile\n";
 static const char* INFO_CONSTRUCT_MAKEFILE_DONE = "==> [complete] makefile constructed\n";
 

@@ -33,9 +33,10 @@ int makeit_parser_parse_data(const char* data, uint32_t data_length, array* elem
     char last = i > 0 ? data[i - 1] : '\0';
     char next = i < data_length - 1 ? data[i + 1] : '\0';
 
-    if (c == '/' && next == '*')
+    /* >- comment -< */
+    if (c == '>' && next == '-')
       ignr = true;
-    else if (last == '*' && c == '/')
+    else if (last == '-' && c == '<')
     {
       ignr = false;
       continue;

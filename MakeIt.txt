@@ -3,12 +3,16 @@ project:
   2020.08.06
   c
 
+image:
+  image.bmp
+  1.0
+
 variable:
   sources
   headers
 
 append: headers
-  $(current_dir)/src/@.h
+  $(current_dir)/src/*.h
 
 search:
   headers

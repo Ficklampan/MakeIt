@@ -185,7 +185,10 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
 
     array_clear(value);
     for (uint32_t i = 1; i < elements->used; i++)
-      file_utils_find(strdir(elements->values[i]), elements->values[i], value, true);
+    {
+      if (file_utils_find(strdir(elements->values[i]), elements->values[i], value, true) == 0)
+        printf(WARN_SEARCH_NOT_FOUND, elements->values[i]);
+    }
   }else if (strcmp(func, "dependencies") == 0)
   {
     if (elements->used < 1)
@@ -273,16 +276,15 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
     }
     uint32_t found = total - missing->used;
 
-    // add some nice colors
+    // add some nice colours
     if (missing->used > 0) printf("\e[33m");
     else printf("\e[32m");
     
-    printf("==> [%i/%i] files found\e[0m\n", found, total);
+    printf("\e[%sm==> %i/%i files found.\e[0m\n", missing->used > 0 ? "33" : "32", found, total);
     if (missing->used > 0)
     {
-      printf(":: missing:\n");
       for (uint32_t i = 0; i < missing->used; i++)
-        printf("  `%s`\n", (char*) missing->values[i]);
+        printf("  `%s` not found.\n", (char*) missing->values[i]);
       return 0;
     }
   }else if (strcmp(func, "makefile") == 0)

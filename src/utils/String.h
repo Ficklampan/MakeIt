@@ -33,5 +33,6 @@ uint32_t strlastiof(const char* str, char c);
 bool strcnts(const char* str, const char* what);
 bool strendc(const char* str, const char c);
 char strempty(const char* str);
+bool strwcpmt(const char* pat, const char* str);
 
 #endif

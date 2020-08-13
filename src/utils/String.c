@@ -1,7 +1,7 @@
 #include "String.h"
 
 #include <stdlib.h>
-
+#include <stdio.h> // remove
 void string_buffer_init(string_buffer* str_buff, uint32_t initial_size)
 {
   str_buff->str = calloc(sizeof(char), initial_size);
@@ -217,4 +217,31 @@ char strempty(const char* str)
 {
   uint32_t len = strlen(str);
   return len == 0 ? 1 : 0;
+}
+
+bool strwcpmt(const char* pat, const char* str)
+{
+  uint32_t len1 = strlen(pat);
+  uint32_t len2 = strlen(str);
+
+  uint32_t j = 0;
+  
+  for (uint32_t i = 0; i < len2; i++)
+  {
+    if (j >= len1)
+      return false;
+    if (pat[j] == '*')
+    {
+      j++;
+      if (j >= len1)
+        return true;
+      char end = pat[j];
+      while (i < len2 && str[i] != end)
+        i++;
+    }
+    if (str[i] != pat[j] && pat[j] != '?')
+      return false;
+    j++;
+  }
+  return j >= len1;
 }

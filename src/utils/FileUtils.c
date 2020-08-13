@@ -36,10 +36,11 @@ bool file_utils_exists(const char* filepath)
   return access(filepath, R_OK) == 0;
 }
 
-array* file_utils_find(const char* directory, const char* pattern, array* arr, bool sub_dirs)
+uint32_t file_utils_find(const char* directory, const char* pattern, array* arr, bool sub_dirs)
 {
   char* fixed_dir = strjoin(strpathfix(directory), "/");
   DIR* dir = opendir(fixed_dir);
+  uint32_t n = 0;
   if (dir != NULL)
   {
     struct dirent* entry;
@@ -54,37 +55,15 @@ array* file_utils_find(const char* directory, const char* pattern, array* arr, b
           file_utils_find(filepath, pattern, arr, sub_dirs);
         else if (entry->d_type == 8)
         {
-          if (file_utils_pattern_match(filepath, pattern))
+          if (strwcpmt(pattern, filepath))
+          {
             array_push(arr, filepath);
+            n++;
+          }
         }
       }
     }
     closedir(dir);
   }
-  return arr;
-}
-
-/* not fully tested */
-bool file_utils_pattern_match(const char* filepath, const char* pattern)
-{
-  uint32_t len1 = strlen(filepath);
-  uint32_t len2 = strlen(pattern);
-  bool match = true;
-  uint32_t j = 0;
-  for (uint32_t i = 0; i < len1 && j < len2; i++)
-  {
-    char nc = filepath[i];
-    char pc = pattern[j];
-    char pc_next = j < len2 - 1 ? pattern[j + 1] : '\0';
-
-    if (nc != pc && pc != '@')
-    {
-      match = false;
-      break;
-    }else if (pc == '@' && nc == pc_next)
-      j+=2;
-    else if (pc != '@')
-      j++;
-  }
-  return match;
+  return n;
 }
