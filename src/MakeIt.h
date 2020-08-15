@@ -13,6 +13,7 @@ typedef struct {
   enum lang_t lang;
   map* vars;
   array* libs;
+  array* incs;
   array* ldirs;
   array* idirs;
   array* definitions;

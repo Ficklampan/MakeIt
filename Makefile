@@ -9,13 +9,14 @@ OBJ = ./MakeItFiles/src/MakeIt.o ./MakeItFiles/src/MakeItParser.o ./MakeItFiles/
 CC = gcc
 CFLAGS = 
 LIBS = 
+INCS = 
 DEFS = 
 BDIR = ./MakeItFiles
 IDIR = 
 LDIR = 
 
 $(BDIR)/%.o: %.* $(HEADERS)
-	$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(DEFS) && echo [32m[0/80] $<[0m
+	$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(INCS) $(DEFS) && echo [32m$<[0m
 
 $(NAMEV): $(OBJ)
 	$(CC) -o $@ $^ $(LDIR) $(LIBS)

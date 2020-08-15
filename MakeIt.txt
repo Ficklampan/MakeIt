@@ -3,10 +3,6 @@ project:
   2020.08.06
   c
 
-image:
-  image.bmp
-  1.0
-
 variable:
   sources
   headers
@@ -21,7 +17,7 @@ search:
 verify:
   $(headers)
 
-include:
+externald:
   $(current_dir)/src
 
 makefile:

@@ -5,5 +5,5 @@ append: sources
   $(current_dir)/MakeFile.c
   $(current_dir)/Config.c
 
-include:
+externald:
   $(current_dir)/utils

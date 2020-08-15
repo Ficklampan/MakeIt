@@ -13,7 +13,8 @@
 #include <stdlib.h>
 
 static const char* FUNC_PROJECT_INFO        = "Specifying the project's name and language";
-static const char* FUNC_INCLUDE_INFO        = "Include external MakeIt scripts";
+static const char* FUNC_EXTERNALD_INFO      = "Include external MakeIt scripts with a directory";
+static const char* FUNC_EXTERNAL_INFO       = "Include external MakeIt scripts with a filepath";
 static const char* FUNC_VARIABLE_INFO       = "Creating variable(s) placeholder";
 static const char* FUNC_APPEND_INFO         = "Append data to a variable";
 static const char* FUNC_COUT_INFO           = "Print stuff to the console";
@@ -22,13 +23,15 @@ static const char* FUNC_DEFINE_INFO         = "Add definitions to the compiler (
 static const char* FUNC_SEARCH_INFO         = "Searching for files with a pattern and adding it to the specified variable";
 static const char* FUNC_VERIFY_INFO         = "Check if files exists";
 static const char* FUNC_DEPEND_INFO         = "Add dependencies using URIs / URLs";
-static const char* FUNC_LIBRARY_INFO        = "Add libraries to the compiler";
+static const char* FUNC_LIBRARY_INFO        = "Add libraries or 'pkg-configs' to the compiler";
+static const char* FUNC_INCLUDE_INFO        = "Add includes or 'pkg-configs' to the compiler";
 static const char* FUNC_LIBRARY_DIR_INFO    = "Add library directories to the compiler";
 static const char* FUNC_INCLUDE_DIR_INFO    = "Add include directories to the compiler";
 static const char* FUNC_MAKEFILE_INFO       = "Generates a GNU Makefile";
 
 static const char* FUNC_PROJECT_INFO_FULL   = "  param[0]: name (project name)\n  param[1]: language[C/C++] (programming language)\n  param[2]: version (project version)\n  param[3] (*optinal): dependency directory\n";
-static const char* FUNC_INCLUDE_INFO_FULL   = "  param[+0]: directory/file (directory with a MakeIt script)\n";
+static const char* FUNC_EXTERNALD_INFO_FULL = "  param[+0]: directory (directory with a MakeIt script)\n";
+static const char* FUNC_EXTERNAL_INFO_FULL  = "  param[+0]: filepath (MakeIt script)\n";
 static const char* FUNC_VARIABLE_INFO_FULL  = "  param[+0]: name (variable name)";
 static const char* FUNC_APPEND_INFO_FULL    = "  param[0]: variable (what variable to append)\n  param[+1]: data\n";
 static const char* FUNC_COUT_INFO_FULL      = "  param[+0]: message\n";
@@ -37,7 +40,8 @@ static const char* FUNC_DEFINE_INFO_FULL    = "  param[+0]: name\n";
 static const char* FUNC_SEARCH_INFO_FULL    = "  param[0]: variable (what variable to append found files)\n  param[+1]: pattern (filepath pattern e.g: 'src/include/*.h')\n";
 static const char* FUNC_VERIFY_INFO_FULL    = "  param[+0]: file(s) (relative/absolute filepath)\n";
 static const char* FUNC_DEPEND_INFO_FULL    = "  param[+0]: dependency (URI / URL)\n";
-static const char* FUNC_LIBRARY_INFO_FULL    = "  param[+0]: library (compiler flag '-l<lib>')\n";
+static const char* FUNC_LIBRARY_INFO_FULL    = "  param[+0]: library/pkg-config (compiler flag '-l<lib>'. to add a pkg-config, add a '#')\n";
+static const char* FUNC_INCLUDE_INFO_FULL    = "  param[+0]: include/pkg-config (compiler flag '-i<incl>'. to add a pkg-config, add a '#')\n";
 static const char* FUNC_LIBRARY_DIR_INFO_FULL    = "  param[+0]: library directory (directory to search for libraries)\n";
 static const char* FUNC_INCLUDE_DIR_INFO_FULL    = "  param[+0]: include directory (directory with headers or something)\n";
 static const char* FUNC_MAKEFILE_INFO_FULL  = "  param[0]: flags (compiler flags)\n  param[1]: sources (a string of source files)\n  param[2]: headers (a string of header files)\n";
@@ -48,7 +52,8 @@ void usage_function(const char* func)
   {
     printf("Functions:\n");
     printf("  'project'                    %s\n", FUNC_PROJECT_INFO);
-    printf("  'include'                    %s\n", FUNC_INCLUDE_INFO);
+    printf("  'externald'                  %s\n", FUNC_EXTERNALD_INFO);
+    printf("  'external'                   %s\n", FUNC_EXTERNAL_INFO);
     printf("  'variable'                   %s\n", FUNC_VARIABLE_INFO);
     printf("  'append'                     %s\n", FUNC_APPEND_INFO);
     printf("  'cout'                       %s\n", FUNC_COUT_INFO);
@@ -58,6 +63,7 @@ void usage_function(const char* func)
     printf("  'verify'                     %s\n", FUNC_VERIFY_INFO);
     printf("  'dependencies'               %s\n", FUNC_DEPEND_INFO);
     printf("  'library'                    %s\n", FUNC_LIBRARY_INFO);
+    printf("  'include'                    %s\n", FUNC_INCLUDE_INFO);
     printf("  'library_dir'                %s\n", FUNC_LIBRARY_DIR_INFO);
     printf("  'include_dir'                %s\n", FUNC_INCLUDE_DIR_INFO);
     printf("  'makefile'                   %s\n\n", FUNC_MAKEFILE_INFO);
@@ -65,7 +71,8 @@ void usage_function(const char* func)
   }else
   {
     if (strcmp(func, "project") == 0) printf("project:\n  %s\n\nUsage:\n%s\n", FUNC_PROJECT_INFO, FUNC_PROJECT_INFO_FULL);
-    else if (strcmp(func, "include") == 0) printf("directory:\n  %s\n\nUsage:\n%s\n", FUNC_INCLUDE_INFO, FUNC_INCLUDE_INFO_FULL);
+    else if (strcmp(func, "externald") == 0) printf("externald:\n  %s\n\nUsage:\n%s\n", FUNC_EXTERNALD_INFO, FUNC_EXTERNALD_INFO_FULL);
+    else if (strcmp(func, "external") == 0) printf("external:\n  %s\n\nUsage:\n%s\n", FUNC_EXTERNAL_INFO, FUNC_EXTERNAL_INFO_FULL);
     else if (strcmp(func, "variable") == 0) printf("variable:\n  %s\n\nUsage:\n%s\n", FUNC_VARIABLE_INFO, FUNC_VARIABLE_INFO_FULL);
     else if (strcmp(func, "append") == 0) printf("append:\n  %s\n\nUsage:\n%s\n", FUNC_APPEND_INFO, FUNC_APPEND_INFO_FULL);
     else if (strcmp(func, "cout") == 0) printf("cout:\n  %s\n\nUsage:\n%s\n", FUNC_COUT_INFO, FUNC_COUT_INFO_FULL);
@@ -75,6 +82,7 @@ void usage_function(const char* func)
     else if (strcmp(func, "verify") == 0) printf("verify:\n  %s\n\nUsage:\n%s\n", FUNC_VERIFY_INFO, FUNC_VERIFY_INFO_FULL);
     else if (strcmp(func, "dependencies") == 0) printf("dependencies:\n  %s\n\nUsage:\n%s\n", FUNC_DEPEND_INFO, FUNC_DEPEND_INFO_FULL);
     else if (strcmp(func, "library") == 0) printf("library:\n  %s\n\nUsage:\n%s\n", FUNC_LIBRARY_INFO, FUNC_LIBRARY_INFO_FULL);
+    else if (strcmp(func, "include") == 0) printf("include:\n  %s\n\nUsage:\n%s\n", FUNC_INCLUDE_INFO, FUNC_INCLUDE_INFO_FULL);
     else if (strcmp(func, "library_dir") == 0) printf("library_dir:\n  %s\n\nUsage:\n%s\n", FUNC_LIBRARY_DIR_INFO, FUNC_LIBRARY_DIR_INFO_FULL);
     else if (strcmp(func, "include_dir") == 0) printf("include_dir:\n  %s\n\nUsage:\n%s\n", FUNC_INCLUDE_DIR_INFO, FUNC_INCLUDE_DIR_INFO_FULL);
     else if (strcmp(func, "makefile") == 0) printf("makefile:\n  %s\n\nUsage:\n%s\n", FUNC_MAKEFILE_INFO, FUNC_MAKEFILE_INFO_FULL);
@@ -96,11 +104,11 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
       project->deps_directory = elements->values[2];
     if (makeit_init_project(project, elements->values[0], elements->values[1], elements->values[2]) != 1)
       return 0;
-  }else if (strcmp(func, "include") == 0)
+  }else if (strcmp(func, "externald") == 0)
   {
     if (elements->used < 1)
     {
-      printf(ERR_NO_DIR_SPEC, "+1", elements->used, func);
+      printf(ERR_NO_DIR_SPEC, func);
       return 0;
     }
     for (uint32_t i = 0; i < elements->used; i++)
@@ -109,6 +117,21 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
       if (makeit_parse_file(project, filepath) != 1)
       {
         printf(ERR_FAILED_PARSING, filepath);
+        return 0;
+      }
+    }
+  }else if (strcmp(func, "external") == 0)
+  {
+    if (elements->used < 1)
+    {
+      printf(ERR_NO_FILE_SPEC, func);
+      return 0;
+    }
+    for (uint32_t i = 0; i < elements->used; i++)
+    {
+      if (makeit_parse_file(project, (char*) elements->values[i]) != 1)
+      {
+        printf(ERR_FAILED_PARSING, (char*) elements->values[i]);
         return 0;
       }
     }
@@ -236,6 +259,15 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
     }
     for (uint32_t i = 0; i < elements->used; i++)
       array_push(project->libs, elements->values[i]);
+  }else if (strcmp(func, "include") == 0)
+  {
+    if (elements->used < 1)
+    {
+      printf(ERR_TOO_FEW_ARGS, "+1", elements->used, func);
+      return 0;
+    }
+    for (uint32_t i = 0; i < elements->used; i++)
+      array_push(project->incs, elements->values[i]);
   }else if (strcmp(func, "library_dir") == 0)
   {
     if (elements->used < 1)
@@ -306,6 +338,7 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
       strsplit(elements->values[1], ' '), // sources
       strsplit(elements->values[2], ' '), // headers
       project->libs, // libs
+      project->incs, // incs
       project->idirs, // include directories
       project->ldirs, // library directories
       project->definitions, // definitions

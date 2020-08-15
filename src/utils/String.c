@@ -44,6 +44,13 @@ void string_buffer_delete(string_buffer* str_buff)
   free(str_buff);
 }
 
+void string_buffer_copy(string_buffer* str_buff, string_buffer* dest)
+{
+  string_buffer_init(dest, str_buff->allocated);
+  dest->length = str_buff->length;
+  strcpy(str_buff->str, dest->str);
+}
+
 array* strsplit(char* str, char delimeter)
 {
   uint32_t len = strlen(str);

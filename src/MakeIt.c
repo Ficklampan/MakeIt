@@ -123,9 +123,17 @@ int makeit_init_project(makeit_project* project, char* name, char* version, char
     return 0;
   }
 
-  project->vars = calloc(sizeof(map), 1);
-  project->definitions = calloc(sizeof(array), 1);
+  project->vars = (map*) calloc(sizeof(map), 1);
+  project->libs = (array*) calloc(sizeof(array), 1);
+  project->incs = (array*) calloc(sizeof(array), 1);
+  project->ldirs = (array*) calloc(sizeof(array), 1);
+  project->idirs = (array*) calloc(sizeof(array), 1);
+  project->definitions = (array*) calloc(sizeof(array), 1);
   map_init(project->vars, 8);
+  array_init(project->libs, 8);
+  array_init(project->incs, 8);
+  array_init(project->ldirs, 8);
+  array_init(project->idirs, 8);
   array_init(project->definitions, 8);
   return 1;
 }

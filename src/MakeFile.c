@@ -3,6 +3,8 @@
 #include "utils/String.h"
 #include "utils/FileUtils.h"
 
+#include "Texts.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -10,6 +12,7 @@ int make_makefile(char* name, char* version, char* directory, char* filepath, ch
   array* sources,
   array* headers,
   array* libs,
+  array* incs,
   array* include_paths,
   array* lib_paths,
   array* definitions,
@@ -81,9 +84,64 @@ int make_makefile(char* name, char* version, char* directory, char* filepath, ch
   string_buffer_append(source, "LIBS = ");
   for (uint32_t i = 0; libs != NULL && i < libs->used; i++)
   {
-    string_buffer_append(source, "-l");
-    string_buffer_append(source, libs->values[i]);
+    if (strlen(libs->values[i]) < 1)
+      continue;
+    if (((char*) libs->values[i])[0] == '#')
+    {
+      array* args = strsplit(libs->values[i] + 1, ' ');
+      if (args->used == 0)
+      {
+        *info = "in 'MakeFile.c'[94]: 'args->used' returned zero.\n";
+        return 0;
+      }
+
+      string_buffer_append(source, "$(pkg-config ");
+      for (uint32_t j = 1; j < args->used; j++)
+      {
+        string_buffer_append(source, (char*) args->values[j]);
+        string_buffer_appendc(source, ' ');
+      }
+      string_buffer_append(source, (char*) args->values[0]);
+      string_buffer_appendc(source, ')');
+    }else
+    {
+      string_buffer_append(source, "-l");
+      string_buffer_append(source, libs->values[i]);
+    }
     if (i < libs->used - 1)
+      string_buffer_appendc(source, ' ');
+  }
+  string_buffer_appendc(source, '\n');
+ 
+  /* includes */
+  string_buffer_append(source, "INCS = ");
+  for (uint32_t i = 0; incs != NULL && i < incs->used; i++)
+  {
+    if (strlen(incs->values[i]) < 1)
+      continue;
+    if (((char*) incs->values[i])[0] == '#')
+    {
+      array* args = strsplit(incs->values[i] + 1, ' ');
+      if (args->used == 0)
+      {
+        *info = "in 'MakeFile.c'[127]: 'args->used' returned zero.\n";
+        return 0;
+      }
+
+      string_buffer_append(source, "$(pkg-config ");
+      for (uint32_t j = 1; j < args->used; j++)
+      {
+        string_buffer_append(source, (char*) args->values[j]);
+        string_buffer_appendc(source, ' ');
+      }
+      string_buffer_append(source, (char*) args->values[0]);
+      string_buffer_appendc(source, ')');
+    }else
+    {
+      string_buffer_append(source, "-i");
+      string_buffer_append(source, incs->values[i]);
+    }
+    if (i < incs->used - 1)
       string_buffer_appendc(source, ' ');
   }
   string_buffer_appendc(source, '\n');
@@ -127,8 +185,8 @@ int make_makefile(char* name, char* version, char* directory, char* filepath, ch
   string_buffer_append(source, "\n\n");
 
   string_buffer_append(source, "$(BDIR)/%.o: %.* $(HEADERS)\n");
-  string_buffer_append(source, "\t$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(DEFS) && ");
-  string_buffer_append(source, "echo \e[32m[0/80] $<\e[0m\n\n");
+  string_buffer_append(source, "\t$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(INCS) $(DEFS) && ");
+  string_buffer_append(source, "echo \e[32m$<\e[0m\n\n");
 
   string_buffer_append(source, "$(NAMEV): $(OBJ)\n");
   string_buffer_append(source, "\t$(CC) -o $@ $^ $(LDIR) $(LIBS)\n\n");
