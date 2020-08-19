@@ -3,21 +3,21 @@
 static bool conf_debug = false;
 static bool conf_millis = false;
 
-bool config_debug()
+bool CFG_debug()
 {
   return conf_debug;
 }
-void config_set_debug(bool debug)
+void CFG_mdebug(bool debug)
 {
   conf_debug = debug;
 }
 
-bool config_millis()
+bool CFG_millis()
 {
   return conf_millis;
 }
 
-void config_set_millis(bool millis)
+void CFG_mmillis(bool millis)
 {
   conf_millis = millis;
 }

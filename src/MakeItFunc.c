@@ -46,7 +46,7 @@ static const char* FUNC_LIBRARY_DIR_INFO_FULL    = "  param[+0]: library directo
 static const char* FUNC_INCLUDE_DIR_INFO_FULL    = "  param[+0]: include directory (directory with headers or something)\n";
 static const char* FUNC_MAKEFILE_INFO_FULL  = "  param[0]: flags (compiler flags)\n  param[1]: sources (a string of source files)\n  param[2]: headers (a string of header files)\n";
 
-void usage_function(const char* func)
+void MIFUNC_usage(const char* func)
 {
   if (strempty(func))
   {
@@ -91,7 +91,7 @@ void usage_function(const char* func)
   }
 }
 
-int makeit_process_functions(makeit_project* project, const char* func, const array* elements, const char* directory)
+int MIFUNC_proc(makeit_project* project, const char* func, const array* elements, const char* directory)
 {
   if (strcmp(func, "project") == 0)
   {
@@ -102,7 +102,7 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
     }
     if (elements->used > 3)
       project->deps_directory = elements->values[2];
-    if (makeit_init_project(project, elements->values[0], elements->values[1], elements->values[2]) != 1)
+    if (MI_initproj(project, elements->values[0], elements->values[1], elements->values[2]) != 1)
       return 0;
   }else if (strcmp(func, "externald") == 0)
   {
@@ -114,7 +114,7 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
     for (uint32_t i = 0; i < elements->used; i++)
     {
       char* filepath = strjoin(strpathfix(elements->values[i]), "/MakeIt.txt");
-      if (makeit_parse_file(project, filepath) != 1)
+      if (MI_procfile(project, filepath) != 1)
       {
         printf(ERR_FAILED_PARSING, filepath);
         return 0;
@@ -129,7 +129,7 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
     }
     for (uint32_t i = 0; i < elements->used; i++)
     {
-      if (makeit_parse_file(project, (char*) elements->values[i]) != 1)
+      if (MI_procfile(project, (char*) elements->values[i]) != 1)
       {
         printf(ERR_FAILED_PARSING, (char*) elements->values[i]);
         return 0;
@@ -209,7 +209,7 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
     array_clear(value);
     for (uint32_t i = 1; i < elements->used; i++)
     {
-      if (file_utils_find(strdir(elements->values[i]), elements->values[i], value, true) == 0)
+      if (fsufind(strdir(elements->values[i]), elements->values[i], value, true) == 0)
         printf(WARN_SEARCH_NOT_FOUND, elements->values[i]);
     }
   }else if (strcmp(func, "dependencies") == 0)
@@ -221,7 +221,7 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
     }
     if (project->deps_directory == NULL)
     {
-      printf(ERR_DEPS_DIR_NOT_SPECIFIED);
+      printf(ERR_DEPS_DIR_NOT_SPECIFIED, func);
       return 0;
     }
     for (uint32_t i = 0; i < elements->used; i++)
@@ -301,7 +301,7 @@ int makeit_process_functions(makeit_project* project, const char* func, const ar
       array* files = strsplit(elements->values[i], ' ');
       for (uint32_t j = 0; j < files->used; j++)
       {
-        if (!file_utils_exists(files->values[j]))
+        if (!fsuexist(files->values[j]))
           array_push(missing, files->values[j]);
         total++;
       }

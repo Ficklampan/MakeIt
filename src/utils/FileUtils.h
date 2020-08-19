@@ -3,14 +3,19 @@
 
 #include "Type.h"
 
-#include "Map.h"
+#include "Arrays.h"
 
 #include <dirent.h>
 
-uint8_t* file_utils_read(const char* filepath, uint32_t* length);
-void file_utils_write(const char* filepath, uint8_t* data, uint32_t length);
-void file_utils_mkdir(const char* directory);
-bool file_utils_exists(const char* filepath);
-uint32_t file_utils_find(const char* directory, const char* pattern, array* arr, bool sub_dirs);
+/* returns file data */
+uint8_t* fsurd(const char* filepath, uint32_t* length);
+
+int fsuwr(const char* filepath, uint8_t* data, uint32_t length);
+int fsumkd(const char* directory);
+
+bool fsuexist(const char* filepath);
+
+/* returns number of files found */
+uint32_t fsufind(const char* directory, const char* pattern, array* arr, bool sub_dirs);
 
 #endif

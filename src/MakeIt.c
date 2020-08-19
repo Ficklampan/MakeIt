@@ -2,7 +2,6 @@
 
 #include "utils/FileUtils.h"
 #include "utils/String.h"
-#include "utils/Map.h"
 #include "utils/Time.h"
 
 #include <stdio.h>
@@ -12,27 +11,35 @@
 #include "Config.h"
 
 #include "Texts.h"
-#include "MakeItParser.h"
+#include "MakeItLexer.h"
 #include "MakeItFunc.h"
 
 static struct option long_options[] = {
   {"help", no_argument, 0, 'h'},
+  {"version", no_argument, 0, 'v'},
   {"debug", no_argument, 0, 'd'},
   {"functions", no_argument, 0, 'f'},
   {"info", required_argument, 0, 'i'}
 };
 
-void usage()
+void pusage()
 {
   printf("Usage: makeit [flags] [directory/file]\n");
   printf("Flags:\n");
   printf("  -d, --debug                  Enable debugging\n");
   printf("  -h, --help                   Prints this message and exit\n");
+  printf("  -v, --version                Prints the current version\n");
   printf("  -m, --millis                 See how long it took to make it\n");
   printf("  -d, --debug                  Prints this message and exit\n");
   printf("  -f, --functions              Prints all functions\n");
   printf("  -i FUNC, --info=FUNC         Prints info about a function\n\n");
   printf("Report bugs at <https://github.com/Ficklampan/MakeIt/issues>\n");
+}
+
+void pversion()
+{
+  printf("Version: %s\n", MI_VERSION);
+  printf("GNU GCC: %s\n", __VERSION__);
 }
 
 int main(int argc, char** argv)
@@ -45,21 +52,25 @@ int main(int argc, char** argv)
     switch (c)
     {
       case 'd':
-        config_set_debug(true);
+        CFG_mdebug(true);
       break;
       case 'm':
-        config_set_millis(true);
+        CFG_mmillis(true);
       break;
       case 'h':
-        usage();
+        pusage();
         return 0;
       break;
+      case 'v':
+      	pversion();
+	return 0;
+      break;
       case 'f':
-        usage_function("");
+        MIFUNC_usage("");
         return 0;
       break;
       case 'i':
-        usage_function(optarg);
+        MIFUNC_usage(optarg);
         return 0;
       break;
       case '?':
@@ -73,7 +84,7 @@ int main(int argc, char** argv)
   }
 
   /* init */
-  uint64_t start_millis = time_millis();
+  uint64_t start_millis = tmillis();
 
   makeit_project* project = (makeit_project*) calloc(sizeof(makeit_project), 1);
 
@@ -84,7 +95,7 @@ int main(int argc, char** argv)
   if (optind < argc)
     filepath = argv[optind];
 
-  if (!file_utils_exists(filepath))
+  if (!fsuexist(filepath))
   {
     printf(":: file not found `%s`.\n", filepath);
     return 1;
@@ -94,22 +105,22 @@ int main(int argc, char** argv)
   project->directory = strpathfix(strdir(filepath));
   project->filepath = filepath;
 
-  file_utils_mkdir(strjoin(project->directory, "/MakeItFiles"));
-  if (makeit_parse_file(project, project->filepath) != 1)
+  fsumkd(strjoin(project->directory, "/MakeItFiles"));
+  if (MI_procfile(project, project->filepath) != 1)
   {
     printf("\e[31m:: errors occurred while parsing file `%s`.\e[0m\n", project->filepath);
     return 1;
   }
-  uint64_t end_millis = time_millis();
+  uint64_t end_millis = tmillis();
   printf("==> MakeIt made it without errors");
-  if (config_millis())
+  if (CFG_millis())
     printf(", in %i milliseconds!\n", (end_millis - start_millis));
   else
     printf("!\n");
   return 0;
 }
 
-int makeit_init_project(makeit_project* project, char* name, char* version, char* lang)
+int MI_initproj(makeit_project* project, char* name, char* version, char* lang)
 {
   project->name = name;
   project->version = version;
@@ -138,17 +149,17 @@ int makeit_init_project(makeit_project* project, char* name, char* version, char
   return 1;
 }
 
-int makeit_parse_data(makeit_project* project, const char* data, uint32_t data_length, const char* directory)
+int MI_procdat(makeit_project* project, const char* data, uint32_t data_length, const char* directory)
 {
   array* tokens = (array*) calloc(sizeof(array), 1);
-  if (makeit_parser_parse_data(data, data_length, tokens) != 1)
+  if (MILEX_prsdat(data, data_length, tokens) != 1)
     return 0;
   for (uint32_t i = 0; i < tokens->used; i++)
   {
     func_element* elem = (func_element*) tokens->values[i];
 
     /* debug stuff */
-    if (config_debug())
+    if (CFG_debug())
     {
       printf("==> [debug] function[%s]:\n", elem->name);
       for (uint32_t j = 0; j < elem->variables->used; j++)
@@ -156,27 +167,27 @@ int makeit_parse_data(makeit_project* project, const char* data, uint32_t data_l
     }
     for (uint32_t j = 0; j < elem->variables->used; j++)
     {
-      if (makeit_init_value(project, (char**) &elem->variables->values[j], directory) != 1)
+      if (MI_procval(project, (char**) &elem->variables->values[j], directory) != 1)
         return 0;
     }
-    if (makeit_process_functions(project, elem->name, elem->variables, directory) != 1)
+    if (MIFUNC_proc(project, elem->name, elem->variables, directory) != 1)
       return 0;
   }
   return 1;
 }
 
-int makeit_parse_file(makeit_project* project, const char* filepath)
+int MI_procfile(makeit_project* project, const char* filepath)
 {
   const char* directory = strdir(filepath);
   uint32_t length;
-  uint8_t* data = file_utils_read(filepath, &length);
-  if (config_debug())
+  uint8_t* data = fsurd(filepath, &length);
+  if (CFG_debug())
     printf("==> [debug] file[%s]\n", filepath);
-  return makeit_parse_data(project, (char*) data, length, directory);
+  return MI_procdat(project, (char*) data, length, directory);
 }
 
 static const char VAR_SEPARATOR = ' ';
-int makeit_init_value(makeit_project* project, char** str, const char* directory)
+int MI_procval(makeit_project* project, char** str, const char* directory)
 {
   if (project->vars == NULL)
     return 1;

@@ -3,10 +3,12 @@
 
 #include "utils/Type.h"
 
-bool config_debug();
-void config_set_debug(bool debug);
+/* 'm...' = 'modify' */
 
-bool config_millis();
-void config_set_millis(bool millis);
+bool CFG_debug();
+void CFG_mdebug(bool debug);
+
+bool CFG_millis();
+void CFG_mmillis(bool millis);
 
 #endif

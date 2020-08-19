@@ -1,7 +1,7 @@
 #ifndef MAKE_FILE_H
   #define MAKE_FILE_H
 
-#include "utils/Map.h"
+#include "utils/Arrays.h"
 
 int make_makefile(char* name, char* version, char* directory, char* filepath, char* flags,
   array* sources,

@@ -66,7 +66,7 @@ int make_makefile(char* name, char* version, char* directory, char* filepath, ch
     string_buffer_append(source, obj);
     if (i < sources->used - 1)
       string_buffer_appendc(source, ' ');
-    file_utils_mkdir(obj_dir);
+    fsumkd(obj_dir);
   }
   string_buffer_append(source, "\n\n");
 
@@ -196,6 +196,6 @@ int make_makefile(char* name, char* version, char* directory, char* filepath, ch
   string_buffer_append(source, "clean:\n");
   string_buffer_append(source, "\trm -f $(OBJ)\n");
 
-  file_utils_write(filepath, (uint8_t*) source->str, source->length);
+  fsuwr(filepath, (uint8_t*) source->str, source->length);
   return 1;
 }

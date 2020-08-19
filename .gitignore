@@ -1,4 +1,4 @@
 .other
-makeit
+MakeIt-**
 *.o
-buildd.sh
+build.sh
