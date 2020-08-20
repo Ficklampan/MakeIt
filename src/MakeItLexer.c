@@ -107,7 +107,7 @@ int MILEX_prsdat(const char* data, uint32_t data_length, array* tokens)
     {
       push(tokens, str);
       array_push(tokens, create_token(c == ',' ? TT_SEPERATOR : TT_DOT, NULL));
-    }else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '=')
+    }else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '=' || c == '<' || c == '>' || c == '!' || c == '&' || c == '|' || c == '~')
     {
       push(tokens, str);
       if (c == '+' && data[0] == '+') { c = data[0]; data++; array_push(tokens, create_token(TT_OPR_INCREMENT, NULL)); }

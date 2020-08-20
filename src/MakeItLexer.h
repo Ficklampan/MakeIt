@@ -19,7 +19,7 @@ enum token_t {
   TT_ARGS_BEGIN,
   TT_ARGS_END,
   TT_AT,
-  TT_AT_END, // only used in the first step
+  TT_AT_END,
 
   TT_NAME, 
   TT_STRING, 
