@@ -19,6 +19,7 @@ void string_buffer_clear(string_buffer* str_buff);
 void string_buffer_sync(string_buffer* str_buff);
 void string_buffer_delete(string_buffer* str_buff);
 void string_buffer_copy(string_buffer* str_buff, string_buffer* dest);
+char* string_buffer_extract(string_buffer* str_buff);
 
 array* strsplit(char* str, char delimeter);
 char* strreplace(const char* str, const char* what, const char* to);
@@ -35,5 +36,6 @@ bool strcnts(const char* str, const char* what);
 bool strendc(const char* str, const char c);
 char strempty(const char* str);
 bool strwcpmt(const char* pat, const char* str);
+char* stras(char c);
 
 #endif

@@ -89,7 +89,7 @@ int main(int argc, char** argv)
   makeit_project* project = (makeit_project*) calloc(sizeof(makeit_project), 1);
 
   /* default filepath */
-  char* filepath = "./MakeIt.txt";
+  char* filepath = "./init.makeit";
 
   /* if a filepath was specified then use that */
   if (optind < argc)
@@ -152,6 +152,7 @@ int MI_initproj(makeit_project* project, char* name, char* version, char* lang)
 int MI_procdat(makeit_project* project, const char* data, uint32_t data_length, const char* directory)
 {
   array* tokens = (array*) calloc(sizeof(array), 1);
+  array_init(tokens, 64);
   if (MILEX_prsdat(data, data_length, tokens) != 1)
     return 0;
   for (uint32_t i = 0; i < tokens->used; i++)

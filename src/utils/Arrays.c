@@ -55,3 +55,24 @@ void array_clear(array* a)
 {
   a->used = 0;
 }
+
+void iter_init(iterator* i, array* arr)
+{
+  i->arr = arr;
+  i->index = 0;
+}
+
+bool iter_has(iterator* i)
+{
+  return i->index < i->arr->used;
+}
+
+void* iter_next(iterator* i)
+{
+  return i->arr->values[i->index++];
+}
+
+void* iter_peek(iterator* i)
+{
+  return i->arr->values[i->index];
+}

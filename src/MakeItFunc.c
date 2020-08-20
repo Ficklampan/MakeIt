@@ -113,7 +113,7 @@ int MIFUNC_proc(makeit_project* project, const char* func, const array* elements
     }
     for (uint32_t i = 0; i < elements->used; i++)
     {
-      char* filepath = strjoin(strpathfix(elements->values[i]), "/MakeIt.txt");
+      char* filepath = strjoin(strpathfix(elements->values[i]), "/init.makeit");
       if (MI_procfile(project, filepath) != 1)
       {
         printf(ERR_FAILED_PARSING, filepath);

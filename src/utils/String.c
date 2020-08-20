@@ -51,6 +51,14 @@ void string_buffer_copy(string_buffer* str_buff, string_buffer* dest)
   strcpy(str_buff->str, dest->str);
 }
 
+char* string_buffer_extract(string_buffer* str_buff)
+{
+  char* str = (char*) calloc(sizeof(char), str_buff->length + 1);
+  for (uint32_t i = 0; i < str_buff->length; i++)
+    str[i] = str_buff->str[i];
+  return str;
+}
+
 array* strsplit(char* str, char delimeter)
 {
   uint32_t len = strlen(str);
@@ -251,4 +259,11 @@ bool strwcpmt(const char* pat, const char* str)
     j++;
   }
   return j >= len1;
+}
+
+char* stras(char c)
+{
+  char* str = (char*) calloc(sizeof(char), 2);
+  str[0] = c;
+  return str;
 }

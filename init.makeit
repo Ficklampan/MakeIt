@@ -1,24 +1,15 @@
-project:
-  MakeIt
-  2020.08.06
-  c
+var sources
+var headers
 
-variable:
-  sources
-  headers
+var files = search(CURRENT_DIR + "/src/*.h", true)
+for (uint32_t i = 0; i < files.len; i++)
+{
+  sources+=files[i]
+  if (i < files.len - 1)
+    sources+="\n"
+}
 
-append: headers
-  $(current_dir)/src/*.h
+sources+="main.c"
+sources+="mer.c"
 
-search:
-  headers
-  $(headers)
-
-verify:
-  $(headers)
-
-externald:
-  $(current_dir)/src
-
-makefile:
-  none, $(sources), $(headers)
+makefile("cflags", sources, headers)
