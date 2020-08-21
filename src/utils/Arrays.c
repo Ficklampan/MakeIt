@@ -13,6 +13,25 @@ void map_init(map* m, uint32_t initial_size)
 
 void* map_push(map* m, char* key, void* value)
 {
+  bool has = false;
+  uint32_t index = 0;
+
+  for (uint32_t i = 0; i < m->used; i++)
+  {
+    if (strcmp(m->keys[i], key) == 0)
+    {
+      has = true;
+      index = i;
+      break;
+    }
+  }
+
+  if (has)
+  {
+    m->values[index] = value;
+    return value;
+  }
+
   if (m->used >= m->size)
   {
     m->size*=2;

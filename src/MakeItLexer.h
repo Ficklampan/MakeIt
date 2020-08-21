@@ -7,6 +7,16 @@
 #define DECIMAL_SEPERATOR		'.'
 #define EXPR_END 			'\n'
 
+#define VAR_CHAR_T			1
+#define VAR_SHORT_T			2
+#define VAR_INT_T			3
+#define VAR_LONG_T			4
+#define VAR_FLOAT_T			5
+#define VAR_DOUBLE_T			6
+#define VAR_BOOL_T			7
+
+#define VAR_STRING_T			8
+
 typedef struct {
   char* name;
   array* variables;
@@ -74,7 +84,25 @@ typedef struct {
   void* value;
 } token;
 
+typedef struct {
+  map* variables;
+} script;
+
+typedef struct {
+  uint8_t type;
+  void* value;
+} variable;
+
 int MILEX_prsdat(const char* data, uint32_t data_length, array* elements);
-int MILEX_procdat(array* tokens, string_buffer* compiled);
+int MILEX_proctokens(array* tokens);
+
+int MILEX_procvar(iterator* iter, script* s);
+variable* MILEX_procopr(enum token_t type, variable* var, iterator* iter, script* s);
+
+uint8_t* MILEX_procval(iterator* iter, uint8_t* type, script* s);
+
+uint8_t* MILEX_procopra(enum token_t t, uint8_t* type, uint8_t* value, uint8_t* from);
+
+uint32_t MILEX_sizeof(int type);
 
 #endif

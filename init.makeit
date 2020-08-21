@@ -1,15 +1,2 @@
-var sources
-var headers
-
-var files = search(CURRENT_DIR + "/src/*.h", true)
-for (uint32_t i = 0; i < files.len; i++)
-{
-  sources+=files[i]
-  if (i < files.len - 1)
-    sources+="\n"
-}
-
-sources+="main.c"
-sources+="mer.c"
-
-makefile("cflags", sources, headers)
+var index = 8
+index += index + 1

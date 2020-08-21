@@ -85,7 +85,25 @@ int MILEX_prsdat(const char* data, uint32_t data_length, array* tokens)
 	return 0;
       }
 
-      array_push(tokens, create_token(num_type, string_buffer_extract(number_str)));
+      void* num = NULL;
+      if (num_type == TT_INT)
+      {
+	num = calloc(sizeof(int), 1);
+	*((int*) num) = atoi(string_buffer_extract(number_str));
+      }else if (num_type == TT_LONG)
+      {
+	num = calloc(sizeof(long), 1);
+	*((long*) num) = atol(string_buffer_extract(number_str));
+      }else if (num_type == TT_FLOAT)
+      {
+	num = calloc(sizeof(float), 1);
+	*((float*) num) = atof(string_buffer_extract(number_str));
+      }else if (num_type == TT_DOUBLE)
+      {
+	num = calloc(sizeof(double), 1);
+	*((double*) num) = atof(string_buffer_extract(number_str));
+      }
+      array_push(tokens, create_token(num_type, num));
       string_buffer_delete(number_str);
     }else if (c == ' ' || c == EXPR_END)
     {
@@ -155,116 +173,183 @@ int MILEX_prsdat(const char* data, uint32_t data_length, array* tokens)
       string_buffer_appendc(str, c);
     last_c = c;
   }
-
-  for (uint32_t i = 0; i < tokens->used; i++)
-  {
-    token* t = (token*) tokens->values[i];
-    if (t->type == TT_END)
-      printf("[END]\n");
-    if (t->type == TT_NAME)
-      printf("%s\n", (char*) t->value);
-    else if (t->type == TT_STRING)printf("string: %s\n", (char*) t->value);
-    else if (t->type == TT_INT)printf("int: %s\n", (char*) t->value);
-    else if (t->type == TT_LONG)printf("long: %s\n", (char*) t->value);
-    else if (t->type == TT_FLOAT)printf("float: %s\n", (char*) t->value);
-    else if (t->type == TT_DOUBLE)printf("double: %s\n", (char*) t->value);
-    else if (t->type == TT_BOOL)printf("bool: %s\n", t->value == NULL ? "false" : "true");
-    else if (t->type == TT_OPR_ADD) printf("[add]\n");
-    else if (t->type == TT_OPR_SUB) printf("[sub]\n");
-    else if (t->type == TT_OPR_MORE) printf("[more]\n");
-    else if (t->type == TT_OPR_LESS) printf("[less]\n");
-    else if (t->type == TT_OPR_ASSIGN) printf("[assign]\n");
-    else if (t->type == TT_OPR_ADDV) printf("[add to]\n");
-    else if (t->type == TT_OPR_INCREMENT) printf("[increment]\n");
-    else if (t->type == TT_ARGS_BEGIN) printf("[args start]\n");
-    else if (t->type == TT_ARGS_END) printf("[args end]\n");
-    else if (t->type == TT_SEPERATOR) printf("[seperate]\n");
-    else if (t->type == TT_DOT) printf("[dot]\n");
-    else if (t->type == TT_AT) printf("[at]\n");
-    else if (t->type == TT_AT_END) printf("[at end]\n");
-  }
+  MILEX_proctokens(tokens);
   return 1;
 }
 
-int MILEX_procdat(array* tokens, string_buffer* compiled)
+int MILEX_proctokens(array* tokens)
 {
   iterator* iter = (iterator*) calloc(sizeof(iterator), 1);
   iter_init(iter, tokens);
 
-  map* variables = (map*) calloc(sizeof(map), 1);
-  map_init(variables, 32);
+  script* s = (script*) calloc(sizeof(script), 1);
+
+  s->variables = (map*) calloc(sizeof(map), 1);
+  map_init(s->variables, 32);
 
   while (iter_has(iter))
   {
-    char* token = (char*) iter_next(iter);
-    if (token[0] == ';')
+    token* t = (token*) iter_next(iter);
+    if (t->type == TT_END) 
       continue;
-    if (strcmp("var", token) == 0)
+    if (t->type == TT_NAME)
     {
-      if (iter_has(iter) && ((char*) iter_peek(iter))[0] != ';')
+      char* name = (char*) t->value;
+      if (strcmp("var", name) == 0)
       {
-	char* var_name = (char*) iter_next(iter);
-	char* var_value = "";
-	if (iter_has(iter) && ((char*) iter_peek(iter))[0] == '=')
-	{
-	  if (iter_has(iter) && ((char*) iter_peek(iter))[0] != ';')
-	    var_value = (char*) iter_next(iter);
-	  else
-	  {
-	    printf(":: no variable value specified.\n");
-	    return 0;
-	  }
-	}
-	map_push(variables, var_name, var_value);
-      }else
-      {
-	printf(":: no variable name specified.\n");
-	return 0;
-      }
-    }else
-    {
-      if (map_pull(variables, token) == NULL)
-      {
-	printf(":: undefined variable '%s'.\n", token);
-	return 0;
-      }
-      if (iter_has(iter) && ((char*) iter_peek(iter))[0] != ';')
-      {
-	char* var_action = (char*) iter_next(iter);
-	if (strcmp(var_action, "+=") == 0 || strcmp(var_action, "=") == 0)
-	{
-	  if (iter_has(iter) && ((char*) iter_peek(iter))[0] != ';')
-	  {
-	    string_buffer_appendc(compiled, strcmp(var_action, "+=") == 0 ? '+' : '=');
-	    string_buffer_append(compiled, token);
-	    string_buffer_appendc(compiled, '\0');
-
-	    while (true)
-	    {
-	      if (iter_has(iter) && ((char*) iter_peek(iter))[0] != ';')
-	      {
-		string_buffer_append(compiled, (char*) iter_next(iter));
-		string_buffer_appendc(compiled, '\0');
-		continue;
-	      }
-	      break;
-	    }
-	  }else
-	  {
-	    printf(":: no value specified.\n");
-	    return 0;
-	  }
-	}else
-	{
-	  printf(":: unknown action '%s'.\n", var_action);
+	if (MILEX_procvar(iter, s) != 1)
 	  return 0;
-	}
       }else
       {
-	printf(":: nothing to do with variable '%s'.\n", token);
-	return 0;
+	variable* var = (variable*) map_pull(s->variables, name);
+	if (var != NULL)
+	{
+	  t = (token*) iter_next(iter);
+	  map_push(s->variables, name, MILEX_procopr(t->type, var, iter, s));
+	}
       }
     }
   }
+
+  for (uint32_t i = 0; i < s->variables->used; i++)
+  {
+    variable* var = s->variables->values[i];
+    printf("var[%s]: ", s->variables->keys[i]);
+    if (var->type == VAR_INT_T) printf("%i\n", *((int*) var->value));
+    if (var->type == VAR_FLOAT_T) printf("%f\n", *((float*) var->value));
+    if (var->type == VAR_DOUBLE_T) printf("%f\n", *((double*) var->value));
+    if (var->type == VAR_BOOL_T) printf("%s\n", *((uint8_t*) var->value) == 0 ? "false" : "true");
+  }
   return 1;
+}
+
+int MILEX_procvar(iterator* iter, script* s)
+{
+  if (iter_has(iter) || ((token*) iter_peek(iter))->type == TT_NAME)
+  {
+    char* var_name = (char*) ((token*) iter_next(iter))->value;
+    variable* var_value = (variable*) calloc(sizeof(variable), 1);
+    if (iter_has(iter) && ((token*) iter_peek(iter))->type == TT_OPR_ASSIGN)
+      var_value = MILEX_procopr(TT_OPR_ASSIGN, var_value, iter, s);
+    map_push(s->variables, var_name, var_value);
+  }else
+  { 
+    printf(":: variable name not specified.\n");
+    return 0;
+  }
+  return 1;
+}
+
+variable* MILEX_procopr(enum token_t type, variable* var, iterator* iter, script* s)
+{
+  if (type == TT_OPR_ASSIGN)
+    var->value = MILEX_procval(iter, &var->type, s);
+  else if (type == TT_OPR_ADDV || type == TT_OPR_SUBV || type == TT_OPR_MULV || type == TT_OPR_DIVV || type == TT_OPR_MODV)
+    var->value = MILEX_procopra(type, &var->type, var->value, MILEX_procval(iter, &var->type, s));
+  return var;
+}
+
+uint8_t* MILEX_procval(iterator* iter, uint8_t* type, script* s)
+{
+  uint8_t* value = NULL;
+  while (iter_has(iter))
+  {
+    if (((token*) iter_peek(iter))->type == TT_END)
+      break;
+    token* t = (token*) iter_next(iter);
+    if (t->type == TT_INT)
+    {
+      value = calloc(sizeof(int), 1);
+      *type = VAR_INT_T;
+      *((int*) value) = *((int*) t->value);
+    }else if (t->type == TT_LONG)
+    {
+      value = calloc(sizeof(long), 1);
+      *type = VAR_LONG_T;
+      *((long*) value) = *((long*) t->value);
+    }else if (t->type == TT_FLOAT)
+    {
+      value = calloc(sizeof(float), 1);
+      *type = VAR_FLOAT_T;
+      *((float*) value) = *((float*) t->value);
+    }else if (t->type == TT_DOUBLE)
+    {
+      value = calloc(sizeof(double), 1);
+      *type = VAR_DOUBLE_T;
+      *((double*) value) = *((double*) t->value);
+    }else if (t->type == TT_OPR_ADD || t->type == TT_OPR_SUB || t->type == TT_OPR_MUL || t->type == TT_OPR_DIV || t->type == TT_OPR_MOD)
+    {
+      value = MILEX_procopra(t->type, type, value, MILEX_procval(iter, type, s));
+    }else if (t->type == TT_NAME)
+    {
+      variable* var = (variable*) map_pull(s->variables, (char*) t->value);
+      if (var != NULL)
+      {
+	*type = var->type;
+
+	/* we need to copy the variables value if we want stuff to work and not explode */
+	uint32_t size = MILEX_sizeof(var->type);
+	free(value);
+	value = calloc(sizeof(uint8_t), size);
+	memcpy(value, var->value, size);
+      }
+    }
+  }
+  return value;
+}
+
+uint8_t* MILEX_procopra(enum token_t t, uint8_t* type, uint8_t* value, uint8_t* from)
+{
+  /* adding */
+  if (t == TT_OPR_ADD || t == TT_OPR_ADDV)
+  {
+    if (*type == VAR_INT_T) *((int*) value) += *((int*) from);
+    else if (*type == VAR_LONG_T) *((long*) value) += *((long*) from);
+    else if (*type == VAR_FLOAT_T) *((float*) value) += *((float*) from);
+    else if (*type == VAR_DOUBLE_T) *((double*) value) += *((double*) from);
+
+  /* subtracting */
+  }else if (t == TT_OPR_SUB || t == TT_OPR_SUBV)
+  {
+    if (*type == VAR_INT_T) *((int*) value) -= *((int*) from);
+    else if (*type == VAR_LONG_T) *((long*) value) -= *((long*) from);
+    else if (*type == VAR_FLOAT_T) *((float*) value) -= *((float*) from);
+    else if (*type == VAR_DOUBLE_T) *((double*) value) -= *((double*) from);
+
+  /* multiplying */
+  }else if (t == TT_OPR_MUL || t == TT_OPR_MULV)
+  {
+    if (*type == VAR_INT_T) *((int*) value) *= *((int*) from);
+    else if (*type == VAR_LONG_T) *((long*) value) *= *((long*) from);
+    else if (*type == VAR_FLOAT_T) *((float*) value) *= *((float*) from);
+    else if (*type == VAR_DOUBLE_T) *((double*) value) *= *((double*) from);
+
+  /* division */
+  }else if (t == TT_OPR_DIV || t == TT_OPR_DIVV)
+  {
+    if (*type == VAR_INT_T) *((int*) value) /= *((int*) from);
+    else if (*type == VAR_LONG_T) *((long*) value) /= *((long*) from);
+    else if (*type == VAR_FLOAT_T) *((float*) value) /= *((float*) from);
+    else if (*type == VAR_DOUBLE_T) *((double*) value) /= *((double*) from);
+
+  /* modulo */
+  }else if (t == TT_OPR_MOD || t == TT_OPR_MODV)
+  {
+    if (*type == VAR_INT_T) *((int*) value) %= *((int*) from);
+    else if (*type == VAR_LONG_T) *((long*) value) %= *((long*) from);
+  }
+  return value;
+}
+
+uint32_t MILEX_sizeof(int type)
+{
+  /* TODO: add more here */
+  if (type == VAR_CHAR_T) return sizeof(char);
+  else if (type == VAR_SHORT_T) return sizeof(short);
+  else if (type == VAR_INT_T) return sizeof(int);
+  else if (type == VAR_LONG_T) return sizeof(long);
+  else if (type == VAR_FLOAT_T) return sizeof(float);
+  else if (type == VAR_DOUBLE_T) return sizeof(double);
+  else if (type == VAR_BOOL_T) return 1;
+  return 0;
 }
