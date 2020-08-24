@@ -53,6 +53,13 @@ void* map_pull(map* m, const char* key)
   return NULL;
 }
 
+map* map_new(uint32_t initial_size)
+{
+  map* m = (map*) calloc(sizeof(map), 1);
+  map_init(m, initial_size);
+  return m;
+}
+
 void array_init(array* a, uint32_t initial_size)
 {
   a->values = malloc(initial_size * sizeof(void*));
@@ -75,6 +82,13 @@ void array_clear(array* a)
   a->used = 0;
 }
 
+array* array_new(uint32_t initial_size)
+{
+  array* arr = (array*) calloc(sizeof(array), 1);
+  array_init(arr, initial_size);
+  return arr;
+}
+
 void iter_init(iterator* i, array* arr)
 {
   i->arr = arr;
@@ -88,10 +102,21 @@ bool iter_has(iterator* i)
 
 void* iter_next(iterator* i)
 {
+  if (!iter_has(i))
+    return NULL;
   return i->arr->values[i->index++];
 }
 
 void* iter_peek(iterator* i)
 {
+  if (i->index >= i->arr->used)
+    return NULL;
   return i->arr->values[i->index];
+}
+
+iterator* iter_new(array* arr)
+{
+  iterator* iter = (iterator*) calloc(sizeof(iterator), 1);
+  iter_init(iter, arr);
+  return iter;
 }

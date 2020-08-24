@@ -11,7 +11,7 @@
 #include "Config.h"
 
 #include "Texts.h"
-#include "MakeItLexer.h"
+#include "script/mlexer.h"
 #include "MakeItFunc.h"
 
 static struct option long_options[] = {
@@ -155,25 +155,6 @@ int MI_procdat(makeit_project* project, const char* data, uint32_t data_length, 
   array_init(tokens, 64);
   if (MILEX_prsdat(data, data_length, tokens) != 1)
     return 0;
-  for (uint32_t i = 0; i < tokens->used; i++)
-  {
-    func_element* elem = (func_element*) tokens->values[i];
-
-    /* debug stuff */
-    if (CFG_debug())
-    {
-      printf("==> [debug] function[%s]:\n", elem->name);
-      for (uint32_t j = 0; j < elem->variables->used; j++)
-        printf("==> [debug] var[%s]\n", (char*) elem->variables->values[j]);
-    }
-    for (uint32_t j = 0; j < elem->variables->used; j++)
-    {
-      if (MI_procval(project, (char**) &elem->variables->values[j], directory) != 1)
-        return 0;
-    }
-    if (MIFUNC_proc(project, elem->name, elem->variables, directory) != 1)
-      return 0;
-  }
   return 1;
 }
 

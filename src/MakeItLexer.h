@@ -1,6 +1,9 @@
 #ifndef MAKE_IT_LEXER_H
   #define MAKE_IT_LEXER_H
 
+#include "Variable.h"
+#include "Function.h"
+
 #include "utils/Arrays.h"
 #include "utils/String.h"
 
@@ -90,18 +93,22 @@ typedef struct {
 
 typedef struct {
   uint8_t type;
+  bool constant;
   void* value;
 } variable;
+
+typedef struct {
+  uint32_t argc;
+} function;
 
 int MILEX_prsdat(const char* data, uint32_t data_length, array* elements);
 int MILEX_proctokens(array* tokens);
 
-int MILEX_procvar(iterator* iter, script* s);
 variable* MILEX_procopr(enum token_t type, variable* var, iterator* iter, script* s);
 
 uint8_t* MILEX_procval(iterator* iter, uint8_t* type, script* s);
 
-uint8_t* MILEX_procopra(enum token_t t, uint8_t* type, uint8_t* value, uint8_t* from);
+uint8_t* MILEX_procopra(enum token_t token_type, uint8_t* var_type, uint8_t* value, uint8_t* from);
 
 uint32_t MILEX_sizeof(int type);
 

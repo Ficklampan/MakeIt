@@ -37,5 +37,6 @@ bool strendc(const char* str, const char c);
 char strempty(const char* str);
 bool strwcpmt(const char* pat, const char* str);
 char* stras(char c);
+char* strmem(char* str);
 
 #endif

@@ -267,3 +267,11 @@ char* stras(char c)
   str[0] = c;
   return str;
 }
+
+char* strmem(char* str)
+{
+  uint32_t len = strlen(str);
+  char* s = (char*) calloc(1, len + 1);
+  strcpy(s, str);
+  return s;
+}
