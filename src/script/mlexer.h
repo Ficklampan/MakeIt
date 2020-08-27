@@ -11,17 +11,12 @@
 
 #include <stdio.h>
 
+#define EXPR_END			';'
+#define MAX_STRING_LENGTH		4096
 #define DECIMAL_SEPERATOR		'.'
 
-int MILEX_prsdat(const char* data, uint32_t data_length, array* tokens);
-int MILEX_packtokens(iterator* iter, enum mtoken_t begin, enum mtoken_t end, enum mtoken_t type, bool c, array* tokens);
-int MILEX_proctokens(iterator* iter, mscript* script, mscope* scope);
-
-static inline bool err(bool b, const char* text, ...)
-{
-  if (b)
-    printf(text, "TODO:");
-  return b;
-}
+int MILEX_makescript(mscript* script, const char* libs);
+int MILEX_maketokens(const char* data, uint32_t len, array* tokens, const char* file, mscript* script);
+int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t* cpos, uint32_t len, const char* file, mscript* script, mtoken* last_token, mtoken** token);
 
 #endif

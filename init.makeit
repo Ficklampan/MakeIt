@@ -1,8 +1,4 @@
-index = 0;
+index = 127;
 
-while (index < 200) 
-{
-  printf("the index " + "är " + istr(index) + "\n");
-  index+=1;
-}
+printf("the index is now " + istr(index) + "\n";
 

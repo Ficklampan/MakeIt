@@ -89,6 +89,12 @@ array* array_new(uint32_t initial_size)
   return arr;
 }
 
+void array_delete(array* a)
+{
+  free(a->values);
+  free(a);
+}
+
 void iter_init(iterator* i, array* arr)
 {
   i->arr = arr;

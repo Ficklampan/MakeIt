@@ -10,6 +10,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define nopr(op, v1, v2) (v1 op v2)
 
@@ -48,7 +49,7 @@ static inline uint32_t vsizeof(enum mvar_t type)
   return 0;
 }
 
-static inline mvar* vnew(enum mvar_t type, bool constant, uint8_t* value)
+static inline mvar* vnew(enum mvar_t type, bool constant, void* value)
 {
   mvar* var = (mvar*) calloc(sizeof(mvar), 1);
   var->type = type;
@@ -57,29 +58,12 @@ static inline mvar* vnew(enum mvar_t type, bool constant, uint8_t* value)
   return var;
 }
 
-static inline mvar* vtoken(mvar* var, mtoken* t)
-{
-  enum mvar_t type = MVAR_VOID_T;
-  if (t->type == MTK_NULL_T) type = MVAR_NULL_T;
-  else if (t->type == MTK_BOOL_T) type = MVAR_BOOL_T;
-  else if (t->type == MTK_CHAR_T) type = MVAR_INT8_T;
-  else if (t->type == MTK_INT_T) type = MVAR_INT32_T;
-  else if (t->type == MTK_FLOAT_T) type = MVAR_FLOAT32_T;
-  else if (t->type == MTK_DOUBLE_T) type = MVAR_FLOAT64_T;
-  else if (t->type == MTK_STRING_T) type = MVAR_STRING_T;
-  var->type = type;
-  var->value = (uint8_t*) t->value;
-  return var;
-}
-
 static inline mvar* vcpy(mvar* dest, mvar* var)
 {
   uint32_t size = vsizeof(var->type);
   dest->value = (uint8_t*) calloc(size, 1);
   dest->type = var->type;
-
-  for (uint32_t i = 0; i < size; i++)
-    dest->value[i] = var->value[i];
+  memcpy(dest->value, var->value, size);
   return dest;
 }
 

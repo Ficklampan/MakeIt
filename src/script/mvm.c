@@ -1,104 +1,163 @@
 #include "mvm.h"
 
-#include "../utils/String.h"
-
 #include "mfunc.h"
 #include "mvar.h"
 #include "mtoken.h"
 
-mvar* MILEX_procfunc(mfunc_call* func_call, mscript* script, mscope* scope)
+#include "../utils/String.h"
+
+int MIVM_compile(array* tokens, mscript* script)
+{
+  iterator* iter = iter_new(tokens);
+
+  mscope* scope = mscope_new(script, NULL);
+  if (MIVM_procscope(iter, script, scope) != 1)
+    return 0;
+  return 1;
+}
+
+int MIVM_procscope(iterator* iter, mscript* script, mscope* scope)
+{
+  while (iter_has(iter))
+  {
+    mtoken* token = (mtoken*) iter_peek(iter);
+    if (token->type == MTK_END_T && iter_next(iter) != NULL)
+      continue;
+
+    if (token->type == MTK_STATEMENT_T)
+    {
+    }else
+    {
+      mvar* var = NULL;
+      if (MIVM_proctokens(iter, script, scope, &var) != 1)
+	return 0;
+    }
+  }
+  return 1;
+}
+
+
+int MIVM_proctokens(iterator* iter, mscript* script, mscope* scope, mvar** var)
+{
+  while (iter_has(iter))
+  {
+    mtoken* token = (mtoken*) iter_next(iter);
+    if (token == NULL || token->type == MTK_END_T || token->type == MTK_COMMA_T)
+      break;
+
+    mtoken* next = (mtoken*) iter_peek(iter);
+
+    /* check if token is type 'operator', do stuff */
+    if (token->type == MTK_OPERATOR_T)
+    {
+      if (next == NULL || (next->type != MTK_VALUE_T && next->type != MTK_GROUP_T && next->type != MTK_LITERIAL_T && next->type != MTK_CALL_T))
+      {
+	ferr(next->location, "expected value after operator.");
+	return 0;
+      }
+      mvar* var2 = NULL;
+
+      if (MIVM_proctokens(iter, script, scope, &var2) != 1)
+	return 0;
+      if (var2 == NULL)
+      {
+	ferr(next->location, "variable returned null pointer.");
+	return 0;
+      }else if (var2->type != MTK_VALUE_T && var2->type != MTK_GROUP_T && var2->type != MTK_LITERIAL_T && var2->type != MTK_CALL_T)
+      {
+	ferr(next->location, "variable returned unexpected value.");
+	return 0;
+      }
+
+      *var = MIVM_procoprs((enum mopr_t) token->value, *var, var2);
+    }
+
+    /* check if token is type 'value', return value */
+    else if (token->type == MTK_VALUE_T)
+    {
+      *var = (mvar*) token->value;
+    }
+
+    /* if type 'group' then evaluate everything in the group */
+    else if (token->type == MTK_GROUP_T)
+    {
+      array* tokens = (array*) token->value;
+      if (tokens == NULL)
+      {
+	ferr(token->location, "group returned null pointer.");
+	return 0;
+      }else if (tokens->used == 0)
+      {
+	fwarn(token->location, "group does not contain any value.");
+      }
+
+      if (MIVM_proctokens(iter_new(tokens), script, scope, var) != 1)
+	return 0;
+    }
+
+    /* check if variable */
+    else if (token->type == MTK_LITERIAL_T)
+    {
+      *var = mscope_pull(scope, (char*) token->value);
+      bool assign_next = next != NULL && next->type == MTK_OPERATOR_T && ((enum mopr_t) next->value) == MOPR_ASSIGN_T;
+      if (*var == NULL && !assign_next)
+      {
+	ferr(token->location, "undefined variable '%s'.");
+	return 0;
+      }else if (*var == NULL)
+	*var = vnew(MVAR_VOID_T, false, NULL);
+
+      if (assign_next)
+      {
+	if (MIVM_proctokens(iter, script, scope, var) != 1)
+	  return 0;
+	map_push(scope->variables, (char*) token->value, *var);
+      }
+    }
+
+    /* if type 'call' then return function returned value */
+    else if (token->type == MTK_CALL_T)
+    {
+      mfunc_call* call = (mfunc_call*) token->value;
+
+      MIVM_procfunc(call, script, scope, var);
+    }
+
+  }
+  return 1;
+}
+
+int MIVM_procfunc(mfunc_call* func_call, mscript* script, mscope* scope, mvar** var)
 {
   array* args = array_new(16);
-  array* arg = array_new(16);
-  array* tokens = func_call->scope;
+  iterator* iter = iter_new(func_call->args);
 
-  iterator* iter = iter_new(tokens);
   while (iter_has(iter))
   {
-    mtoken* t = (mtoken*) iter_next(iter);
-    if (t->type == MTK_COMMA_T)
-    {
-      array_push(args, MILEX_procvals(iter_new(arg), script, scope));
-      array_clear(arg);
-      continue;
-    }
-    array_push(arg, t);
-  }
-  array_push(args, MILEX_procvals(iter_new(arg), script, scope));
-
-  /* check if arg count equals function arg count */
-  if (args->used < func_call->func->argc)
-  {
-    printf(":: too few args, expected %i but found %i.\n", func_call->func->argc, args->used);
-    return NULL;
-  }else if (args->used > func_call->func->argc)
-  {
-    printf(":: too many args, expected %i but found %i.\n", func_call->func->argc, args->used);
-    return NULL;
-  }
-
-  /* check if args matches function args type */
-  for (uint32_t i = 0; i < args->used; i++)
-  {
-    mvar* var = (mvar*) args->values[i];
-    enum mvar_t var_type = func_call->func->args[i];
-    if (var_type == MVAR_ANY_T)
-      continue;
-    if (var->type != var_type)
-    {
-      printf(":: variable type not match function args type, at arg[%i].\n", i);
-      return NULL;
-    }
-  }
-  return func_call->func->exec(args);
-}
-
-mvar* MILEX_procvals(iterator* iter, mscript* script, mscope* scope)
-{
-  mvar* var = vnew(MVAR_VOID_T, true, NULL);
-  while (iter_has(iter))
-  {
-    mtoken* peek = (mtoken*) iter_peek(iter);
-    if (peek->type == MTK_END_T)
+    mtoken* t = (mtoken*) iter_peek(iter);
+    if (t == NULL)
       break;
-    mtoken* t = (mtoken*) iter_next(iter);
 
-    if (t->type == MTK_NULL_T || t->type == MTK_BOOL_T || t->type == MTK_CHAR_T || t->type == MTK_INT_T || t->type == MTK_LONG_T || t->type == MTK_FLOAT_T || t->type == MTK_DOUBLE_T || t->type == MTK_STRING_T)
-     vtoken(var, t);
-    else if (t->type == MTK_OPR_ASSIGN_T)
-      vcpy(var, MILEX_procvals(iter, script, scope));
-    else if (t->type == MTK_OPR_ADD_VAL_T || t->type == MTK_OPR_SUB_VAL_T || t->type == MTK_OPR_MUL_VAL_T || t->type == MTK_OPR_DIV_VAL_T || t->type == MTK_OPR_MOD_VAL_T || t->type == MTK_OPR_EQUAL_T || t->type == MTK_OPR_NOT_EQUAL_T || t->type == MTK_OPR_MORE_T || t->type == MTK_OPR_LESS_T)
+    mvar* var1 = NULL;
+    if (MIVM_proctokens(iter, script, scope, &var1) != 1)
+      return 0;
+    if (var1 == NULL)
     {
-      mvar* var1 = MILEX_procvals(iter, script, scope);
-      var = MILEX_procoprs(t->type, var, var1);
+      ferr(t->location, "variable returned null pointer.");
+      return 0;
     }
-    else if (t->type == MTK_OPR_ADD_T || t->type == MTK_OPR_SUB_T || t->type == MTK_OPR_MUL_T || t->type == MTK_OPR_DIV_T || t->type == MTK_OPR_MOD_T)
-    {
-      mvar* var1 = MILEX_procvals(iter, script, scope);
-      var = MILEX_procoprs(t->type, var, var1);
-    }
-    else if (t->type == MTK_LITERIAL_T)
-    {
-      var = (mvar*) map_pull(scope->variables, (char*) t->value);
 
-      if (var == NULL)
-	var = vnew(MVAR_VOID_T, false, NULL);
-      map_push(scope->variables, (char*) t->value, var);
-    }else if (t->type == MTK_FUNC_CALL_T)
-    {
-      mfunc_call* func_call = (mfunc_call*) t->value;
-
-      var = vcpy(var, MILEX_procfunc(func_call, script, scope));
-    }else if (t->type == MTK_PAR_T)
-    {
-      array* par = (array*) t->value;
-      var = MILEX_procvals(iter_new(par), script, scope);
-    }
+    array_push(args, var1);
   }
-  return var;
+
+  // TODO: error checking
+  
+  *var = func_call->func->exec(args);
+
+  return 1;
 }
 
-mvar* MILEX_procoprs(enum mtoken_t opr_type, mvar* v1, mvar* v2)
+mvar* MIVM_procoprs(enum mopr_t opr_type, mvar* v1, mvar* v2)
 {
   uint8_t* output = NULL;
 
@@ -116,35 +175,43 @@ mvar* MILEX_procoprs(enum mtoken_t opr_type, mvar* v1, mvar* v2)
 			}
 
   /* adding */
-  if (opr_type == MTK_OPR_ADD_T || opr_type == MTK_OPR_ADD_VAL_T)
+  if (opr_type == MOPR_ART_ADD_T || opr_type == MOPR_AA_ADD_T)
   {
-    if (v1->type == MVAR_STRING_T && (v2->type == MVAR_STRING_T || v2->type == MVAR_INT8_T))
-      v1->value = (uint8_t*) strjoin((char*) v1->value, (char*) v2->value);
+    if (v1->type == MVAR_STRING_T && v2->type == MVAR_STRING_T)
+      v1->value = strjoin((char*) v1->value, (char*) v2->value);
+    else if (v1->type == MVAR_STRING_T && v2->type == MVAR_INT8_T)
+      v1->value = strjoinc((char*) v1->value, *((mi_int8*) v2->value));
     eoprcf(v1->type, +=, v1, v2);
   }
 
   /* subtracting */
-  else if (opr_type == MTK_OPR_SUB_T || opr_type == MTK_OPR_SUB_VAL_T)
+  else if (opr_type == MOPR_ART_SUB_T || opr_type == MOPR_AA_SUB_T)
   {
     eoprcf(v1->type, -=, v1, v2);
   }
 
   /* multiplying */
-  else if (opr_type == MTK_OPR_MUL_T || opr_type == MTK_OPR_MUL_VAL_T)
+  else if (opr_type == MOPR_ART_MUL_T || opr_type == MOPR_AA_MUL_T)
   {
     eoprcf(v1->type, *=, v1, v2);
   }
 
   /* division */
-  else if (opr_type == MTK_OPR_DIV_T || opr_type == MTK_OPR_DIV_VAL_T)
+  else if (opr_type == MOPR_ART_DIV_T || opr_type == MOPR_AA_DIV_T)
   {
     eoprcf(v1->type, /=, v1, v2);
   }
 
   /* modulo */
-  else if (opr_type == MTK_OPR_MOD_T || opr_type == MTK_OPR_MOD_VAL_T)
+  else if (opr_type == MOPR_ART_MOD_T || opr_type == MOPR_AA_MOD_T)
   {
     eoprc(v1->type, %=, v1, v2);
+  }
+
+  /* assign */
+  else if (opr_type == MOPR_ASSIGN_T)
+  {
+    v1 = v2;
   }
 
 /* -- BOOLEANS -- */
@@ -159,30 +226,30 @@ mvar* MILEX_procoprs(enum mtoken_t opr_type, mvar* v1, mvar* v2)
 			      }
 
   /* equals */
-  else if (opr_type == MTK_OPR_EQUAL_T || opr_type == MTK_OPR_NOT_EQUAL_T)
+  else if (opr_type == MOPR_EQL_EQUALS_T || opr_type == MOPR_EQL_NOT_EQUALS_T)
   {
-    eeopr(v1->type, opr_type, MTK_OPR_EQUAL_T, ==, v1, v2, &output);
+    eeopr(v1->type, opr_type, MOPR_EQL_EQUALS_T, ==, v1, v2, &output);
     if (output == NULL) // works with boolean
-      output = eqls(opr_type == MTK_OPR_EQUAL_T, (v1 == v2));
+      output = eqls(opr_type == MOPR_EQL_EQUALS_T, (v1 == v2));
   }
 
   /* more */
-  else if (opr_type == MTK_OPR_MORE_T)
+  else if (opr_type == MOPR_BOOL_MORE_T)
   {
-    eeopr(v1->type, opr_type, MTK_OPR_MORE_T, >, v1, v2, &output);
+    eeopr(v1->type, opr_type, MOPR_BOOL_MORE_T, >, v1, v2, &output);
   }
 
   /* less */
-  else if (opr_type == MTK_OPR_LESS_T)
+  else if (opr_type == MOPR_BOOL_LESS_T)
   {
-    eeopr(v1->type, opr_type, MTK_OPR_LESS_T, <, v1, v2, &output);
+    eeopr(v1->type, opr_type, MOPR_BOOL_LESS_T, <, v1, v2, &output);
   }
 
   if (
-      opr_type == MTK_OPR_EQUAL_T ||
-      opr_type == MTK_OPR_NOT_EQUAL_T ||
-      opr_type == MTK_OPR_MORE_T ||
-      opr_type == MTK_OPR_LESS_T)
+      opr_type == MOPR_EQL_EQUALS_T ||
+      opr_type == MOPR_EQL_NOT_EQUALS_T ||
+      opr_type == MOPR_BOOL_MORE_T ||
+      opr_type == MOPR_BOOL_LESS_T)
     return vnew(MVAR_BOOL_T, true, output);
   return v1;
 }

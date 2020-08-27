@@ -26,7 +26,7 @@ typedef struct {
 } makeit_project;
 
 int MI_initproj(makeit_project* project, char* name, char* version, char* lang);
-int MI_procdat(makeit_project* project, const char* data, uint32_t data_length, const char* directory);
+int MI_procdat(makeit_project* project, const char* data, uint32_t data_length, const char* filepath, const char* directory);
 int MI_procfile(makeit_project* project, const char* filepath);
 int MI_procval(makeit_project* project, char** str, const char* directory);
 

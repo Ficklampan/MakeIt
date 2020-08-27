@@ -59,6 +59,20 @@ char* string_buffer_extract(string_buffer* str_buff)
   return str;
 }
 
+char* string_buffer_extractd(string_buffer* str_buff)
+{
+  char* output = string_buffer_extract(str_buff);
+  string_buffer_delete(str_buff);
+  return output;
+}
+
+string_buffer* string_buffer_new(uint32_t initial_size)
+{
+  string_buffer* buff = (string_buffer*) calloc(sizeof(string_buffer), 1);
+  string_buffer_init(buff, initial_size);
+  return buff;
+}
+
 array* strsplit(char* str, char delimeter)
 {
   uint32_t len = strlen(str);
@@ -133,6 +147,16 @@ char* strjoin(const char* str1, const char* str2)
   return joined;
 }
 
+char* strjoinc(const char* str, const char c)
+{
+  uint32_t len = strlen(str);
+  char* joined = (char*) calloc(sizeof(char), len + 2);
+  for (uint32_t i = 0; i < len; i++)
+    joined[i] = str[i];
+  joined[len] = c;
+  return joined;
+}
+
 char* strtrim(const char* str)
 {
   uint32_t len = strlen(str);
@@ -160,34 +184,35 @@ char* strpathfix(const char* str)
 char* strdir(const char* str)
 {
   uint32_t end = strlastiof(str, '/');
-  return strsub(str, 0, end);
+  return strsub(str, 0, end, NULL);
 }
 
 char* strfname(char* str)
 {
   uint32_t start = strlastiof(str, '/');
-  return strsub(str, start + 1, strlen(str));
+  return strsub(str, start + 1, strlen(str), NULL);
 }
 
 char* strfext(char* str)
 {
   uint32_t start = strlastiof(str, '.');
-  return strsub(str, start + 1, strlen(str));
+  return strsub(str, start + 1, strlen(str), NULL);
 }
 
 char* strfilext(const char* str, const char* ext)
 {
   uint32_t index = strlastiof(str, '.');
-  char* output = strsub(str, 0, index + 1);
+  char* output = strsub(str, 0, index + 1, NULL);
   return strjoin(output, ext);
 }
 
-char* strsub(const char* str, uint32_t start, uint32_t end)
+char* strsub(const char* str, uint32_t start, uint32_t end, char* dest)
 {
-  char* output = (char*) calloc(sizeof(char), end - start + 1);
+  if (dest == NULL)
+    dest = (char*) calloc(sizeof(char), end - start + 1);
   for (uint32_t i = start; i < end; i++)
-    output[i - start] = str[i];
-  return output;
+    dest[i - start] = str[i];
+  return dest;
 }
 
 uint32_t strlastiof(const char* str, char c)
@@ -274,4 +299,12 @@ char* strmem(char* str)
   char* s = (char*) calloc(1, len + 1);
   strcpy(s, str);
   return s;
+}
+
+char* strrepeatc(char c, uint32_t times)
+{
+  char* str = (char*) calloc(sizeof(char), times + 1);
+  for (uint32_t i = 0; i < times; i++)
+    str[i] = c;
+  return str;
 }

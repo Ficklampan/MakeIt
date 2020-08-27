@@ -22,7 +22,7 @@ static inline mvar* func_exec_printf(array* args)
   else if (var->type == MVAR_BOOL_T) printf("%s", var->value == NULL ? "false" : "true");
   else
   {
-    printf(":: unknown data type %i.\n", var->type);
+    printf(":: unknown data type %s.\n", vtstr(var->type));
     return NULL;
   }
   return vnew(MVAR_VOID_T, true, NULL);

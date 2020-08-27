@@ -11,8 +11,10 @@
 #include "Config.h"
 
 #include "Texts.h"
-#include "script/mlexer.h"
 #include "MakeItFunc.h"
+
+#include "script/mlexer.h"
+#include "script/mvm.h"
 
 static struct option long_options[] = {
   {"help", no_argument, 0, 'h'},
@@ -149,12 +151,20 @@ int MI_initproj(makeit_project* project, char* name, char* version, char* lang)
   return 1;
 }
 
-int MI_procdat(makeit_project* project, const char* data, uint32_t data_length, const char* directory)
+int MI_procdat(makeit_project* project, const char* data, uint32_t data_length, const char* filepath, const char* directory)
 {
   array* tokens = (array*) calloc(sizeof(array), 1);
   array_init(tokens, 64);
-  if (MILEX_prsdat(data, data_length, tokens) != 1)
+
+  mscript* script = (mscript*) calloc(sizeof(mscript), 1);
+  MILEX_makescript(script, "");
+
+  if (MILEX_maketokens(data, data_length, tokens, filepath, script) != 1)
     return 0;
+
+  if (MIVM_compile(tokens, script) != 1)
+    return 0;
+
   return 1;
 }
 
@@ -165,7 +175,7 @@ int MI_procfile(makeit_project* project, const char* filepath)
   uint8_t* data = fsurd(filepath, &length);
   if (CFG_debug())
     printf("==> [debug] file[%s]\n", filepath);
-  return MI_procdat(project, (char*) data, length, directory);
+  return MI_procdat(project, (char*) data, length, filepath, directory);
 }
 
 static const char VAR_SEPARATOR = ' ';

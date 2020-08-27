@@ -61,7 +61,7 @@ int make_makefile(char* name, char* version, char* directory, char* filepath, ch
   string_buffer_append(source, "OBJ = ");
   for (uint32_t i = 0; sources != NULL && i < sources->used; i++)
   {
-    char* obj = strjoin(build_path, strfilext(strsub(sources->values[i], strlen(directory), strlen(sources->values[i])), "o"));
+    char* obj = strjoin(build_path, strfilext(strsub(sources->values[i], strlen(directory), strlen(sources->values[i]), NULL), "o"));
     char* obj_dir = strdir(obj);
     string_buffer_append(source, obj);
     if (i < sources->used - 1)

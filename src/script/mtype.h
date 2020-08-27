@@ -2,8 +2,9 @@
   #define MTYPE_H
 
 #include "../utils/Type.h"
-
 #include "../utils/Arrays.h"
+
+#include <stdlib.h>
 
 typedef int mi_int8;
 typedef int mi_int16;
@@ -16,68 +17,55 @@ enum mtoken_t {
   MTK_END_T,
   MTK_COMMA_T,
   MTK_DOT_T,
-
-  MTK_PAR_BEGIN_T,
-  MTK_PAR_END_T,
-
-  MTK_SCOPE_BEGIN_T,
-  MTK_SCOPE_END_T,
-
-  MTK_PAR_T,
+  MTK_GROUP_T,
   MTK_SCOPE_T,
-
-  MTK_AT_BEGIN_T,
-  MTK_AT_END_T,
-
-  MTK_FUNC_CALL_T,
-
+  MTK_CALL_T,
   MTK_LITERIAL_T,
+  MTK_VALUE_T,
+  MTK_OPERATOR_T,
+  MTK_STATEMENT_T
+};
 
-  MTK_NULL_T,
-  MTK_BOOL_T,
-  MTK_CHAR_T,
-  MTK_INT_T, 
-  MTK_LONG_T, 
-  MTK_FLOAT_T, 
-  MTK_DOUBLE_T,
-  MTK_LONG_DOUBLE_T,
-  MTK_STRING_T,
+enum mopr_t {
+  MOPR_BOOL_AND_T,
+  MOPR_BOOL_OR_T,
+  MOPR_BOOL_NOT_T,
+  MOPR_BOOL_MORE_T,
+  MOPR_BOOL_LESS_T,
+  MOPR_BOOL_MORE_EQL_T,
+  MOPR_BOOL_LESS_EQL_T,
 
-  MTK_OPR_ADD_T,
-  MTK_OPR_SUB_T,
-  MTK_OPR_MUL_T,
-  MTK_OPR_DIV_T,
-  MTK_OPR_MOD_T,
+  MOPR_ASSIGN_T,
 
-  MTK_OPR_ADD_VAL_T,
-  MTK_OPR_SUB_VAL_T,
-  MTK_OPR_MUL_VAL_T,
-  MTK_OPR_DIV_VAL_T,
-  MTK_OPR_MOD_VAL_T,
+  MOPR_INCREMENT_T,
+  MOPR_DECREMENT_T,
 
-  MTK_OPR_INCREMENT_T,
-  MTK_OPR_DECREMENT_T,
+  MOPR_EQL_EQUALS_T,
+  MOPR_EQL_NOT_EQUALS_T,
 
-  MTK_OPR_ASSIGN_T,
-  MTK_OPR_EQUAL_T,
-  MTK_OPR_NOT_EQUAL_T,
+  MOPR_ART_ADD_T,
+  MOPR_ART_SUB_T,
+  MOPR_ART_MUL_T,
+  MOPR_ART_DIV_T,
+  MOPR_ART_MOD_T,
 
-  MTK_OPR_LESS_T,
-  MTK_OPR_MORE_T,
+  MOPR_AA_ADD_T,
+  MOPR_AA_SUB_T,
+  MOPR_AA_MUL_T,
+  MOPR_AA_DIV_T,
+  MOPR_AA_MOD_T,
+  MOPR_AA_AND_T,
+  MOPR_AA_OR_T,
+  MOPR_AA_XOR_T,
+  MOPR_AA_SHIFT_LEFT_T,
+  MOPR_AA_SHIFT_RIGHT_T,
 
-  MTK_OPR_LESS_EQUAL_T,
-  MTK_OPR_MORE_EQUAL_T,
- 
-  MTK_OPR_AND_T,
-  MTK_OPR_OR_T,
-  MTK_OPR_NOT_T,
-  MTK_OPR_BIT_NOT_T,
-  MTK_OPR_BIT_AND_T,
-  MTK_OPR_BIT_OR_T,
-  MTK_OPR_BIT_XOR_T,
-  MTK_OPR_BIT_LEFT_SHIFT_T,
-  MTK_OPR_BIT_RIGHT_SHIFT_T,
-
+  MOPR_BIT_NOT_T,
+  MOPR_BIT_AND_T,
+  MOPR_BIT_OR_T,
+  MOPR_BIT_XOR_T,
+  MOPR_BIT_SHIFT_LEFT_T,
+  MOPR_BIT_SHIFT_RIGHT_T,
 };
 
 enum mvar_t {
@@ -104,13 +92,23 @@ enum mstate_t {
 };
 
 typedef struct {
+  uint32_t lpos, cpos;
+  uint32_t start, end;
+
+  char* file;
+  char* source;
+  uint32_t slength;
+} mtoken_l;
+
+typedef struct {
   array* tokens;
   map* functions;
 } mscript;
 
 typedef struct {
   enum mtoken_t type;
-  uint8_t* value;
+  void* value;
+  mtoken_l* location;
 } mtoken;
 
 typedef struct {
@@ -122,7 +120,7 @@ typedef struct {
 typedef struct {
   enum mvar_t type;
   bool constant;
-  uint8_t* value;
+  void* value;
 } mvar;
 
 typedef struct {
@@ -134,7 +132,6 @@ typedef struct {
 typedef struct {
   mfunc* func;
   array* args;
-  array* scope;
 } mfunc_call;
 
 typedef struct {
@@ -142,5 +139,35 @@ typedef struct {
   mtoken* par_tk;
   mtoken* scope_tk;
 } mstatement;
+
+static inline mvar* mscope_pull(mscope* scope, char* name)
+{
+  mvar* var = (mvar*) map_pull(scope->variables, name);
+  if (var == NULL && scope->parent != NULL)
+    return mscope_pull((mscope*) scope->parent, name);
+  return var;
+}
+
+static inline mscope* mscope_new(mscript* script, mscript* parent)
+{
+  mscope* scope = (mscope*) calloc(sizeof(mscope), 1);
+  scope->script = script;
+  scope->parent = parent;
+  scope->variables = map_new(16);
+  return scope;
+}
+
+static inline mtoken_l* mtloc_new(uint32_t lpos, uint32_t cpos, uint32_t start, uint32_t end, char* file, char* source, uint32_t slength)
+{
+  mtoken_l* loc = (mtoken_l*) calloc(sizeof(mtoken_l), 1);
+  loc->lpos = lpos;
+  loc->cpos = cpos;
+  loc->start = start;
+  loc->end = end;
+  loc->file = file;
+  loc->source = source;
+  loc->slength = slength;
+  return loc;
+}
 
 #endif

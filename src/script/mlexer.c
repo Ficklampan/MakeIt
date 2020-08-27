@@ -1,5 +1,6 @@
 #include "mlexer.h"
 
+#include "mvar.h"
 #include "mvm.h"
 
 #include "../utils/String.h"
@@ -7,23 +8,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static mtoken* create_token(enum mtoken_t type, void* value)
+static inline int esc_char(char c, char* o)
 {
-  mtoken* t = (mtoken*) calloc(sizeof(mtoken), 1);
-  t->type = type;
-  t->value = value;
-  return t;
+  switch (c)
+  {
+    case 'n': *o = '\n'; break;
+    case '0': *o = '\0'; break;
+    default:
+      return 0;
+      break;
+  }
+  return 1;
 }
 
-static void push(array* tokens, string_buffer* str)
+static inline bool is_blank(char c)
 {
-  if (strcmp("null", str->str) == 0)
-    array_push(tokens, create_token(MTK_NULL_T, NULL));
-  else if (strcmp("true", str->str) == 0 || strcmp("false", str->str) == 0)
-    array_push(tokens, create_token(MTK_BOOL_T, strcmp("true", str->str) == 0 ? MI_BOOL_TRUE : MI_BOOL_FALSE));
-  else if (str->length > 0)
-    array_push(tokens, create_token(MTK_LITERIAL_T, (void*) string_buffer_extract(str)));
-  string_buffer_clear(str);
+  return c == ' ' || c == '\t' || c == '\n';
 }
 
 static inline bool is_digit(char c, bool ds)
@@ -33,229 +33,455 @@ static inline bool is_digit(char c, bool ds)
   return c == DECIMAL_SEPERATOR && ds;
 }
 
+static inline bool is_hex(char  c)
+{
+  return is_digit(c, false) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+}
+
+static inline bool is_opr(char c)
+{
+  return 
+    c == '+' ||
+    c == '-' ||
+    c == '*' ||
+    c == '/' ||
+    c == '%' ||
+    c == '&' ||
+    c == '|' ||
+    c == '!' ||
+    c == '=' ||
+    c == '>' ||
+    c == '<' ||
+    c == '^' ||
+    c == '~';
+}
+
 static inline bool is_name(char c)
 {
   return (c >= 'A' && c <= 'z') || c == '_';
 }
 
-int MILEX_prsdat(const char* data, uint32_t data_length, array* tokens)
+int MILEX_makescript(mscript* script, const char* libs)
 {
-  string_buffer* str = (string_buffer*) calloc(sizeof(string_buffer), 1);
-  string_buffer_init(str, 32);
-
-  char last_c = '\0';
-  while (data[0] != '\0')
-  {
-    char c = data[0];
-    data++;
-
-    if (is_digit(c, false) && str->length == 0)
-    {
-      /* init number string */
-      string_buffer* number_str = (string_buffer*) calloc(sizeof(string_buffer), 1);
-      string_buffer_init(number_str, 32);
-
-      bool num_decimal = false;
-
-      /* append the first digit */
-      string_buffer_appendc(number_str, c);
-
-      /* append all digits after the first */
-      while (is_digit(data[0], true))
-      {
-	c = data[0];
-	data++;
-
-	/* check if '.' and if next char is not a digit */
-	if (c == DECIMAL_SEPERATOR && (data[0] < '0' || data[0] > '9'))
-	{
-	  printf(":: missing digit after decimal seperator.\n");
-	  return 0;
-	}else if (c == DECIMAL_SEPERATOR)
-	  num_decimal = true;
-	string_buffer_appendc(number_str, c);
-	last_c = c;
-      }
-      /* check number type */
-      enum mtoken_t num_type = MTK_INT_T;
-      if (data[0] == 'L' || data[0] == 'l') { c = data[0]; data++; num_type = MTK_LONG_T; }
-      else if (data[0] == 'F' || data[0] == 'f') { c = data[0]; data++; num_type = MTK_FLOAT_T; }
-      else if (data[0] == 'D' || data[0] == 'd') { c = data[0]; data++; num_type = MTK_DOUBLE_T; }
-
-      /* check if a decimal number was assigned to a integer */
-      if ((num_type == MTK_INT_T || num_type == MTK_LONG_T) && num_decimal)
-      {
-	printf(":: decimal number in integer\n.");
-	return 0;
-      }
-
-      void* num = NULL;
-      if (num_type == MTK_INT_T)
-      {
-	num = calloc(sizeof(int), 1);
-	*((int*) num) = atoi(string_buffer_extract(number_str));
-      }else if (num_type == MTK_LONG_T)
-      {
-	num = calloc(sizeof(long), 1);
-	*((long*) num) = atol(string_buffer_extract(number_str));
-      }else if (num_type == MTK_FLOAT_T)
-      {
-	num = calloc(sizeof(float), 1);
-	*((float*) num) = atof(string_buffer_extract(number_str));
-      }else if (num_type == MTK_DOUBLE_T)
-      {
-	num = calloc(sizeof(double), 1);
-	*((double*) num) = atof(string_buffer_extract(number_str));
-      }
-      array_push(tokens, create_token(num_type, num));
-      string_buffer_delete(number_str);
-    }else if (c == ' ' || c == ';')
-    {
-      push(tokens, str);
-      if (c == ';')
-	array_push(tokens, create_token(MTK_END_T, NULL));
-    }else if (c == '(' || c == ')')
-    {
-      push(tokens, str);
-      array_push(tokens, create_token(c == '(' ? MTK_PAR_BEGIN_T : MTK_PAR_END_T, NULL));
-    }else if (c == '{' || c == '}')
-    {
-      push(tokens, str);
-      array_push(tokens, create_token(c == '{' ? MTK_SCOPE_BEGIN_T : MTK_SCOPE_END_T, NULL));
-    }else if (c == '[' || c == ']')
-    {
-      push(tokens, str);
-      if (c == '[')
-	array_push(tokens, create_token(MTK_AT_BEGIN_T, NULL));
-      else
-	array_push(tokens, create_token(MTK_AT_END_T, NULL));
-    }else if (c == ',' || c == '.')
-    {
-      push(tokens, str);
-      array_push(tokens, create_token(c == ',' ? MTK_COMMA_T : MTK_DOT_T, NULL));
-    }else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '=' || c == '<' || c == '>' || c == '!' || c == '&' || c == '|' || c == '~')
-    {
-      push(tokens, str);
-      if (c == '+' && data[0] == '+') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_INCREMENT_T, NULL)); }
-      else if (c == '-' && data[0] == '-') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_DECREMENT_T, NULL)); }
-      else if (c == '+' && data[0] == '=') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_ADD_VAL_T, NULL)); }
-      else if (c == '-' && data[0] == '=') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_SUB_VAL_T, NULL)); }
-      else if (c == '*' && data[0] == '=') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_MUL_VAL_T, NULL)); }
-      else if (c == '/' && data[0] == '=') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_DIV_VAL_T, NULL)); }
-      else if (c == '%' && data[0] == '=') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_MOD_VAL_T, NULL)); }
-      else if (c == '=' && data[0] == '=') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_EQUAL_T, NULL)); }
-      else if (c == '>' && data[0] == '>') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_BIT_RIGHT_SHIFT_T, NULL)); }
-      else if (c == '<' && data[0] == '<') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_BIT_LEFT_SHIFT_T, NULL)); }
-      else if (c == '&' && data[0] == '&') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_AND_T, NULL)); }
-      else if (c == '|' && data[0] == '|') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_OR_T, NULL)); }
-      else if (c == '!' && data[0] == '=') { c = data[0]; data++; array_push(tokens, create_token(MTK_OPR_NOT_EQUAL_T, NULL)); }
-
-      else if (c == '+') array_push(tokens, create_token(MTK_OPR_ADD_T, NULL));
-      else if (c == '-') array_push(tokens, create_token(MTK_OPR_SUB_T, NULL));
-      else if (c == '*') array_push(tokens, create_token(MTK_OPR_MUL_T, NULL));
-      else if (c == '/') array_push(tokens, create_token(MTK_OPR_DIV_T, NULL));
-      else if (c == '%') array_push(tokens, create_token(MTK_OPR_MOD_T, NULL));
-      else if (c == '!') array_push(tokens, create_token(MTK_OPR_NOT_T, NULL));
-      else if (c == '&') array_push(tokens, create_token(MTK_OPR_BIT_AND_T, NULL));
-      else if (c == '|') array_push(tokens, create_token(MTK_OPR_BIT_OR_T, NULL));
-      else if (c == '=') array_push(tokens, create_token(MTK_OPR_ASSIGN_T, NULL));
-      else if (c == '~') array_push(tokens, create_token(MTK_OPR_BIT_XOR_T, NULL));
-      else if (c == '>') array_push(tokens, create_token(MTK_OPR_MORE_T, NULL));
-      else if (c == '<') array_push(tokens, create_token(MTK_OPR_LESS_T, NULL));
-    }else if (c == '"')
-    {
-      push(tokens, str);
-      while (true)
-      {
-	c = data[0];
-	data++;
-
-	if (c == '"' && last_c != '\\')
-	  break;
-	if (last_c == '\\')
-	{
-	  switch (c)
-	  {
-	    case 'n': c = '\n'; break;
-	  }
-	}
-	if (c != '\\' || last_c == '\\')
-	  string_buffer_appendc(str, c);
-	last_c = c;
-      }
-      array_push(tokens, create_token(MTK_STRING_T, string_buffer_extract(str)));
-      string_buffer_clear(str);
-    }else if (is_name(c) || is_digit(c, false))
-      string_buffer_appendc(str, c);
-    last_c = c; 
-  }
-
-  iterator* iter1 = iter_new(tokens);
-  array* fixed_tokens1 = array_new(128);
-  MILEX_packtokens(iter1, MTK_PAR_BEGIN_T, MTK_PAR_END_T, MTK_PAR_T, true, fixed_tokens1);
-
-  iterator* iter2 = iter_new(fixed_tokens1);
-  array* fixed_tokens2 = array_new(128);
-  MILEX_packtokens(iter2, MTK_SCOPE_BEGIN_T, MTK_SCOPE_END_T, MTK_SCOPE_T, true, fixed_tokens2);
-
-  mscript* script = (mscript*) calloc(sizeof(mscript), 1);
-  mscope* scope = (mscope*) calloc(sizeof(mscope), 1);
-
-  scope->variables = map_new(32);
+  // TODO: libs
   script->functions = map_new(32);
 
   func_defaults(script->functions);
-
-  MILEX_proctokens(iter_new(fixed_tokens2), script, scope);
   return 1;
 }
 
-int MILEX_packtokens(iterator* iter, enum mtoken_t begin, enum mtoken_t end, enum mtoken_t type, bool c, array* tokens)
+int MILEX_maketokens(const char* data, uint32_t len, array* tokens, const char* file, mscript* script)
 {
-  while (iter_has(iter))
+  uint32_t index = 0;
+  uint32_t lpos = 1;
+  uint32_t cpos = 0;
+
+  mtoken* lt = NULL;
+  while (data[index] != '\0' && index < len)
   {
-    mtoken* t = (mtoken*) iter_next(iter);
-    if (t->type == begin)
+    mtoken* t = NULL;
+    uint32_t start = index;
+
+    if (MILEX_nexttoken(data, &index, &lpos, &cpos, len, file, script, lt, &t) != 1)
+      return 0;
+
+    if (t != NULL)
     {
-      array* pack = array_new(16);
-      if (MILEX_packtokens(iter, begin, end, type, false, pack) != 1)
-	return 0;
-      array_push(tokens, create_token(type, pack));
-    }else if (t->type == end && !c)
-      break;
-    else
+      lt = t;
       array_push(tokens, t);
+    }
+    
   }
   return 1;
 }
 
-int MILEX_proctokens(iterator* iter, mscript* script, mscope* scope)
+static inline char next_char(const char* data, uint32_t* index, uint32_t* lpos, uint32_t* cpos)
 {
-  while (iter_has(iter))
+  char c = data[*index];
+  *index+=1;
+  if (c == '\n')
   {
-    mtoken* t = (mtoken*) iter_next(iter);
-    if (t->type == MTK_END_T) 
-      continue;
+    *lpos+=1;
+    *cpos = 0;
+  }else
+    *cpos+=1;
+  return c;
+}
 
-    if (t->type == MTK_LITERIAL_T)
+/* make better token.cpos */
+int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t* cpos, uint32_t len, const char* file, mscript* script, mtoken* last_token, mtoken** token)
+{
+  uint32_t start = *index;
+  uint32_t startl = *lpos;
+  uint32_t startc = *cpos;
+
+#define nextc() (next_char(data, index, lpos, cpos))
+#define peekc() (*index < len ? data[*index] : '\0')
+#define hasc() (*index < len)
+#define mktoken(t, v) (ntoken(t, v, mtloc_new(*lpos, *cpos, start, *index, (char*) file, (char*) data, len)))
+#define mkferr(s) (ferr(mtloc_new(startl, startc, start, *index, (char*) file, (char*) data, len), s))
+#define mkfwarn(s) (fwarn(mtloc_new(startl, startc, start, *index, (char*) file, (char*) data, len), s))
+
+  char c = nextc();
+
+  if (is_digit(c, false))
+  {
+    uint32_t nlen = 1;
+    bool ds = false;
+    bool hex = false;
+
+    // TODO: hex
+    if (c == '0' && (peekc() == 'x' || peekc() == 'X') && nextc() != '\0')
+      hex = true;
+
+    while (true)
     {
-      char* name = (char*) t->value;
+      c = peekc();
 
-      if (strcmp("if", name) == 0)
+      if (c == DECIMAL_SEPERATOR && !is_digit(peekc(), false))
       {
-      }else if (strcmp("while", name) == 0)
-      {
-      }else if (strcmp("for", name) == 0)
-      {
+	mkferr("can't use a '.' here.");
+	return 0;
+      }else if (!is_digit(c, true))
+	break;
 
-      }else
+      if (c == DECIMAL_SEPERATOR && !ds)
+	ds = true;
+      else if (c == DECIMAL_SEPERATOR && ds)
       {
-	iter->index--;
-	MILEX_procvals(iter, script, scope);
+	mkferr("multiple decimal seperators found.");
+	return 0;
+      }
+      nextc();
+      nlen++;
+    }
+    char nstr[nlen];
+    memcpy(nstr, &data[*index - nlen], nlen);
+
+    enum mvar_t type = MVAR_INT32_T;
+    if (c == 'L') type = MVAR_INT64_T;
+    else if (c == 'F') type = MVAR_FLOAT32_T;
+    else if (c == 'D' || ds) type = MVAR_FLOAT64_T;
+
+    if (ds && (type == MVAR_INT32_T || type == MVAR_INT64_T))
+    {
+      mkferr("cannot convert floating-point number to integer.");
+      return 0;
+    }
+
+    char* number = calloc(type == MVAR_INT64_T || type == MVAR_FLOAT64_T ? 8 : 4, 1);
+
+    if (type == MVAR_INT32_T) *number = (int) strtol(nstr, NULL, hex ? 16 : 10);
+    else if (type == MVAR_INT64_T) *number = (long) strtol(nstr, NULL, hex ? 16 : 10);
+    else if (type == MVAR_FLOAT32_T) *number = (float) strtof(nstr, NULL);
+    else if (type == MVAR_FLOAT64_T) *number = (double) strtod(nstr, NULL);
+
+    *token = mktoken(MTK_VALUE_T, vnew(type, false, number));
+    return 1;
+  }else if (c == '"')
+  {
+    string_buffer* str_buff = string_buffer_new(32);
+
+    bool ended = false;
+    uint32_t slen = 0;
+    char lc = '\0';
+    while (true)
+    {
+      c = nextc();
+
+      /* check if escape character */
+      if (c == '\\')
+      {
+	c = nextc();
+	if (esc_char(c, &c) != 1)
+	{
+	  mkferr("unknown escape character '%c'.");
+	  return 0;
+	}
+
+      /* check if string has ended */
+      }else if (c == '"')
+      {
+	ended = true;
+	break;
+      }
+
+      string_buffer_appendc(str_buff, c);
+      slen++;
+      lc = c;
+    }
+
+    /* check if string ended with '"' */
+    if (!ended)
+    {
+      mkferr("'\"' not ended. expected '\"'.");
+      return 0;
+    }
+
+    /* check if string is larger than max string length */
+    if (slen > MAX_STRING_LENGTH)
+    {
+      // TODO: print the MAX_STRING_LENGTH
+      mkferr("string is larger than 'MAX_STRING_LENGTH'.");
+      return 0;
+    }
+
+    *token = mktoken(MTK_VALUE_T, vnew(MVAR_STRING_T, false, string_buffer_extractd(str_buff)));
+    return 1;
+  }else if (c == '\'')
+  {
+    c = nextc();
+
+    /* check if escape character */
+    if (c == '\\')
+    {
+      c = nextc();
+      if (esc_char(c, &c) != 1)
+      {
+	mkferr("unknown escape character '%c'.");
+	return 0;
       }
     }
+
+    /* check if ends with ' */
+    if (nextc() != '\'')
+    {
+      mkferr("missing ' at the end.");
+      return 0;
+    }
+
+    /* store the value on the heap */
+    char* value = calloc(sizeof(char), 1);
+    *value = c;
+
+    *token = mktoken(MTK_VALUE_T, vnew(MVAR_INT8_T, false, value));
+    return 1;
+  }else if (is_name(c))
+  {
+    string_buffer* str_buff = string_buffer_new(32);
+    string_buffer_appendc(str_buff, c);
+
+    uint32_t llen = 1;
+    while (hasc())
+    {
+      c = peekc();
+
+      if (!is_name(c) && !is_digit(c, false))
+	break;
+
+      string_buffer_appendc(str_buff, nextc());
+    }
+
+    /* get the string and delete the string buffer */
+    char* lit = string_buffer_extractd(str_buff);
+
+    /* check if it matches a boolean */
+    if (strcmp("true", lit) == 0 || strcmp("false", lit) == 0)
+      *token = mktoken(MTK_VALUE_T, vnew(MVAR_BOOL_T, false, strcmp("true", lit) == 0 ? MI_BOOL_TRUE : MI_BOOL_FALSE));
+
+    /* check if null value */
+    else if (strcmp("null", lit) == 0)
+      *token = mktoken(MTK_VALUE_T, vnew(MVAR_NULL_T, false, NULL));
+
+    /* check if statement */
+    else if (strcmp("if", lit) == 0) *token = mktoken(MTK_STATEMENT_T, (void*) MSTATE_IF_T);
+    else if (strcmp("else", lit) == 0) *token = mktoken(MTK_STATEMENT_T, (void*) MSTATE_ELSE_T);
+
+    else
+    {
+
+      // TODO: declare a function
+      /* check if function / function call */
+      if (c == '(')
+      {
+	mtoken* group_token = NULL;
+	if (MILEX_nexttoken(data, index, lpos, cpos, len, file, script, last_token, &group_token) != 1)
+	  return 0;
+
+	/* error checking */
+	if (group_token == NULL)
+	{
+	  mkferr("next token returned null pointer, expected group.");
+	  return 0;
+	}else if (group_token->type != MTK_GROUP_T)
+	{
+	  mkferr("next token returned unexpected value.");
+	  return 0;
+	}
+
+	mfunc* func = map_pull(script->functions, lit);
+
+	/* check if function is defined */
+	if (func == NULL)
+	{
+	  mkferr("undefined function '%s'.");
+	  return 0;
+	}
+
+	mfunc_call* func_call = (mfunc_call*) calloc(sizeof(mfunc_call), 1);
+	func_call->args = (array*) group_token->value;
+	func_call->func = func;
+	*token = mktoken(MTK_CALL_T, func_call);
+
+	/* don't need this anymoreee */
+	free(lit);
+
+      }else
+	*token = mktoken(MTK_LITERIAL_T, lit);
+    }
+
+    return 1;
+  }else if (is_opr(c))
+  {
+    if (c == '+' && peekc() == '+' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_INCREMENT_T);
+    else if (c == '-' && peekc() == '-' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_DECREMENT_T);
+    else if (c == '+' && peekc() == '=' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_AA_ADD_T);
+    else if (c == '-' && peekc() == '=' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_AA_SUB_T);
+    else if (c == '*' && peekc() == '=' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_AA_MUL_T);
+    else if (c == '/' && peekc() == '=' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_AA_DIV_T);
+    else if (c == '%' && peekc() == '=' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_AA_MOD_T);
+    else if (c == '=' && peekc() == '=' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_EQL_EQUALS_T);
+    else if (c == '&' && peekc() == '&' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_BOOL_AND_T);
+    else if (c == '|' && peekc() == '|' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_BOOL_OR_T);
+    else if (c == '>' && peekc() == '>' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_BIT_SHIFT_RIGHT_T);
+    else if (c == '<' && peekc() == '<' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_BIT_SHIFT_RIGHT_T);
+    else if (c == '!' && peekc() == '=' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_EQL_NOT_EQUALS_T);
+
+    else if (c == '+') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_ART_ADD_T);
+    else if (c == '-') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_ART_SUB_T);
+    else if (c == '*') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_ART_MUL_T);
+    else if (c == '/') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_ART_DIV_T);
+    else if (c == '%') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_ART_MOD_T);
+    else if (c == '&') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_BIT_AND_T);
+    else if (c == '|') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_BIT_OR_T);
+    else if (c == '^') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_BIT_XOR_T);
+    else if (c == '~') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_BIT_NOT_T);
+    else if (c == '>') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_BOOL_MORE_T);
+    else if (c == '<') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_BOOL_LESS_T);
+    else if (c == '!') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_BOOL_NOT_T);
+    else if (c == '=') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_ASSIGN_T);
+    else 
+      return 0;
+    return 1;
+  }else if (c == '(')
+  {
+    array* tokens = array_new(8);
+    bool ended = false;
+    while (hasc())
+    {
+      c = peekc();
+
+      /* check if ended */
+      if (c == ')' && nextc() != '\0')
+      {
+	ended = true;
+	break;
+      }
+
+      mtoken* t = NULL;
+      if (MILEX_nexttoken(data, index, lpos, cpos, len, file, script, last_token, &t) != 1)
+	return 0;
+      if (t == NULL)
+	continue;
+
+      last_token = t;
+      array_push(tokens, t);
+    }
+
+    /* check if ended */
+    if (!ended)
+    {
+      mkferr("'(' not ended. expected ')'.");
+      return 0;
+    }
+
+    *token = mktoken(MTK_GROUP_T, tokens);
+    return 1;
+  }else if (c == '{')
+  {
+    array* tokens = array_new(8);
+    bool ended = false;
+    while (hasc())
+    {
+      c = peekc();
+
+      /* check if ended */
+      if (c == '}')
+      {
+	nextc();
+	ended = true;
+	break;
+      }
+      
+      mtoken* t;
+      if (MILEX_nexttoken(data, index, lpos, cpos, len, file, script, last_token, &t) != 1)
+	return 0;
+
+      last_token = t;
+      array_push(tokens, t);
+    }
+
+    /* check if ended */
+    if (!ended)
+    {
+      mkferr("'{' not ended. expected '}'.");
+      return 0;
+    }
+
+    *token = mktoken(MTK_SCOPE_T, (uint8_t*) tokens);
+    return 1;
+  }else if (c == '[')
+  {
+  }else if (c == ',')
+  {
+    *token = mktoken(MTK_COMMA_T, NULL);
+    return 1;
+  }else if (c == '.')
+  {
+    *token = mktoken(MTK_DOT_T, NULL);
+    return 1;
+  }else if (c == ';')
+  {
+    *token = mktoken(MTK_END_T, NULL);
+    return 1;
   }
-  return 1;
+  else if (c == '/')
+  {
+    c = nextc();
+    bool ended = false;
+    if (c == '/')
+    {
+      while (hasc())
+      { 
+	if (nextc() == '\n')
+	{
+	  ended = true;
+	  break;
+	}
+      }
+    }else if (c == '*')
+    {
+      while (hasc())
+      {
+	c = nextc();
+	if (c == '*' && nextc() == '/')
+	{
+	  ended = true;
+	  break;
+	}
+      }
+    }else
+    {
+      mkferr("expected comment start-point.");
+      return 0;
+    }
+
+    /* check if comment ended */
+    if (!ended)
+      mkfwarn(":: comment not ended.");
+    return 1;
+  }else if (is_blank(c))
+    return 1;
+  mkferr("unknown character '%c'.");
+  return 0;
 }
-
-
