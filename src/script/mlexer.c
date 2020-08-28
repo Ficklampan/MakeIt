@@ -1,5 +1,4 @@
-#include "mlexer.h"
-
+#include "mlexer.h" 
 #include "mvar.h"
 #include "mvm.h"
 
@@ -124,6 +123,7 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
 
   char c = nextc();
 
+  /* number token */
   if (is_digit(c, false))
   {
     uint32_t nlen = 1;
@@ -140,7 +140,7 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
 
       if (c == DECIMAL_SEPERATOR && !is_digit(peekc(), false))
       {
-	mkferr("can't use a '.' here.");
+	mkferr("can't use a '.' here:");
 	return 0;
       }else if (!is_digit(c, true))
 	break;
@@ -178,6 +178,8 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
 
     *token = mktoken(MTK_VALUE_T, vnew(type, false, number));
     return 1;
+
+  /* string token */
   }else if (c == '"')
   {
     string_buffer* str_buff = string_buffer_new(32);
@@ -214,7 +216,7 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
     /* check if string ended with '"' */
     if (!ended)
     {
-      mkferr("'\"' not ended. expected '\"'.");
+      mkferr("'\"' not ended. expected '\"' here:");
       return 0;
     }
 
@@ -228,6 +230,8 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
 
     *token = mktoken(MTK_VALUE_T, vnew(MVAR_STRING_T, false, string_buffer_extractd(str_buff)));
     return 1;
+
+  /* char token */
   }else if (c == '\'')
   {
     c = nextc();
@@ -246,7 +250,7 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
     /* check if ends with ' */
     if (nextc() != '\'')
     {
-      mkferr("missing ' at the end.");
+      mkferr("missing ' at the end. here:");
       return 0;
     }
 
@@ -256,6 +260,8 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
 
     *token = mktoken(MTK_VALUE_T, vnew(MVAR_INT8_T, false, value));
     return 1;
+
+  /* literial / call / boolean / null value token */
   }else if (is_name(c))
   {
     string_buffer* str_buff = string_buffer_new(32);
@@ -292,7 +298,17 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
 
       // TODO: declare a function
       /* check if function / function call */
-      if (c == '(')
+      bool next_group = false;
+      for (uint32_t i = *index; i < len; i++)
+      {
+	if (is_blank(data[i]))
+	  continue;
+	if (data[i] == '(')
+	  next_group = true;
+	break;
+      }
+
+      if (next_group)
       {
 	mtoken* group_token = NULL;
 	if (MILEX_nexttoken(data, index, lpos, cpos, len, file, script, last_token, &group_token) != 1)
@@ -331,6 +347,8 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
     }
 
     return 1;
+
+  /* operator token */
   }else if (is_opr(c))
   {
     if (c == '+' && peekc() == '+' && nextc() != '\0') *token = mktoken(MTK_OPERATOR_T, (void*) MOPR_INCREMENT_T);
@@ -363,6 +381,8 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
     else 
       return 0;
     return 1;
+
+  /* group token */
   }else if (c == '(')
   {
     array* tokens = array_new(8);
@@ -391,12 +411,14 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
     /* check if ended */
     if (!ended)
     {
-      mkferr("'(' not ended. expected ')'.");
+      mkferr("'(' not ended. expected ')'. here:");
       return 0;
     }
 
     *token = mktoken(MTK_GROUP_T, tokens);
     return 1;
+
+  /* scope token */
   }else if (c == '{')
   {
     array* tokens = array_new(8);
@@ -424,7 +446,7 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
     /* check if ended */
     if (!ended)
     {
-      mkferr("'{' not ended. expected '}'.");
+      mkferr("'{' not ended. expected '}'. here:");
       return 0;
     }
 
@@ -432,19 +454,27 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
     return 1;
   }else if (c == '[')
   {
+
+  /* comma token */
   }else if (c == ',')
   {
     *token = mktoken(MTK_COMMA_T, NULL);
     return 1;
+
+  /* dot token */
   }else if (c == '.')
   {
     *token = mktoken(MTK_DOT_T, NULL);
     return 1;
+
+  /* end token */
   }else if (c == ';')
   {
     *token = mktoken(MTK_END_T, NULL);
     return 1;
   }
+
+  /* comment */
   else if (c == '/')
   {
     c = nextc();
@@ -472,7 +502,7 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
       }
     }else
     {
-      mkferr("expected comment start-point.");
+      mkferr("expected comment start-point. here:");
       return 0;
     }
 

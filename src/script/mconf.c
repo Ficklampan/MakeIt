@@ -2,14 +2,15 @@
 
 #include "../utils/String.h"
 
+#include <stdarg.h>
 #include <stdio.h>
 
-static char* printloc(mtoken_l* location)
+// TODO: warning colors
+static int printloc(mtoken_l* location, char* format, char** out)
 {
   string_buffer* line = string_buffer_new(128);
 
   uint32_t lcount = 1;
-  bool err = false;
   for (uint32_t i = 0; i < location->slength; i++)
   {
     char c = location->source[i];
@@ -19,15 +20,10 @@ static char* printloc(mtoken_l* location)
       if (c == '\n')
 	break;
 
-      if (i >= location->start && i < location->end && !err)
-      {
-	string_buffer_append(line, "\e[1m\e[4m\e[31m");
-	err = true;
-      }else if ((i < location->start || i >= location->end) && err)
-      {
+      if (i == location->start)
+	string_buffer_append(line, format);
+      else if (i == location->end)
 	string_buffer_append(line, "\e[0m");
-	err = false;
-      }
       string_buffer_appendc(line, c);
     }
 
@@ -37,21 +33,43 @@ static char* printloc(mtoken_l* location)
       continue;
     }
   }
-  return string_buffer_extractd(line);
+
+  *out = string_buffer_extractd(line);
+  return 1;
 }
 
 // TODO: string format
 
-void ferr(mtoken_l* location, char* str)
+void ferr(mtoken_l* location, const char* format, ...)
 {
-  printf("\e[1m\e[37m%s\e[0m\e[35m [%i:%i]:\e[0m \e[31m%s\n\e[0m", location->file, location->lpos, location->cpos, str);
-  printf("  [%i]  |  %s\n\n\e[0m", location->lpos, printloc(location));
+  char* line = NULL;
+
+  printloc(location, "\e[4m\e[31m", &line);
+
+  printf("\e[1m\e[37m%s\e[0m\e[35m [%i:%i]:\e[0m \e[31m", location->file, location->lpos, location->cpos);
+
+  va_list args;
+  va_start(args, format);
+  vprintf(format, args);
+  va_end(args);
+
+  printf("\n\e[0m  [%i]  | %s\n\n\e[0m", location->lpos, line);
 }
 
-void fwarn(mtoken_l* location, char* str)
+void fwarn(mtoken_l* location, const char* format, ...)
 {
-  printf("\e[1m\e[37m%s\e[0m\e[35m [%i:%i]:\e[0m \e[33m%s\n\e[0m", location->file, location->lpos, location->cpos, str);
-  printf("  [%i]  |  %s\n\n\e[0m", location->lpos, printloc(location));
+  char* line = NULL;
+
+  printloc(location, "\e[4m\e[33m", &line);
+
+  printf("\e[1m\e[37m%s\e[0m\e[35m [%i:%i]:\e[0m \e[33m", location->file, location->lpos, location->cpos);
+
+  va_list args;
+  va_start(args, format);
+  vprintf(format, args);
+  va_end(args);
+
+  printf("\n\e[0m  [%i]  | %s\n\n\e[0m", location->lpos, line);
 }
 
 char* wstr(unsigned int w)

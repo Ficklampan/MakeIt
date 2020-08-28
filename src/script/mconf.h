@@ -12,8 +12,8 @@
 
 #include "mtype.h"
 
-void ferr(mtoken_l* location, char* str);
-void fwarn(mtoken_l* location, char* str);
+void ferr(mtoken_l* location, const char* format, ...);
+void fwarn(mtoken_l* location, const char* format, ...);
 
 char* wstr(unsigned int w);
 

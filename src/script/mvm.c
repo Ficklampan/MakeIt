@@ -59,16 +59,11 @@ int MIVM_proctokens(iterator* iter, mscript* script, mscope* scope, mvar** var)
 
       if (MIVM_proctokens(iter, script, scope, &var2) != 1)
 	return 0;
-      if (var2 == NULL)
+      if (var2 == NULL || var2->type == MVAR_NULL_T)
       {
 	ferr(next->location, "variable returned null pointer.");
 	return 0;
-      }else if (var2->type != MTK_VALUE_T && var2->type != MTK_GROUP_T && var2->type != MTK_LITERIAL_T && var2->type != MTK_CALL_T)
-      {
-	ferr(next->location, "variable returned unexpected value.");
-	return 0;
       }
-
       *var = MIVM_procoprs((enum mopr_t) token->value, *var, var2);
     }
 
@@ -100,17 +95,19 @@ int MIVM_proctokens(iterator* iter, mscript* script, mscope* scope, mvar** var)
     {
       *var = mscope_pull(scope, (char*) token->value);
       bool assign_next = next != NULL && next->type == MTK_OPERATOR_T && ((enum mopr_t) next->value) == MOPR_ASSIGN_T;
+
       if (*var == NULL && !assign_next)
       {
-	ferr(token->location, "undefined variable '%s'.");
+	ferr(token->location, "undefined variable '%s'.", (char*) token->value);
 	return 0;
-      }else if (*var == NULL)
+      }else if (*var == NULL && assign_next)
+      {
+	next = (mtoken*) iter_next(iter);
 	*var = vnew(MVAR_VOID_T, false, NULL);
 
-      if (assign_next)
-      {
 	if (MIVM_proctokens(iter, script, scope, var) != 1)
 	  return 0;
+
 	map_push(scope->variables, (char*) token->value, *var);
       }
     }

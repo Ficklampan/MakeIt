@@ -1,4 +1,4 @@
 index = 127;
 
-printf("the index is now " + istr(index) + "\n";
+printf("the index is now " + istr(index) + "\n");
 
