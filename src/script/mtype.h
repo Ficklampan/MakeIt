@@ -140,15 +140,17 @@ typedef struct {
   mtoken* scope_tk;
 } mstatement;
 
-static inline mvar* mscope_pull(mscope* scope, char* name)
+static inline mvar* mscope_pull(mscope* scope, char* name, mscope** location)
 {
   mvar* var = (mvar*) map_pull(scope->variables, name);
   if (var == NULL && scope->parent != NULL)
-    return mscope_pull((mscope*) scope->parent, name);
+    return mscope_pull((mscope*) scope->parent, name, location);
+  if (location != NULL)
+    *location = scope;
   return var;
 }
 
-static inline mscope* mscope_new(mscript* script, mscript* parent)
+static inline mscope* mscope_new(mscript* script, mscope* parent)
 {
   mscope* scope = (mscope*) calloc(sizeof(mscope), 1);
   scope->script = script;

@@ -31,6 +31,7 @@ static inline char* ttstr(enum mtoken_t type)
     case MTK_LITERIAL_T: return "literial"; break;
     case MTK_VALUE_T: return "value"; break;
     case MTK_OPERATOR_T: return "operator"; break;
+    case MTK_STATEMENT_T: return "statement"; break;
     default:
       return "?";
   }

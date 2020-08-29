@@ -120,6 +120,11 @@ void* iter_peek(iterator* i)
   return i->arr->values[i->index];
 }
 
+void iter_reset(iterator* i)
+{
+  i->index = 0;
+}
+
 iterator* iter_new(array* arr)
 {
   iterator* iter = (iterator*) calloc(sizeof(iterator), 1);

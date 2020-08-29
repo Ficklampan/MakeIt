@@ -21,18 +21,118 @@ int MIVM_procscope(iterator* iter, mscript* script, mscope* scope)
   while (iter_has(iter))
   {
     mtoken* token = (mtoken*) iter_peek(iter);
+
     if (token->type == MTK_END_T && iter_next(iter) != NULL)
       continue;
 
     if (token->type == MTK_STATEMENT_T)
     {
+      token = (mtoken*) iter_next(iter);
+      if (MIVM_procstatement(iter, token, script, scope) != 1)
+	return 0;
+    }else if (token->type == MTK_SCOPE_T)
+    {
+      token = (mtoken*) iter_next(iter);
+
+      mscope* new_scope = mscope_new(script, scope);
+      if (MIVM_procscope(iter_new((array*) token->value), script, new_scope) != 1)
+	return 0;
     }else
     {
       mvar* var = NULL;
-      if (MIVM_proctokens(iter, script, scope, &var) != 1)
+      if (MIVM_proctokens(iter, script, scope, &var) == 0)
 	return 0;
     }
   }
+  return 1;
+}
+
+static inline int checkstate(iterator* group_iter, mtoken* group_token, mscript* script, mscope* scope, bool* out)
+{
+  mvar* var = NULL;
+  if (MIVM_proctokens(group_iter, script, scope, &var) != 1)
+    return 0;
+
+  if (var == NULL)
+  {
+    ferr(group_token->location, "group returned null pointer.");
+    return 0;
+  }
+
+  if (var->type != MVAR_BOOL_T)
+  {
+    ferr(group_token->location, "group returned '%s'. expected bool.", vtstr(var->type));
+    return 0;
+  }
+
+  *out = var->value == MI_BOOL_TRUE ? true : false;
+
+  return 1;
+}
+int MIVM_procstatement(iterator* iter, mtoken* token, mscript* script, mscope* scope)
+{
+  enum mstate_t type = (enum mstate_t) token->value;
+  if (type == MSTATE_IF_T || type == MSTATE_WHILE_T || type == MSTATE_FOR_T)
+  {
+    mtoken* group_token = (mtoken*) iter_next(iter);
+    if (group_token == NULL || group_token->type != MTK_GROUP_T)
+    {
+      ferr(group_token == NULL ? token->location : group_token->location, "expected group. found %s.", group_token != NULL ? ttstr(group_token->type) : "nothing");
+      return 0;
+    }
+
+    /* check if group is empty */
+    if (((array*) group_token->value)->used == 0)
+    {
+      ferr(group_token->location, "group is empty.");
+      return 0;
+    }
+
+    /* check scope */
+    mtoken* scope_token = (mtoken*) iter_next(iter);
+    if (scope_token == NULL || scope_token->type != MTK_SCOPE_T)
+    {
+      ferr(scope_token == NULL ? group_token->location : scope_token->location, "expected scope. found %s.", scope_token != NULL ? ttstr(scope_token->type) : "nothing");
+      return 0;
+    }
+
+    mscope* state_scope = mscope_new(script, scope);
+    iterator* group_iter = iter_new((array*) group_token->value);
+    iterator* scope_iter = iter_new((array*) scope_token->value);
+
+    if (type == MSTATE_IF_T)
+    {
+      bool state = false;
+      if (checkstate(group_iter, group_token, script, scope, &state) != 1)
+	return 0;
+
+      if (state && MIVM_procscope(scope_iter, script, state_scope) != 1)
+	return 0;
+
+      /* reset the iterators (not needed here but C: ) */
+      iter_reset(group_iter);
+      iter_reset(scope_iter);
+    }else if (type == MSTATE_WHILE_T)
+    {
+      while (true)
+      {
+	bool state = false;
+	if (checkstate(group_iter, group_token, script, scope, &state) != 1)
+	  return 0;
+
+	if (!state)
+	  break;
+
+	if (MIVM_procscope(scope_iter, script, state_scope) != 1)
+	  return 0;
+
+	/* reset the iterators so we can use them again */
+	iter_reset(group_iter);
+	iter_reset(scope_iter);
+      }
+    }
+  }
+
   return 1;
 }
 
@@ -43,7 +143,7 @@ int MIVM_proctokens(iterator* iter, mscript* script, mscope* scope, mvar** var)
   {
     mtoken* token = (mtoken*) iter_next(iter);
     if (token == NULL || token->type == MTK_END_T || token->type == MTK_COMMA_T)
-      break;
+      return 2;
 
     mtoken* next = (mtoken*) iter_peek(iter);
 
@@ -57,20 +157,25 @@ int MIVM_proctokens(iterator* iter, mscript* script, mscope* scope, mvar** var)
       }
       mvar* var2 = NULL;
 
-      if (MIVM_proctokens(iter, script, scope, &var2) != 1)
+      int result = MIVM_proctokens(iter, script, scope, &var2);
+      if (result == 0)
 	return 0;
+
       if (var2 == NULL || var2->type == MVAR_NULL_T)
       {
 	ferr(next->location, "variable returned null pointer.");
 	return 0;
       }
       *var = MIVM_procoprs((enum mopr_t) token->value, *var, var2);
+
+      if (result == 2)
+	return 1;
     }
 
     /* check if token is type 'value', return value */
     else if (token->type == MTK_VALUE_T)
     {
-      *var = (mvar*) token->value;
+      vcpy(var, (mvar*) token->value);
     }
 
     /* if type 'group' then evaluate everything in the group */
@@ -86,14 +191,18 @@ int MIVM_proctokens(iterator* iter, mscript* script, mscope* scope, mvar** var)
 	fwarn(token->location, "group does not contain any value.");
       }
 
-      if (MIVM_proctokens(iter_new(tokens), script, scope, var) != 1)
+      int result = MIVM_proctokens(iter_new(tokens), script, scope, var);
+      if (result == 0)
 	return 0;
+      else if (result == 2)
+	return 1;
     }
 
     /* check if variable */
     else if (token->type == MTK_LITERIAL_T)
     {
-      *var = mscope_pull(scope, (char*) token->value);
+      mscope* src_scope = NULL;
+      *var = mscope_pull(scope, (char*) token->value, &src_scope);
       bool assign_next = next != NULL && next->type == MTK_OPERATOR_T && ((enum mopr_t) next->value) == MOPR_ASSIGN_T;
 
       if (*var == NULL && !assign_next)
@@ -102,13 +211,8 @@ int MIVM_proctokens(iterator* iter, mscript* script, mscope* scope, mvar** var)
 	return 0;
       }else if (*var == NULL && assign_next)
       {
-	next = (mtoken*) iter_next(iter);
 	*var = vnew(MVAR_VOID_T, false, NULL);
-
-	if (MIVM_proctokens(iter, script, scope, var) != 1)
-	  return 0;
-
-	map_push(scope->variables, (char*) token->value, *var);
+	map_push(src_scope->variables, (char*) token->value, *var);
       }
     }
 
@@ -208,7 +312,8 @@ mvar* MIVM_procoprs(enum mopr_t opr_type, mvar* v1, mvar* v2)
   /* assign */
   else if (opr_type == MOPR_ASSIGN_T)
   {
-    v1 = v2;
+    v1->type = v2->type;
+    v1->value = v2->value;
   }
 
 /* -- BOOLEANS -- */

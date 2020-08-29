@@ -58,13 +58,20 @@ static inline mvar* vnew(enum mvar_t type, bool constant, void* value)
   return var;
 }
 
-static inline mvar* vcpy(mvar* dest, mvar* var)
+static inline void vcpy(mvar** dest, mvar* var)
 {
-  uint32_t size = vsizeof(var->type);
-  dest->value = (uint8_t*) calloc(size, 1);
-  dest->type = var->type;
-  memcpy(dest->value, var->value, size);
-  return dest;
+  void* value = NULL;
+
+  if (var->type == MVAR_BOOL_T)
+    value = var->value;
+  else
+  {
+    uint32_t size = sizeof(var->value);
+    value = calloc(1, size);
+    memcpy(value, var->value, size);
+  }
+
+  *dest = vnew(var->type, var->constant, value);
 }
 
 static inline int vassignc(mvar* var, uint8_t* value)

@@ -292,6 +292,7 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
     /* check if statement */
     else if (strcmp("if", lit) == 0) *token = mktoken(MTK_STATEMENT_T, (void*) MSTATE_IF_T);
     else if (strcmp("else", lit) == 0) *token = mktoken(MTK_STATEMENT_T, (void*) MSTATE_ELSE_T);
+    else if (strcmp("while", lit) == 0) *token = mktoken(MTK_STATEMENT_T, (void*) MSTATE_WHILE_T);
 
     else
     {
@@ -411,7 +412,7 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
     /* check if ended */
     if (!ended)
     {
-      mkferr("'(' not ended. expected ')'. here:");
+      mkferr("'(' not ended. expected ')'.");
       return 0;
     }
 
@@ -428,16 +429,17 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
       c = peekc();
 
       /* check if ended */
-      if (c == '}')
+      if (c == '}' && nextc() != '\0')
       {
-	nextc();
 	ended = true;
 	break;
       }
       
-      mtoken* t;
+      mtoken* t = NULL;
       if (MILEX_nexttoken(data, index, lpos, cpos, len, file, script, last_token, &t) != 1)
 	return 0;
+      if (t == NULL)
+	continue;
 
       last_token = t;
       array_push(tokens, t);
@@ -446,11 +448,11 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
     /* check if ended */
     if (!ended)
     {
-      mkferr("'{' not ended. expected '}'. here:");
+      mkferr("'{' not ended. expected '}'");
       return 0;
     }
 
-    *token = mktoken(MTK_SCOPE_T, (uint8_t*) tokens);
+    *token = mktoken(MTK_SCOPE_T, tokens);
     return 1;
   }else if (c == '[')
   {

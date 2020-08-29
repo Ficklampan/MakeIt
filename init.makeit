@@ -1,4 +1,6 @@
-index = 127;
-
-printf("the index is now " + istr(index) + "\n");
-
+index = 0;
+while (index < 128)
+{
+  printf("i[" + istr(index) + "]\n");
+  index+=1;
+}
