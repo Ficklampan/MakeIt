@@ -3,7 +3,14 @@
 
 #include "MakeIt.h"
 
+#include "script/mtype.h"
+
 void MIFUNC_usage(const char* func);
-int MIFUNC_proc(makeit_project* project, const char* func, const array* elements, const char* directory);
+
+mvar* MIFUNC_makefile(mscript* script, mscope* scope, array* args);
+enum mvar_t* MIFUNCARGS_makefile();
+
+mvar* MIFUNC_project(mscript* script, mscope* scope, array* args);
+enum mvar_t* MIFUNCARGS_project();
 
 #endif

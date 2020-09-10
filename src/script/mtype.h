@@ -79,6 +79,8 @@ enum mvar_t {
   MVAR_FLOAT32_T,
   MVAR_FLOAT64_T,
   MVAR_STRING_T,
+  MVAR_ARRAY_T,
+  MVAR_RECORD_T,
   MVAR_ANY_T
 };
 
@@ -124,9 +126,19 @@ typedef struct {
 } mvar;
 
 typedef struct {
+  enum mvar_t type;
+  array* arr;
+} marray;
+
+typedef struct {
+  uint32_t size;
+  void* ptr;
+} mrecord;
+
+typedef struct {
   uint32_t argc;
   enum mvar_t* args;
-  mvar* (*exec) (array*); 
+  mvar* (*exec) (mscript*, mscope*, array*); 
 } mfunc;
 
 typedef struct {
@@ -170,6 +182,22 @@ static inline mtoken_l* mtloc_new(uint32_t lpos, uint32_t cpos, uint32_t start, 
   loc->source = source;
   loc->slength = slength;
   return loc;
+}
+
+static inline marray* marray_new(enum mvar_t type, array* arr)
+{
+  marray* array = (marray*) calloc(sizeof(marray), 1);
+  array->type = type;
+  array->arr = arr;
+  return array;
+}
+
+static inline mrecord* mrecord_new(uint32_t size, void* ptr)
+{
+  mrecord* record = (mrecord*) calloc(sizeof(mrecord), 1);
+  record->size = size;
+  record->ptr = ptr;
+  return record;
 }
 
 #endif

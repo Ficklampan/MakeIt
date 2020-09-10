@@ -3,11 +3,11 @@
 #include "MakeFile.h"
 
 #include "Config.h"
+#include "Texts.h"
 
-#include "utils/String.h"
 #include "utils/FileUtils.h"
 
-#include "Texts.h"
+#include "script/mvar.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -89,6 +89,50 @@ void MIFUNC_usage(const char* func)
     else
       printf(":: unknown function `%s`. use '-f' to list all functions.", func);
   }
+}
+
+mvar* MIFUNC_makefile(mscript* script, mscope* scope, array* args)
+{
+  mrecord* record = args->values[0];
+  char* cflags = args->values[1];
+  marray* sources = args->values[2];
+  marray* headers = args->values[3];
+
+
+
+  return vnew(MVAR_BOOL_T, false, NULL);
+}
+
+enum mvar_t* MIFUNCARGS_makefile()
+{
+  enum mvar_t* args = calloc(sizeof(enum mvar_t), 4);
+  args[0] = MVAR_RECORD_T;
+  args[1] = MVAR_STRING_T;
+  args[2] = MVAR_ARRAY_T;
+  args[3] = MVAR_ARRAY_T;
+  return args;
+}
+
+mvar* MIFUNC_project(mscript* script, mscope* scope, array* args)
+{
+  mvar* name = args->values[0];
+  mvar* version = args->values[1];
+  mvar* lang = args->values[2];
+
+  makeit_project* project = calloc(sizeof(makeit_project), 1);
+  MI_initproj(project, name->value, version->value, lang->value);
+
+  return vnew(MVAR_RECORD_T, false, mrecord_new(sizeof(makeit_project), project));
+}
+
+enum mvar_t* MIFUNCARGS_project()
+{
+  array* arr = array_new(3);
+  enum mvar_t* args = calloc(sizeof(enum mvar_t), 3);
+  args[0] = MVAR_STRING_T;
+  args[1] = MVAR_STRING_T;
+  args[2] = MVAR_STRING_T;
+  return args;
 }
 
 int MIFUNC_proc(makeit_project* project, const char* func, const array* elements, const char* directory)

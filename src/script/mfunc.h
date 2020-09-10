@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static inline mfunc* fnew(uint32_t argc, enum mvar_t* args, mvar* (*exec) (array*))
+static inline mfunc* fnew(uint32_t argc, enum mvar_t* args, mvar* (*exec) (mscript*, mscope*, array*))
 {
   mfunc* func = (mfunc*) calloc(sizeof(mfunc), 1);
   func->argc = argc;

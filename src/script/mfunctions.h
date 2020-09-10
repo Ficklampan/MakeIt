@@ -9,7 +9,8 @@
 
 #include <stdio.h>
 
-static inline mvar* func_exec_printf(array* args)
+/* print function */
+static inline mvar* func_exec_print(mscript* script, mscope* scope, array* args)
 {
   mvar* var = (mvar*) args->values[0];
   if (var->type == MVAR_STRING_T) printf("%s", (char*) var->value);
@@ -20,22 +21,39 @@ static inline mvar* func_exec_printf(array* args)
   else if (var->type == MVAR_FLOAT32_T) printf("%f", *((mi_float32*) var->value));
   else if (var->type == MVAR_FLOAT64_T) printf("%f", *((mi_float64*) var->value));
   else if (var->type == MVAR_BOOL_T) printf("%s", var->value == NULL ? "false" : "true");
+  else if (var->type == MVAR_RECORD_T) printf("record[%i][%p]", ((mrecord*) var->value)->size, ((mrecord*) var->value)->ptr);
   else
   {
-    printf(":: unknown data type %s.\n", vtstr(var->type));
+    printf(":: [printf]: unknown data type %s.\n", vtstr(var->type));
     return NULL;
   }
   return vnew(MVAR_VOID_T, true, NULL);
 }
 
-static inline mfunc* func_printf()
+static inline mfunc* func_print()
 {
   enum mvar_t* args = (enum mvar_t*) calloc(sizeof(enum mvar_t), 1);
   args[0] = MVAR_ANY_T;
-  return fnew(1, args, func_exec_printf);
+  return fnew(1, args, func_exec_print);
 }
 
-static inline mvar* func_exec_istr(array* args)
+/* println function */
+static inline mvar* func_exec_println(mscript* script, mscope* scope, array* args)
+{
+  mvar* result = func_exec_print(script, scope, args);
+  printf("\n");
+  return result;
+}
+
+static inline mfunc* func_println()
+{
+  enum mvar_t* args = (enum mvar_t*) calloc(sizeof(enum mvar_t), 1);
+  args[0] = MVAR_ANY_T;
+  return fnew(1, args, func_exec_println);
+}
+
+/* itostr function */
+static inline mvar* func_exec_istr(mscript* script, mscope* scope, array* args)
 {
   mvar* var = (mvar*) args->values[0];
   char s[21];
@@ -50,10 +68,28 @@ static inline mfunc* func_istr()
   return fnew(1, args, func_exec_istr);
 }
 
+/* sizeof function */
+static inline mvar* func_exec_sizeof(mscript* script, mscope* scope, array* args)
+{
+  mvar* var = (mvar*) args->values[0];
+  uint32_t* size = (uint32_t*) calloc(sizeof(uint32_t), 1);
+  *size = vtsizeof(var->type);
+  return vnew(MVAR_INT32_T, false, size);
+}
+
+static inline mfunc* func_sizeof()
+{
+  enum mvar_t* args = (enum mvar_t*) calloc(sizeof(enum mvar_t), 1);
+  args[0] = MVAR_ANY_T;
+  return fnew(1, args, func_exec_sizeof);
+}
+
 static inline void func_defaults(map* functions)
 {
-  map_push(functions, "printf", func_printf());
-  map_push(functions, "istr", func_istr());
+  map_push(functions, "print", func_print());
+  map_push(functions, "println", func_println());
+  map_push(functions, "itostr", func_istr());
+  map_push(functions, "sizeof", func_sizeof());
 }
 
 #endif

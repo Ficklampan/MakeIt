@@ -69,6 +69,12 @@ int MILEX_makescript(mscript* script, const char* libs)
   return 1;
 }
 
+int MILEX_putfunc(mscript* script, char* name, mfunc* func)
+{
+  map_push(script->functions, name, func);
+  return 1;
+}
+
 int MILEX_maketokens(const char* data, uint32_t len, array* tokens, const char* file, mscript* script)
 {
   uint32_t index = 0;
@@ -147,6 +153,7 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
 
       if (c == DECIMAL_SEPERATOR && !ds)
 	ds = true;
+
       else if (c == DECIMAL_SEPERATOR && ds)
       {
 	mkferr("multiple decimal seperators found.");
@@ -155,7 +162,12 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
       nextc();
       nlen++;
     }
-    char nstr[nlen];
+
+    char nstr[nlen + 1];
+
+    /* maybe? */
+    nstr[nlen] = '\0';
+
     memcpy(nstr, &data[*index - nlen], nlen);
 
     enum mvar_t type = MVAR_INT32_T;
@@ -331,7 +343,7 @@ int MILEX_nexttoken(const char* data, uint32_t* index, uint32_t* lpos, uint32_t*
 	/* check if function is defined */
 	if (func == NULL)
 	{
-	  mkferr("undefined function '%s'.");
+	  mkferr("undefined function 's'.");
 	  return 0;
 	}
 

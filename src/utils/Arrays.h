@@ -34,6 +34,7 @@ void iter_init(iterator* i, array* arr);
 bool iter_has(iterator* i);
 void* iter_next(iterator* i);
 void* iter_peek(iterator* i);
+void* iter_prev(iterator* i);
 void iter_reset(iterator* i);
 iterator* iter_new(array* arr);
 

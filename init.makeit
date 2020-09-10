@@ -1,6 +1,9 @@
-index = 0;
-while (index < 128)
-{
-  printf("i[" + istr(index) + "]\n");
-  index+=1;
-}
+proj = project("MakeIt", "2020", "c");
+
+index = 8;
+number = 0.75F;
+
+println(proj);
+println("number: " + itostr(number));
+print("proj size: " + itostr(sizeof(proj)) + "\n");
+print("number size: " + itostr(sizeof(number)) + "\n");

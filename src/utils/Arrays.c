@@ -120,6 +120,13 @@ void* iter_peek(iterator* i)
   return i->arr->values[i->index];
 }
 
+void* iter_prev(iterator* i)
+{
+  if (i->index == 0)
+    return NULL;
+  return i->arr->values[i->index - 1];
+}
+
 void iter_reset(iterator* i)
 {
   i->index = 0;

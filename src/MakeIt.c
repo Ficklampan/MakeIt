@@ -158,6 +158,8 @@ int MI_procdat(makeit_project* project, const char* data, uint32_t data_length, 
 
   mscript* script = (mscript*) calloc(sizeof(mscript), 1);
   MILEX_makescript(script, "");
+  MILEX_putfunc(script, "makefile", fnew(4, MIFUNCARGS_makefile(), MIFUNC_makefile));
+  MILEX_putfunc(script, "project", fnew(3, MIFUNCARGS_project(), MIFUNC_project));
 
   if (MILEX_maketokens(data, data_length, tokens, filepath, script) != 1)
     return 0;

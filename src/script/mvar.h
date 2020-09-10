@@ -30,6 +30,8 @@ static inline char* vtstr(enum mvar_t type)
     case MVAR_FLOAT32_T: return "float"; break;
     case MVAR_FLOAT64_T: return "double"; break;
     case MVAR_STRING_T: return "string"; break;
+    case MVAR_ARRAY_T: return "array"; break;
+    case MVAR_RECORD_T: return "record"; break;
     case MVAR_ANY_T: return "auto"; break;
     default:
       return "?";
@@ -37,7 +39,7 @@ static inline char* vtstr(enum mvar_t type)
   }
 }
 
-static inline uint32_t vsizeof(enum mvar_t type)
+static inline uint32_t vtsizeof(enum mvar_t type)
 {
   /* TODO: add more here */
   if (type == MVAR_BOOL_T) return 1;
@@ -46,6 +48,27 @@ static inline uint32_t vsizeof(enum mvar_t type)
   else if (type == MVAR_INT32_T) return sizeof(int);
   else if (type == MVAR_FLOAT32_T) return sizeof(float);
   else if (type == MVAR_FLOAT64_T) return sizeof(double);
+  else if (type == MVAR_STRING_T) return sizeof(char*);
+  else if (type == MVAR_ARRAY_T) return sizeof(marray);
+  else if (type == MVAR_RECORD_T) return sizeof(mrecord);
+  return 0;
+}
+
+static inline uint32_t vsizeof(mvar* var)
+{
+  if (var->type == MVAR_BOOL_T)
+    return vtsizeof(var->type);
+
+  if (var->type == MVAR_STRING_T)
+  {
+    return strlen((char*) var->value);
+  }else if (var->type == MVAR_ARRAY_T)
+  {
+    return ((marray*) var->value)->arr->used * vtsizeof(((marray*) var->value)->type);
+  }else if (var->type == MVAR_RECORD_T)
+  {
+    return ((mrecord*) var->value)->size;
+  }
   return 0;
 }
 
