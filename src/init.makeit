@@ -1,9 +1,7 @@
-append: sources
-  $(current_dir)/MakeIt.c
-  $(current_dir)/MakeItParser.c
-  $(current_dir)/MakeItFunc.c
-  $(current_dir)/MakeFile.c
-  $(current_dir)/Config.c
+sources += \
+  "$(CURRENT_DIR)/MakeIt.c" \
+  "$(CURRENT_DIR)/MakeItFunctions.c" \
+  "$(CURRENT_DIR)/MakeFile.c" \
+  "$(CURRENT_DIR)/Config.c"
 
-externald:
-  $(current_dir)/utils
+script: "$(CURRENT_DIR)/script/init.makeit"

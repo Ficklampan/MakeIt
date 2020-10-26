@@ -1,27 +1,43 @@
 NAME = MakeIt
-VERSION = 2020.08.06
-NAMEV = MakeIt-2020.08.06
-
-SRC = ./src/MakeIt.c ./src/script/mlexer.c ./src/script/mvm.c ./src/script/mconf.c ./src/MakeItFunc.c ./src/MakeFile.c ./src/Config.c ./src/utils/FileUtils.c ./src/utils/Arrays.c ./src/utils/String.c 
-HEADERS = ./src/utils/Arrays.h ./src/utils/String.h ./src/utils/Type.h ./src/utils/FileUtils.h ./src/MakeFile.h ./src/script/mlexer.h ./src/Texts.h ./src/Config.h ./src/MakeItFunc.h ./src/MakeIt.h ./src/script/mtoken.h ./src/script/mvar.h ./src/script/mfunc.h ./src/script/mfunctions.h ./src/script/mconf.h ./src/script/mtype.h
-OBJ = ./MakeItFiles/src/MakeIt.o ./MakeItFiles/src/script/mlexer.o ./MakeItFiles/src/script/mvm.o ./MakeItFiles/src/script/mconf.o ./MakeItFiles/src/MakeItFunc.o ./MakeItFiles/src/MakeFile.o ./MakeItFiles/src/Config.o ./MakeItFiles/src/utils/FileUtils.o ./MakeItFiles/src/utils/Arrays.o ./MakeItFiles/src/utils/String.o 
-
+BUILD = ./build
+FLAGS = 
 CC = gcc
-CFLAGS = 
-LIBS = 
+
+LIBS = -lme
 INCS = 
+LDIR = -Lexternal/lib
+IDIR = -Iexternal/include
 DEFS = 
-BDIR = ./MakeItFiles
-IDIR = 
-LDIR = 
 
-$(BDIR)/%.o: %.* $(HEADERS)
-	$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(INCS) $(DEFS) && echo [32m$<[0m
+# <-- sources -->
+SRC = 	./src/MakeIt.c \
+	./src/MakeItFunctions.c \
+	./src/MakeFile.c \
+	./src/Config.c \
+	./src/script/MakeItScript.c \
+	./src/script/lexer/MakeItLexer.c \
+	./src/script/parser/MakeItParser.c
 
-$(NAMEV): $(OBJ)
-	$(CC) -o $@ $^ $(LDIR) $(LIBS)
+# <-- headers -->
+HEADERS = 	./src/**.h
+
+# <-- objects -->
+OBJS = 	./build/src/MakeIt.o \
+	./build/src/MakeItFunctions.o \
+	./build/src/MakeFile.o \
+	./build/src/Config.o \
+	./build/src/script/MakeItScript.o \
+	./build/src/script/lexer/MakeItLexer.o \
+	./build/src/script/parser/MakeItParser.o
+
+$(BUILD)/%.o: %.* $(HEADERS)
+	@$(CC) -c -o $@ $< $(FLAGS) $(IDIR) $(INCS) $(DEFS) && \
+	echo [32mcompiling [$<][0m
+
+$(NAME): $(OBJS)
+	@$(CC) -o $@ $^ $(LDIR) $(LIBS)
 
 .PHONY: clean
 
 clean:
-	rm -f $(OBJ)
+	rm -f $(OBJS)

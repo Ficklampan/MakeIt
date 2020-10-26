@@ -1,17 +1,8 @@
 #ifndef MAKE_FILE_H
   #define MAKE_FILE_H
 
-#include "utils/Arrays.h"
+#include "MakeIt.h"
 
-int make_makefile(char* name, char* version, char* directory, char* filepath, char* flags,
-  array* sources,
-  array* headers,
-  array* libs,
-  array* incs,
-  array* include_paths,
-  array* lib_paths,
-  array* definitions,
-  char* lang,
-  char* build_path, char** info);
+int MI_makefile(char* filepath, struct array* flags, struct array* sources, struct array* headers, struct makeit_project* project);
 
 #endif

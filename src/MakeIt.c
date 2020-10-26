@@ -1,8 +1,9 @@
 #include "MakeIt.h"
 
-#include "utils/FileUtils.h"
-#include "utils/String.h"
 #include "utils/Time.h"
+
+#include <me/mestr.h>
+#include <me/mefil.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,10 +12,10 @@
 #include "Config.h"
 
 #include "Texts.h"
-#include "MakeItFunc.h"
+#include "MakeItFunctions.h"
 
-#include "script/mlexer.h"
-#include "script/mvm.h"
+#include "script/lexer/MakeItLexer.h"
+#include "script/parser/MakeItParser.h"
 
 static struct option long_options[] = {
   {"help", no_argument, 0, 'h'},
@@ -23,6 +24,8 @@ static struct option long_options[] = {
   {"functions", no_argument, 0, 'f'},
   {"info", required_argument, 0, 'i'}
 };
+
+struct makeit_project project;
 
 void pusage()
 {
@@ -88,143 +91,94 @@ int main(int argc, char** argv)
   /* init */
   uint64_t start_millis = tmillis();
 
-  makeit_project* project = (makeit_project*) calloc(sizeof(makeit_project), 1);
-
   /* default filepath */
-  char* filepath = "./init.makeit";
+  char* filepath = "init.makeit";
 
   /* if a filepath was specified then use that */
   if (optind < argc)
     filepath = argv[optind];
 
-  if (!fsuexist(filepath))
+  struct file* file = me_file_new(filepath);
+
+  if (!me_file_exists(file))
   {
     printf(":: file not found `%s`.\n", filepath);
     return 1;
   }
 
-  /* init directory and filepath */
-  project->directory = strpathfix(strdir(filepath));
-  project->filepath = filepath;
+  /* create script */
+  struct mi_script* script = MI_script_new(memap_new(32), memap_new(32));
+  /* add functions */
+  memap_push(script->functions, "print", MI_function_new(MIFUNC_print));
+  memap_push(script->functions, "system", MI_function_new(MIFUNC_system));
+  memap_push(script->functions, "project", MI_function_new(MIFUNC_project));
+  memap_push(script->functions, "version", MI_function_new(MIFUNC_version));
+  memap_push(script->functions, "language", MI_function_new(MIFUNC_language));
+  memap_push(script->functions, "build_dir", MI_function_new(MIFUNC_build_dir));
+  memap_push(script->functions, "compiler", MI_function_new(MIFUNC_compiler));
+  memap_push(script->functions, "makefile", MI_function_new(MIFUNC_makefile));
+  memap_push(script->functions, "script", MI_function_new(MIFUNC_script));
+  memap_push(script->functions, "define", MI_function_new(MIFUNC_define));
+  memap_push(script->functions, "library", MI_function_new(MIFUNC_library));
+  memap_push(script->functions, "include", MI_function_new(MIFUNC_include));
+  memap_push(script->functions, "library_dir", MI_function_new(MIFUNC_library_dir));
+  memap_push(script->functions, "include_dir", MI_function_new(MIFUNC_include_dir));
 
-  fsumkd(strjoin(project->directory, "/MakeItFiles"));
-  if (MI_procfile(project, project->filepath) != 1)
+  /* create project */
+  project.name = "";
+  project.version = "";
+  project.language = mearr_new(8);
+
+  project.build_dir = me_file_new("build");
+  project.compiler = "";
+
+  project.configs = mearr_new(8);
+  project.libs = mearr_new(8);
+  project.incs = mearr_new(8);
+  project.ldirs = mearr_new(8);
+  project.idirs = mearr_new(8);
+  project.definitions = mearr_new(8);
+
+  /* process file */
+  if (MI_procfile(file, script) != 1)
   {
-    printf("\e[31m:: errors occurred while parsing file `%s`.\e[0m\n", project->filepath);
+    printf("\e[31m:: errors occurred while parsing file `%s`.\e[0m\n", filepath);
     return 1;
   }
   uint64_t end_millis = tmillis();
   printf("==> MakeIt made it without errors");
   if (CFG_millis())
-    printf(", in %i milliseconds!\n", (end_millis - start_millis));
+    printf(", in %lu milliseconds!\n", (end_millis - start_millis));
   else
     printf("!\n");
   return 0;
 }
 
-int MI_initproj(makeit_project* project, char* name, char* version, char* lang)
+int MI_procdat(struct file* file, void* data, uint32_t size, struct mi_script* script)
 {
-  project->name = name;
-  project->version = version;
-  if (strcmp(lang, "c") == 0)
-    project->lang = LANG_C;
-  else if (strcmp(lang, "c++") == 0 || strcmp(lang, "cpp") == 0 || strcmp(lang, "cxx") == 0)
-    project->lang = LANG_CPP;
-  else
-  {
-    printf(":: unknown language `%s`.\n", lang);
-    return 0;
-  }
+  struct mi_lexer* lexer = MI_lexer_new(mearr_new(128));
+  struct mi_parser* parser = MI_parser_new(file, script);
 
-  project->vars = (map*) calloc(sizeof(map), 1);
-  project->libs = (array*) calloc(sizeof(array), 1);
-  project->incs = (array*) calloc(sizeof(array), 1);
-  project->ldirs = (array*) calloc(sizeof(array), 1);
-  project->idirs = (array*) calloc(sizeof(array), 1);
-  project->definitions = (array*) calloc(sizeof(array), 1);
-  map_init(project->vars, 8);
-  array_init(project->libs, 8);
-  array_init(project->incs, 8);
-  array_init(project->ldirs, 8);
-  array_init(project->idirs, 8);
-  array_init(project->definitions, 8);
-  return 1;
-}
-
-int MI_procdat(makeit_project* project, const char* data, uint32_t data_length, const char* filepath, const char* directory)
-{
-  array* tokens = (array*) calloc(sizeof(array), 1);
-  array_init(tokens, 64);
-
-  mscript* script = (mscript*) calloc(sizeof(mscript), 1);
-  MILEX_makescript(script, "");
-  MILEX_putfunc(script, "makefile", fnew(4, MIFUNCARGS_makefile(), MIFUNC_makefile));
-  MILEX_putfunc(script, "project", fnew(3, MIFUNCARGS_project(), MIFUNC_project));
-
-  if (MILEX_maketokens(data, data_length, tokens, filepath, script) != 1)
+  if (MI_make_tokens(lexer, (char*) data, size) != 1)
     return 0;
 
-  if (MIVM_compile(tokens, script) != 1)
+  if (MI_parse_tokens(parser, lexer->tokens) != 1)
     return 0;
 
   return 1;
 }
 
-int MI_procfile(makeit_project* project, const char* filepath)
+int MI_procfile(struct file* file, struct mi_script* script)
 {
-  const char* directory = strdir(filepath);
-  uint32_t length;
-  uint8_t* data = fsurd(filepath, &length);
   if (CFG_debug())
-    printf("==> [debug] file[%s]\n", filepath);
-  return MI_procdat(project, (char*) data, length, filepath, directory);
-}
+    printf("==> [debug] file[%s]\n", file->path);
 
-static const char VAR_SEPARATOR = ' ';
-int MI_procval(makeit_project* project, char** str, const char* directory)
-{
-  if (project->vars == NULL)
-    return 1;
-
-  if (strcmp(*str, "none") == 0)
+  void* data;
+  uint32_t size;
+  if (me_file_read(file->path, &data, &size) != FILE_SUCCESS)
   {
-    *str[0] = '\0';
-    return 1;
+    printf(":: failed to read file '%s'.\n", file->path);
+    return 0;
   }
-
-  /* iterate over all available variables */
-  for (uint32_t i = 0; i < project->vars->used; i++)
-  {
-    char* element_key = project->vars->keys[i];
-    array* element_value = (array*) project->vars->values[i];
-
-    /* if value is empty: ignore */
-    if (element_value->used == 0)
-      continue;
-
-    /* create pointer string of key */
-    char* key = strjoin(strjoin("$(", element_key), ")");
-
-    /* check if variable has key */
-    if (!strcnts(*str, key))
-      continue;
-
-    /* converting variable to string */
-    string_buffer* value_str = (string_buffer*) calloc(sizeof(string_buffer), 1);
-    string_buffer_init(value_str, 512);
-    for (uint32_t i = 0; i < element_value->used; i++)
-    {
-      string_buffer_append(value_str, element_value->values[i]);
-      if (i < element_value->used - 1)
-        string_buffer_appendc(value_str, VAR_SEPARATOR);
-    }
-    /* replace all variable pointers to the variable */
-    *str = strreplace(*str, key, value_str->str);
-  }
-
-  /* default variables */
-  *str = strreplace(*str, "$(current_dir)", directory);
-  *str = strreplace(*str, "$(project_dir)", project->directory);
-  *str = strreplace(*str, "$(project_name)", project->name);
-  return 1;
+  return MI_procdat(file, data, size, script);
 }

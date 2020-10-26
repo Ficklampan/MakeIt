@@ -1,201 +1,169 @@
 #include "MakeFile.h"
 
-#include "utils/String.h"
-#include "utils/FileUtils.h"
-
-#include "Texts.h"
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
+#include <string.h>
 
-int make_makefile(char* name, char* version, char* directory, char* filepath, char* flags,
-  array* sources,
-  array* headers,
-  array* libs,
-  array* incs,
-  array* include_paths,
-  array* lib_paths,
-  array* definitions,
-  char* lang,
-  char* build_path, char** info)
+#include <me/mestr.h>
+#include <me/mefil.h>
+
+int MI_makefile(char* filepath, struct array* flags, struct array* sources, struct array* headers, struct makeit_project* project)
 {
-  string_buffer* source = calloc(sizeof(string_buffer), 1);
-  string_buffer_init(source, 1024);
+  /* create build directory */
+  if (!me_file_exists(project->build_dir))
+    me_file_mkdir(project->build_dir);
 
-  char* compiler = strcmp(lang, "c") == 0 ? "gcc" : (strcmp(lang, "c++") == 0 ? "g++" : "gcc");
+  struct string* source = mestr_new(1024);
 
-  string_buffer_append(source, "NAME = ");
-  string_buffer_append(source, name);
-  string_buffer_appendc(source, '\n');
-  string_buffer_append(source, "VERSION = ");
-  string_buffer_append(source, version);
-  string_buffer_appendc(source, '\n');
-  string_buffer_append(source, "NAMEV = ");
-  string_buffer_append(source, name);
-  string_buffer_appendc(source, '-');
-  string_buffer_append(source, version);
-  string_buffer_appendc(source, '\n');
-  string_buffer_appendc(source, '\n');
+  /* append name */
+  mestr_apnd(source, "NAME = ");
+  mestr_apnd(source, project->name);
+  mestr_apndc(source, '\n');
+
+  /* append build directory */
+  mestr_apnd(source, "BUILD = ");
+  mestr_apnd(source, project->build_dir->path);
+  mestr_apndc(source, '\n');
+
+  /* append flags */
+  mestr_apnd(source, "FLAGS = ");
+  for (uint32_t i = 0; i < flags->size; i++)
+  {
+    mestr_apnd(source, flags->entries[i]);
+    if (i < flags->size - 1)
+      mestr_apndc(source, ' ');
+  }
+  mestr_apndc(source, '\n');
+
+  /* append compiler */
+  mestr_apnd(source, "CC = ");
+  mestr_apnd(source, project->compiler);
+  mestr_apndc(source, '\n');
+
+  mestr_apndc(source, '\n');
+
+
+  /* append libraries */
+  mestr_apnd(source, "LIBS = ");
+  for (uint32_t i = 0; i < project->libs->size; i++)
+  {
+    mestr_apnd(source, "-l");
+    mestr_apnd(source, project->libs->entries[i]);
+    if (i < project->libs->size - 1)
+      mestr_apndc(source, ' ');
+  }
+  mestr_apndc(source, '\n');
+
+  /* append includes */
+  mestr_apnd(source, "INCS = ");
+  for (uint32_t i = 0; i < project->incs->size; i++)
+  {
+    mestr_apnd(source, "-i");
+    mestr_apnd(source, project->incs->entries[i]);
+    if (i < project->incs->size - 1)
+      mestr_apndc(source, ' ');
+  }
+  mestr_apndc(source, '\n');
+
+  /* append library directories */
+  mestr_apnd(source, "LDIR = ");
+  for (uint32_t i = 0; i < project->ldirs->size; i++)
+  {
+    mestr_apnd(source, "-L");
+    mestr_apnd(source, project->ldirs->entries[i]);
+    if (i < project->ldirs->size - 1)
+      mestr_apndc(source, ' ');
+  }
+  mestr_apndc(source, '\n');
+
+  /* append include directories */
+  mestr_apnd(source, "IDIR = ");
+  for (uint32_t i = 0; i < project->idirs->size; i++)
+  {
+    mestr_apnd(source, "-I");
+    mestr_apnd(source, project->idirs->entries[i]);
+    if (i < project->idirs->size - 1)
+      mestr_apndc(source, ' ');
+  }
+  mestr_apndc(source, '\n');
+
+  /* append definitions */
+  mestr_apnd(source, "DEFS = ");
+  for (uint32_t i = 0; i < project->definitions->size; i++)
+  {
+    mestr_apnd(source, "-D");
+    mestr_apnd(source, project->definitions->entries[i]);
+    if (i < project->definitions->size - 1)
+      mestr_apndc(source, ' ');
+  }
+  mestr_apndc(source, '\n');
+
+  mestr_apndc(source, '\n');
 
   /* sources */
-  string_buffer_append(source, "SRC = ");
-  for (uint32_t i = 0; sources != NULL && i < sources->used; i++)
+  mestr_apnd(source, "# <-- sources -->\n");
+  mestr_apnd(source, "SRC = ");
+  for (uint32_t i = 0; i < sources->size; i++)
   {
-    string_buffer_append(source, sources->values[i]);
-    if (i < sources->used - 1)
-      string_buffer_appendc(source, ' ');
+    mestr_apndc(source, '\t');
+    mestr_apnd(source, sources->entries[i]);
+
+    if (i < sources->size - 1)
+      mestr_apnd(source, " \\\n");
   }
-  string_buffer_append(source, "\n");
+
+  mestr_apndc(source, '\n');
+  mestr_apndc(source, '\n');
 
   /* headers */
-  string_buffer_append(source, "HEADERS = ");
-  for (uint32_t i = 0; headers != NULL && i < headers->used; i++)
+  mestr_apnd(source, "# <-- headers -->\n");
+  mestr_apnd(source, "HEADERS = ");
+  for (uint32_t i = 0; i < headers->size; i++)
   {
-    string_buffer_append(source, headers->values[i]);
-    if (i < headers->used - 1)
-      string_buffer_appendc(source, ' ');
+    mestr_apndc(source, '\t');
+    mestr_apnd(source, headers->entries[i]);
+
+    if (i < headers->size - 1)
+      mestr_apnd(source, " \\\n");
   }
-  string_buffer_append(source, "\n");
+
+  mestr_apndc(source, '\n');
+  mestr_apndc(source, '\n');
 
   /* objects */
-  string_buffer_append(source, "OBJ = ");
-  for (uint32_t i = 0; sources != NULL && i < sources->used; i++)
+  mestr_apnd(source, "# <-- objects -->\n");
+  mestr_apnd(source, "OBJS = ");
+  for (uint32_t i = 0; i < sources->size; i++)
   {
-    char* obj = strjoin(build_path, strfilext(strsub(sources->values[i], strlen(directory), strlen(sources->values[i]), NULL), "o"));
-    char* obj_dir = strdir(obj);
-    string_buffer_append(source, obj);
-    if (i < sources->used - 1)
-      string_buffer_appendc(source, ' ');
-    fsumkd(obj_dir);
+    struct file* obj_file = me_file_join(project->build_dir->path, me_file_chext(sources->entries[i], "o"));
+    struct file* obj_dir = me_file_new(me_file_directory_path(obj_file));
+
+    if (!me_file_exists(obj_dir))
+      me_file_mkdir(obj_dir);
+
+    mestr_apndc(source, '\t');
+    mestr_apnd(source, obj_file->path);
+
+    if (i < sources->size - 1)
+      mestr_apnd(source, " \\\n");
   }
-  string_buffer_append(source, "\n\n");
 
-  /* compiler */
-  string_buffer_append(source, "CC = ");
-  string_buffer_append(source, compiler);
-  string_buffer_appendc(source, '\n');
+  mestr_apndc(source, '\n');
+  mestr_apndc(source, '\n');
 
-  /* flags */
-  string_buffer_append(source, "CFLAGS = ");
-  string_buffer_append(source, flags);
-  string_buffer_appendc(source, '\n');
+  mestr_apnd(source, "$(BUILD)/%.o: %.* $(HEADERS)\n");
+  mestr_apnd(source, "\t@$(CC) -c -o $@ $< $(FLAGS) $(IDIR) $(INCS) $(DEFS) && \\\n");
+  mestr_apnd(source, "\techo \e[32mcompiling [$<]\e[0m\n\n");
 
-  /* libraries */
-  string_buffer_append(source, "LIBS = ");
-  for (uint32_t i = 0; libs != NULL && i < libs->used; i++)
-  {
-    if (strlen(libs->values[i]) < 1)
-      continue;
-    if (((char*) libs->values[i])[0] == '#')
-    {
-      array* args = strsplit(libs->values[i] + 1, ' ');
-      if (args->used == 0)
-      {
-        *info = "in 'MakeFile.c'[94]: 'args->used' returned zero.\n";
-        return 0;
-      }
+  mestr_apnd(source, "$(NAME): $(OBJS)\n");
+  mestr_apnd(source, "\t@$(CC) -o $@ $^ $(LDIR) $(LIBS)\n\n");
 
-      string_buffer_append(source, "$(pkg-config ");
-      for (uint32_t j = 1; j < args->used; j++)
-      {
-        string_buffer_append(source, (char*) args->values[j]);
-        string_buffer_appendc(source, ' ');
-      }
-      string_buffer_append(source, (char*) args->values[0]);
-      string_buffer_appendc(source, ')');
-    }else
-    {
-      string_buffer_append(source, "-l");
-      string_buffer_append(source, libs->values[i]);
-    }
-    if (i < libs->used - 1)
-      string_buffer_appendc(source, ' ');
-  }
-  string_buffer_appendc(source, '\n');
- 
-  /* includes */
-  string_buffer_append(source, "INCS = ");
-  for (uint32_t i = 0; incs != NULL && i < incs->used; i++)
-  {
-    if (strlen(incs->values[i]) < 1)
-      continue;
-    if (((char*) incs->values[i])[0] == '#')
-    {
-      array* args = strsplit(incs->values[i] + 1, ' ');
-      if (args->used == 0)
-      {
-        *info = "in 'MakeFile.c'[127]: 'args->used' returned zero.\n";
-        return 0;
-      }
+  /* clean */
+  mestr_apnd(source, ".PHONY: clean\n\n");
+  mestr_apnd(source, "clean:\n");
+  mestr_apnd(source, "\trm -f $(OBJS)\n");
 
-      string_buffer_append(source, "$(pkg-config ");
-      for (uint32_t j = 1; j < args->used; j++)
-      {
-        string_buffer_append(source, (char*) args->values[j]);
-        string_buffer_appendc(source, ' ');
-      }
-      string_buffer_append(source, (char*) args->values[0]);
-      string_buffer_appendc(source, ')');
-    }else
-    {
-      string_buffer_append(source, "-i");
-      string_buffer_append(source, incs->values[i]);
-    }
-    if (i < incs->used - 1)
-      string_buffer_appendc(source, ' ');
-  }
-  string_buffer_appendc(source, '\n');
-
-  /* definitions */
-  string_buffer_append(source, "DEFS = ");
-  for (uint32_t i = 0; definitions != NULL && i < definitions->used; i++)
-  {
-    string_buffer_append(source, "-D");
-    string_buffer_append(source, definitions->values[i]);
-    if (i < definitions->used - 1)
-      string_buffer_appendc(source, ' ');
-  }
-  string_buffer_appendc(source, '\n');
-
-  /* build path */
-  string_buffer_append(source, "BDIR = ");
-  string_buffer_append(source, build_path);
-  string_buffer_appendc(source, '\n');
-
-  /* include directories */
-  string_buffer_append(source, "IDIR = ");
-  for (uint32_t i = 0; include_paths != NULL && i < include_paths->used; i++)
-  {
-    string_buffer_append(source, "-I");
-    string_buffer_append(source, include_paths->values[i]);
-    if (i < include_paths->used - 1)
-      string_buffer_appendc(source, ' ');
-  }
-  string_buffer_appendc(source, '\n');
-
-  /* library directories */
-  string_buffer_append(source, "LDIR = ");
-  for (uint32_t i = 0; lib_paths != NULL && i < lib_paths->used; i++)
-  {
-    string_buffer_append(source, "-L");
-    string_buffer_append(source, lib_paths->values[i]);
-    if (i < lib_paths->used - 1)
-      string_buffer_appendc(source, ' ');
-  }
-  string_buffer_append(source, "\n\n");
-
-  string_buffer_append(source, "$(BDIR)/%.o: %.* $(HEADERS)\n");
-  string_buffer_append(source, "\t$(CC) -c -o $@ $< $(CFLAGS) $(IDIR) $(INCS) $(DEFS) && ");
-  string_buffer_append(source, "echo \e[32m$<\e[0m\n\n");
-
-  string_buffer_append(source, "$(NAMEV): $(OBJ)\n");
-  string_buffer_append(source, "\t$(CC) -o $@ $^ $(LDIR) $(LIBS)\n\n");
-
-  string_buffer_append(source, ".PHONY: clean\n\n");
-
-  string_buffer_append(source, "clean:\n");
-  string_buffer_append(source, "\trm -f $(OBJ)\n");
-
-  fsuwr(filepath, (uint8_t*) source->str, source->length);
+  me_file_write(filepath, mestr_extrd(source), source->length);
   return 1;
 }

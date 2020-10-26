@@ -1,1 +1,0 @@
-[2020-08-12] If 'search' not found any files, and using 'verify' to check, weird stuff happens

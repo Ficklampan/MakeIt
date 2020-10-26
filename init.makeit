@@ -1,9 +1,17 @@
-proj = project("MakeIt", "2020", "c");
+project: "MakeIt"
 
-index = 8;
-number = 0.75F;
+  version: "idk"
+  language: "C"
+  compiler: "gcc"
+  build_dir: "$(CURRENT_DIR)/build"
 
-println(proj);
-println("number: " + itostr(number));
-print("proj size: " + itostr(sizeof(proj)) + "\n");
-print("number size: " + itostr(sizeof(number)) + "\n");
+sources = 
+headers = "$(CURRENT_DIR)/src/**.h"
+
+script: "$(CURRENT_DIR)/src/init.makeit"
+
+library: "me"
+library_dir: "external/lib"
+include_dir: "external/include"
+
+makefile: "", sources, headers

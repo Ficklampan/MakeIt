@@ -3,31 +3,34 @@
 
 #define MI_VERSION		"2020-08-18"
 
-#include "utils/Arrays.h"
+#include <me/mearr.h>
+#include <me/memap.h>
+#include <me/mefil.h>
+
+#include "script/MakeItScript.h"
 
 enum lang_t {
-  LANG_C, LANG_CPP
+  LANG_UNK, LANG_C, LANG_CPP
 };
 
-typedef struct {
+struct makeit_project {
   char* name;
+
   char* version;
-  enum lang_t lang;
-  map* vars;
-  array* libs;
-  array* incs;
-  array* ldirs;
-  array* idirs;
-  array* definitions;
+  struct array* language;
 
-  char* directory;
-  char* filepath;
-  char* deps_directory;
-} makeit_project;
+  struct file* build_dir;
+  char* compiler;
 
-int MI_initproj(makeit_project* project, char* name, char* version, char* lang);
-int MI_procdat(makeit_project* project, const char* data, uint32_t data_length, const char* filepath, const char* directory);
-int MI_procfile(makeit_project* project, const char* filepath);
-int MI_procval(makeit_project* project, char** str, const char* directory);
+  struct array* configs;
+  struct array* libs;
+  struct array* incs;
+  struct array* ldirs;
+  struct array* idirs;
+  struct array* definitions;
+};
+
+int MI_procdat(struct file* file, void* data, uint32_t size, struct mi_script* script);
+int MI_procfile(struct file* file, struct mi_script* script);
 
 #endif
