@@ -19,7 +19,16 @@ SRC = 	./src/MakeIt.c \
 	./src/script/parser/MakeItParser.c
 
 # <-- headers -->
-HEADERS = 	./src/**.h
+HEADERS = 	./src/script/parser/MakeItParser.h \
+	./src/script/MakeItScript.h \
+	./src/script/lexer/MakeItLexer.h \
+	./src/Texts.h \
+	./src/MakeIt.h \
+	./src/utils/Time.h \
+	./src/utils/Type.h \
+	./src/MakeItFunctions.h \
+	./src/MakeFile.h \
+	./src/Config.h
 
 # <-- objects -->
 OBJS = 	./build/src/MakeIt.o \

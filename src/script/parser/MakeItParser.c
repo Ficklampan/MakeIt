@@ -37,9 +37,9 @@ int MI_parse_token(struct mi_parser* parser, struct mi_token* token)
       }
 
       if ((parser->status & MI_STATUS_APPEND) > 0)
-	mearr_push_all(parser->v.arr, v);
+	mearr_push_all(parser->v.arr, v); // append the content of variable to current variable
       if ((parser->status & MI_STATUS_FUNCTION) > 0)
-	mearr_push_all(parser->f.arr->entries[parser->f.arr->size - 1], v);
+	parser->f.arr->entries[parser->f.arr->size - 1] = v; // set the current arg to variable
       return 1;
     }
 
@@ -163,7 +163,7 @@ int MI_parser_string(struct mi_parser* parser, char* str, char** out)
       if (var == NULL)
       {
 	/* if var name is 'CURRENT_DIR' append the directory */
-	if (strcmp("CURRENT_DIR", var_name) == 0)
+	if (strcmp("DIR", var_name) == 0)
 	  mestr_apnd(str2, me_file_directory_path(parser->file));
 
 	/* if var name is 'FILE' append the file name */

@@ -20,5 +20,6 @@ int MIFUNC_library(struct mi_script* script, struct array* args);
 int MIFUNC_include(struct mi_script* script, struct array* args);
 int MIFUNC_library_dir(struct mi_script* script, struct array* args);
 int MIFUNC_include_dir(struct mi_script* script, struct array* args);
+int MIFUNC_search(struct mi_script* script, struct array* args);
 
 #endif

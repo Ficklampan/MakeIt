@@ -3,12 +3,14 @@ project: "MakeIt"
   version: "idk"
   language: "C"
   compiler: "gcc"
-  build_dir: "$(CURRENT_DIR)/build"
+  build_dir: "$(DIR)/build"
 
 sources = 
-headers = "$(CURRENT_DIR)/src/**.h"
+headers = 
 
-script: "$(CURRENT_DIR)/src/init.makeit"
+search: "$(DIR)", "./src/*.h", headers
+
+script: "$(DIR)/src/init.makeit"
 
 library: "me"
 library_dir: "external/lib"

@@ -123,6 +123,7 @@ int main(int argc, char** argv)
   memap_push(script->functions, "include", MI_function_new(MIFUNC_include));
   memap_push(script->functions, "library_dir", MI_function_new(MIFUNC_library_dir));
   memap_push(script->functions, "include_dir", MI_function_new(MIFUNC_include_dir));
+  memap_push(script->functions, "search", MI_function_new(MIFUNC_search));
 
   /* create project */
   project.name = "";

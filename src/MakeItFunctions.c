@@ -7,6 +7,8 @@
 
 #include <me/mestr.h>
 
+#include <fnmatch.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -206,5 +208,37 @@ int MIFUNC_include_dir(struct mi_script* script, struct array* args)
     for (uint32_t j = 0; j < arg->size; j++)
       mearr_push(project.idirs, arg->entries[j]);
   }
+  return 1;
+}
+
+int MIFUNC_search(struct mi_script* script, struct array* args)
+{
+  struct array* search_dir_arg = args->entries[0];
+  struct array* pattern_arg = args->entries[1];
+  struct array* output_arg = args->entries[2];
+
+  for (uint32_t k = 0; k < search_dir_arg->size; k++)
+  {
+    struct file* dir = me_file_new(search_dir_arg->entries[k]);
+
+    struct array* files = mearr_new(64);
+    me_file_list(dir, files);
+
+    for (uint32_t i = 0; i < files->size; i++)
+    {
+      struct file* file = files->entries[i];
+      bool match = false;
+
+      for (uint32_t j = 0; j < pattern_arg->size; j++)
+      {
+	if (fnmatch(pattern_arg->entries[j], file->path, FNM_PERIOD) != FNM_NOMATCH)
+	  match = true;
+      }
+
+      if (match)
+	mearr_push(output_arg, file->path);
+    }
+  }
+
   return 1;
 }
