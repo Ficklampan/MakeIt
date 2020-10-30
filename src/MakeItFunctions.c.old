@@ -1,16 +1,18 @@
 #include "MakeItFunctions.h"
 
-#include "MakeFile.h"
+#include "MakeIt.h"
 
-#include "Config.h"
+#include "configs/GNUMake.h"
+#include "configs/YCM.h"
+
 #include "Texts.h"
 
 #include <me/mestr.h>
 
-#include <fnmatch.h>
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <fnmatch.h>
 
 static const char* FUNC_PROJECT_INFO        = "Specifying the project's name, version and language";
 static const char* FUNC_DEFINE_INFO         = "Add definitions to the compiler (like '#define SOMETHING' in C)";
@@ -89,7 +91,7 @@ int MIFUNC_project(struct mi_script* script, struct array* args)
 {
   struct array* arg = args->entries[0];
 
-  project.name = arg->entries[0];
+  project.config.name = arg->entries[0];
 
   return 1;
 }
@@ -98,7 +100,7 @@ int MIFUNC_version(struct mi_script* script, struct array* args)
 {
   struct array* arg = args->entries[0];
 
-  project.version = arg->entries[0];
+  project.config.version = arg->entries[0];
 
   return 1;
 }
@@ -108,7 +110,7 @@ int MIFUNC_language(struct mi_script* script, struct array* args)
   for (uint32_t i = 0; i < args->size; i++)
   {
     struct array* arg = args->entries[i];
-    mearr_push_all(project.language, arg);
+    mearr_push_all(project.config.language, arg);
   }
 
   return 1;
@@ -118,7 +120,7 @@ int MIFUNC_build_dir(struct mi_script* script, struct array* args)
 {
   struct array* arg = args->entries[0];
 
-  project.build_dir = me_file_new(arg->entries[0]);
+  project.config.build_dir = me_file_new(arg->entries[0]);
 
   return 1;
 }
@@ -127,7 +129,18 @@ int MIFUNC_compiler(struct mi_script* script, struct array* args)
 {
   struct array* arg = args->entries[0];
 
-  project.compiler = arg->entries[0];
+  project.config.compiler = arg->entries[0];
+
+  return 1;
+}
+
+int MIFUNC_configure(struct mi_script* script, struct array* args)
+{
+  for (uint32_t i = 0; i < args->size; i++)
+  {
+    struct array* arg = args->entries[i];
+    mearr_push_all(project.configs, arg);
+  }
 
   return 1;
 }
@@ -146,11 +159,10 @@ int MIFUNC_script(struct mi_script* script, struct array* args)
 
 int MIFUNC_makefile(struct mi_script* script, struct array* args)
 {
-  struct array* arg_flags = args->entries[0];
-  struct array* arg_sources = args->entries[1];
-  struct array* arg_headers = args->entries[2];
+  struct array* arg_sources = args->entries[0];
+  struct array* arg_headers = args->entries[1];
 
-  if (MI_makefile("./Makefile", arg_flags, arg_sources, arg_headers, &project) != 1)
+  if (GNUMake_config("./Makefile", arg_sources, arg_headers, &project.config) != 1)
     return 0;
 
   return 1;
@@ -162,7 +174,7 @@ int MIFUNC_define(struct mi_script* script, struct array* args)
   {
     struct array* arg = args->entries[i];
     for (uint32_t j = 0; j < arg->size; j++)
-      mearr_push(project.definitions, arg->entries[j]);
+      mearr_push(project.config.definitions, arg->entries[j]);
   }
   return 1;
 }
@@ -173,7 +185,7 @@ int MIFUNC_library(struct mi_script* script, struct array* args)
   {
     struct array* arg = args->entries[i];
     for (uint32_t j = 0; j < arg->size; j++)
-      mearr_push(project.libs, arg->entries[j]);
+      mearr_push(project.config.libs, arg->entries[j]);
   }
   return 1;
 }
@@ -184,7 +196,7 @@ int MIFUNC_include(struct mi_script* script, struct array* args)
   {
     struct array* arg = args->entries[i];
     for (uint32_t j = 0; j < arg->size; j++)
-      mearr_push(project.incs, arg->entries[j]);
+      mearr_push(project.config.incs, arg->entries[j]);
   }
   return 1;
 }
@@ -195,7 +207,7 @@ int MIFUNC_library_dir(struct mi_script* script, struct array* args)
   {
     struct array* arg = args->entries[i];
     for (uint32_t j = 0; j < arg->size; j++)
-      mearr_push(project.ldirs, arg->entries[j]);
+      mearr_push(project.config.ldirs, arg->entries[j]);
   }
   return 1;
 }
@@ -206,7 +218,7 @@ int MIFUNC_include_dir(struct mi_script* script, struct array* args)
   {
     struct array* arg = args->entries[i];
     for (uint32_t j = 0; j < arg->size; j++)
-      mearr_push(project.idirs, arg->entries[j]);
+      mearr_push(project.config.idirs, arg->entries[j]);
   }
   return 1;
 }
@@ -239,6 +251,21 @@ int MIFUNC_search(struct mi_script* script, struct array* args)
 	mearr_push(output_arg, file->path);
     }
   }
+
+  return 1;
+}
+
+int MIFUNC_ycm_config(struct mi_script* script, struct array* args)
+{
+  char* filepath;
+
+  if (args->size > 0)
+    filepath = ((struct array*) args->entries[0])->entries[0];
+  else
+    filepath = ".ycm_extra_conf.py";
+
+  if (YCM_config(filepath, &project.config) != 1)
+    return 0;
 
   return 1;
 }

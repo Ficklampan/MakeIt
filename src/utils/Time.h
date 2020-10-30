@@ -1,8 +1,9 @@
 #ifndef TIME_H
   #define TIME_H
 
-#include "Type.h"
+#include <me/metype.h>
 
+#include <stdlib.h>
 #include <sys/time.h>
 
 static inline uint64_t tmillis()

@@ -1,19 +1,5 @@
-project: "MakeIt"
+vad = "okejdå" " h e j";
 
-  version: "idk"
-  language: "C"
-  compiler: "gcc"
-  build_dir: "$(DIR)/build"
-
-sources = 
-headers = 
-
-search: "$(DIR)", "./src/*.h", headers
-
-script: "$(DIR)/src/init.makeit"
-
-library: "me"
-library_dir: "external/lib"
-include_dir: "external/include"
-
-makefile: "", sources, headers
+print("hejsan", "igen");
+print("men va är de");
+print(vad);

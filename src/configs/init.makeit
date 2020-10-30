@@ -1,0 +1,2 @@
+sources += "$(DIR)/GNUMake.c" \
+  "$(DIR)/YCM.c"

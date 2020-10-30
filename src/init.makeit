@@ -1,7 +1,6 @@
 sources += \
   "$(DIR)/MakeIt.c" \
-  "$(DIR)/MakeItFunctions.c" \
-  "$(DIR)/MakeFile.c" \
-  "$(DIR)/Config.c"
+  "$(DIR)/MakeItFunctions.c"
 
+script: "$(DIR)/configs/init.makeit"
 script: "$(DIR)/script/init.makeit"
