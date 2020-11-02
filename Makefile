@@ -5,57 +5,51 @@ CC = g++
 
 LIBS = -lme
 INCS = 
-LDIR = -Lexternal/lib
-IDIR = -Iexternal/include
+LDIR = -Lexternal/melib
+IDIR = -Iexternal/melib/include -Iexternal/toml11
 DEFS = 
 
 # <-- sources -->
 SRC = 	./src/MakeIt.cpp \
 	./src/configs/GNUMake.cpp \
 	./src/configs/YCM.cpp \
-	./src/script/Script.cpp \
-	./src/script/lexer/Lexer.cpp \
-	./src/script/lexer/TokenLexer.cpp \
-	./src/script/parser/Parser.cpp \
-	./src/script/vm/MiVm.cpp \
+	./src/script/Lexer.cpp \
+	./src/script/Parser.cpp \
+	./src/script/Variable.cpp \
 	./src/functions/Print.cpp \
 	./src/functions/System.cpp \
 	./src/functions/Search.cpp \
 	./src/functions/Project.cpp \
-	./src/functions/Script.cpp \
 	./src/functions/MakeConfig.cpp \
 	./src/functions/YCMConfig.cpp \
 	./src/functions/Functions.cpp
 
 # <-- headers -->
-HEADERS =   ./src/script/parser/Parser.hpp \
-	    ./src/script/vm/MiVm.hpp \
-	    ./src/script/vm/Instruction.hpp \
-	    ./src/script/Script.hpp \
-	    ./src/script/lexer/Lexer.hpp \
-	    ./src/script/lexer/TokenLexer.hpp \
-	    ./src/Texts.h \
+HEADERS =   ./src/Texts.h \
 	    ./src/configs/GNUMake.hpp \
 	    ./src/configs/YCM.hpp \
-	    ./src/configs/Config.hpp \
+	    ./src/script/Function.hpp \
+	    ./src/script/Lexer.hpp \
+	    ./src/script/Parser.hpp \
+	    ./src/script/Storage.hpp \
+	    ./src/script/Token.hpp \
+	    ./src/script/Variable.hpp \
 	    ./src/MakeIt.hpp \
-	    ./src/utils/Time.h \
+	    ./src/Project.hpp \
+	    ./src/utils/Time.hpp \
 	    ./src/Functions.hpp
 
 # <-- objects -->
 OBJ = 	./build/src/MakeIt.o \
 	./build/src/configs/GNUMake.o \
 	./build/src/configs/YCM.o \
-	./build/src/script/Script.o \
-	./build/src/script/lexer/Lexer.o \
-	./build/src/script/lexer/TokenLexer.o \
-	./build/src/script/parser/Parser.o \
-	./build/src/script/vm/MiVm.o \
+	./build/src/script/Lexer.o \
+	./build/src/script/Parser.o \
+	./build/src/script/Variable.o \
 	./build/src/functions/Print.o \
 	./build/src/functions/System.o \
 	./build/src/functions/Search.o \
 	./build/src/functions/Project.o \
-	./build/src/functions/Script.o \
 	./build/src/functions/MakeConfig.o \
 	./build/src/functions/YCMConfig.o \
 	./build/src/functions/Functions.o

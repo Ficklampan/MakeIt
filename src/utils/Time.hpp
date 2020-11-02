@@ -1,15 +1,13 @@
-#ifndef TIME_H
-  #define TIME_H
+#ifndef TIME_HPP
+  #define TIME_HPP
 
-#include <me/metype.h>
-
-#include <stdlib.h>
+#include <cstdint>
 #include <sys/time.h>
 
 static inline uint64_t tmillis()
 {
   struct timeval time;
-  gettimeofday(&time, NULL);
+  gettimeofday(&time, nullptr);
   return time.tv_usec;
 }
 

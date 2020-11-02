@@ -1,6 +1,6 @@
 #include "../Functions.hpp"
 
-int mi::function::ycm_config(std::vector<Variable*> &variables)
+int MI::function::ycm(void* ptr, std::vector<Constant*> &args)
 {
   return 1;
 }

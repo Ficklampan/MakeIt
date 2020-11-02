@@ -1,6 +1,6 @@
 #include "../Functions.hpp"
 
-int mi::function::system(std::vector<Variable*> &variables)
+int MI::function::system(void* ptr, std::vector<Constant*> &args)
 {
   return 1;
 }

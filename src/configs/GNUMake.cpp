@@ -1,6 +1,6 @@
 #include "GNUMake.hpp"
 
-int mi::GNUMake_config(const std::string &filepath, std::vector<std::string> &sources, std::vector<std::string> &headers, Config* config)
+int MI::GNUMake_config(const std::string &filepath, std::vector<std::string> &sources, std::vector<std::string> &headers, Project& project)
 {
   return 1;
 }

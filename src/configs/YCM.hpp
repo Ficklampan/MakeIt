@@ -1,11 +1,11 @@
-#ifndef MI_YCM_H
-  #define MI_YCM_H
+#ifndef MI_YCM_HPP
+  #define MI_YCM_HPP
 
-#include "Config.hpp"
+#include "../Project.hpp"
 
-namespace mi {
+namespace MI {
 
-  int YCM_config(const std::string &filepath, std::vector<std::string> &sources, std::vector<std::string> &headers, Config* config);
+  int YCM_config(const std::string &filepath, std::vector<std::string> &sources, std::vector<std::string> &headers, Project &project);
 
 }
 

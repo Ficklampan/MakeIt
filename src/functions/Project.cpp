@@ -1,31 +1,19 @@
 #include "../Functions.hpp"
 
-int mi::function::project(std::vector<Variable*> &variables)
+#include "../Project.hpp"
+
+int MI::function::project(void* ptr, std::vector<Constant*> &args)
 {
+  Project* project = (Project*) ptr;
+
+  project->name = *args.at(0)->value.s;
+  project->version = *args.at(1)->value.s;
+  project->language = *args.at(2)->value.s;
+
   return 1;
 }
 
-int mi::function::define(std::vector<Variable*> &variables)
-{
-  return 1;
-}
-
-int mi::function::library(std::vector<Variable*> &variables)
-{
-  return 1;
-}
-
-int mi::function::include(std::vector<Variable*> &variables)
-{
-  return 1;
-}
-
-int mi::function::library_dir(std::vector<Variable*> &variables)
-{
-  return 1;
-}
-
-int mi::function::include_dir(std::vector<Variable*> &variables)
+int MI::function::source(void* ptr, std::vector<Constant*> &args)
 {
   return 1;
 }

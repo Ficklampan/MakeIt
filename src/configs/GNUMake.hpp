@@ -1,11 +1,11 @@
 #ifndef MAKE_FILE_H
   #define MAKE_FILE_H
 
-#include "Config.hpp"
+#include "../Project.hpp"
 
-namespace mi {
+namespace MI {
 
-  int GNUMake_config(const std::string &filepath, std::vector<std::string> &sources, std::vector<std::string> &headers, Config* config);
+  int GNUMake_config(const std::string &filepath, std::vector<std::string> &sources, std::vector<std::string> &headers, Project& project);
 
 }
 

@@ -1,4 +1,0 @@
-sources += \
-  "$(DIR)/MakeItScript.c" \
-  "$(DIR)/lexer/MakeItLexer.c" \
-  "$(DIR)/parser/MakeItParser.c"

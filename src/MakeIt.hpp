@@ -1,22 +1,27 @@
 #ifndef MAKEIT_HPP
   #define MAKEIT_HPP
 
-#include "configs/Config.hpp"
-#include "script/Script.hpp"
+#include "Project.hpp"
 
-namespace mi {
+#include "script/Storage.hpp"
 
-  class Project {
+#include <mefile.hpp>
 
-  public:
+namespace MI {
 
-    Config config;
-    Storage storage;
-
+  struct Config {
+    std::string file;
+    bool print_time;
+  } config = {
+    .file = "MIBuild",
+    .print_time = false
   };
 
-  int readScript(me::File* file, const std::string &source, Project* project);
-  int readScript(me::File* file, Project* project);
+  int parseArgs(int argc, char** argv);
+  void initProject(Project &project);
+  void initStorage(Storage &storage, Project* project);
+  int initScript();
+  int readScript(me::File &file, Storage &storage);
 
 }
 

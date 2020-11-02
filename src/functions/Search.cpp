@@ -1,6 +1,6 @@
 #include "../Functions.hpp"
 
-int mi::function::search(std::vector<Variable*> &variables)
+int MI::function::search(void* ptr, std::vector<Constant*> &args)
 {
   return 1;
 }

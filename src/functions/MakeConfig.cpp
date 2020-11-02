@@ -1,6 +1,6 @@
 #include "../Functions.hpp"
 
-int mi::function::make_config(std::vector<Variable*> &variables)
+int MI::function::makefile(void* ptr, std::vector<Constant*> &args)
 {
   return 1;
 }

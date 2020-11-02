@@ -1,5 +1,0 @@
-vad = "okejdå" " h e j";
-
-print("hejsan", "igen");
-print("men va är de");
-print(vad);

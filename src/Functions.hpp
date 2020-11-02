@@ -1,28 +1,23 @@
 #ifndef MAKE_IT_FUNC_HPP
   #define MAKE_IT_FUNC_HPP
 
-#include "script/Script.hpp"
+#include "script/Function.hpp"
 
-namespace mi { namespace function {
+namespace MI { namespace function {
+
+  MI::Function* getFunction(void* ptr, const std::string &name);
   
   void usage(const std::string &func);
 
-  int print(std::vector<mi::Variable*> &variables);
-  int system(std::vector<mi::Variable*> &variables);
-  int search(std::vector<mi::Variable*> &variables);
-  
-  int project(std::vector<mi::Variable*> &variables);
-  int script(std::vector<mi::Variable*> &variables);
-  
-  int define(std::vector<mi::Variable*> &variables);
-  int library(std::vector<mi::Variable*> &variables);
-  int include(std::vector<mi::Variable*> &variables);
-  int library_dir(std::vector<mi::Variable*> &variables);
-  int include_dir(std::vector<mi::Variable*> &variables);
-  
-  int make_config(std::vector<mi::Variable*> &variables);
-  int ycm_config(std::vector<mi::Variable*> &variables);
+  int print(void* ptr, std::vector<Constant*> &args);
+  int system(void* ptr, std::vector<Constant*> &args);
+  int search(void* ptr, std::vector<Constant*> &args);
 
-}}
+  int project(void* ptr, std::vector<Constant*> &args);
+  int source(void* ptr, std::vector<Constant*> &args);
+  int makefile(void* ptr, std::vector<Constant*> &args);
+  int ycm(void* ptr, std::vector<Constant*> &args);
+  
+} }
 
 #endif
