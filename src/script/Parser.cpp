@@ -29,7 +29,10 @@ int MI::Parser::parse(me::Iterator<Token*> &tokens, Storage &storage)
 
 	token = tokens.next();
 
-	if (*token->value.i == Token::EQUAL)
+	/* punctuator type */
+	int p = *token->value.i;
+
+	if (p == Token::EQUAL)
 	{
 	  if (var == nullptr)
 	  {
@@ -60,7 +63,7 @@ int MI::Parser::parse(me::Iterator<Token*> &tokens, Storage &storage)
 	    return 0;
 	  }
 
-	  if (*token->value.i == Token::PLUS_EQUAL)
+	  if (p == Token::PLUS_EQUAL)
 	    *var+=*constant;
 
 	/* [Error] Variable not found */
