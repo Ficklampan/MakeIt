@@ -6,7 +6,7 @@ CC = g++
 LIBS = -lme
 INCS = 
 LDIR = -Lexternal/melib
-IDIR = -Iexternal/melib/include -Iexternal/toml11
+IDIR = -Iexternal/melib/include
 DEFS = 
 
 # <-- sources -->
@@ -16,6 +16,8 @@ SRC = 	./src/MakeIt.cpp \
 	./src/script/Lexer.cpp \
 	./src/script/Parser.cpp \
 	./src/script/Variable.cpp \
+	./src/script/Token.cpp \
+	./src/script/Common.cpp \
 	./src/functions/Print.cpp \
 	./src/functions/System.cpp \
 	./src/functions/Search.cpp \
@@ -25,8 +27,7 @@ SRC = 	./src/MakeIt.cpp \
 	./src/functions/Functions.cpp
 
 # <-- headers -->
-HEADERS =   ./src/Texts.h \
-	    ./src/configs/GNUMake.hpp \
+HEADERS =   ./src/configs/GNUMake.hpp \
 	    ./src/configs/YCM.hpp \
 	    ./src/script/Function.hpp \
 	    ./src/script/Lexer.hpp \
@@ -46,6 +47,8 @@ OBJ = 	./build/src/MakeIt.o \
 	./build/src/script/Lexer.o \
 	./build/src/script/Parser.o \
 	./build/src/script/Variable.o \
+	./build/src/script/Token.o \
+	./build/src/script/Common.o \
 	./build/src/functions/Print.o \
 	./build/src/functions/System.o \
 	./build/src/functions/Search.o \

@@ -10,7 +10,7 @@ static inline void print(MI::Constant* constant)
     printf("array[%lu]", constant->value.l->size());
 }
 
-int MI::function::print(void* ptr, std::vector<Constant*> &args)
+int MI::function::print(void* ptr, std::vector<Constant*> &args, char* &info)
 {
   for (Constant* arg : args)
   {

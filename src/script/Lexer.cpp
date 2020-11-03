@@ -5,14 +5,25 @@
 #define LEXER_IS_PUNCTUATOR(c) (c == '=' || c == '+' || c == ':')
 #define LEXER_IS_EMPTY(c) (c == ' ' || c == '\t' || c == '\n')
 
-int MI::Lexer::make(me::Iterator<char> &source, std::vector<Token*> &tokens)
+int MI::Lexer::make(std::string &source, std::vector<Token*> &tokens)
 {
-  uint32_t index = 0;
+  location = { &source, 0, 0, 0, 0, };
 
-  while (source.hasNext())
+  me::Iterator<char> source_iter((char*) source.data(), source.size(), [](void* ptr, char &c, uint32_t &i) {
+      MI::Token::Location* location = (MI::Token::Location*) ptr;
+      if (c == '\n')
+      {
+	location->column = 0;
+	location->line++;
+      }else
+	location->column++;
+      location->pos++;
+  }, &location);
+
+  while (source_iter.hasNext())
   {
     Token* token = nullptr;
-    if (!next_token(source, token))
+    if (!next_token(source_iter, token))
       return 0;
 
     if (token != nullptr)
@@ -23,6 +34,7 @@ int MI::Lexer::make(me::Iterator<char> &source, std::vector<Token*> &tokens)
 
 int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
 {
+  location.first = location.pos;
   char c = source.next();
 
   /* Token::LITERIAL */
@@ -41,7 +53,7 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
       literial->push_back(source.next());
     }
 
-    token = new Token(Token::LITERIAL, literial);
+    token = new Token(Token::LITERIAL, literial, Token::Location(location));
     return 1;
 
   /* Token::CONSTANT STRING */
@@ -59,7 +71,7 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
       str->push_back(c);
     }
 
-    token = new Token(Token::CONSTANT, new Constant(Constant::STRING, str));
+    token = new Token(Token::CONSTANT, new Constant(Constant::STRING, str), Token::Location(location));
     return 1;
 
   /* Token::CONSTANT INTEGER */
@@ -101,7 +113,7 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
       elements->push_back(token->value.c);
     }
 
-    token = new Token(Token::CONSTANT, new Constant(Constant::LIST, elements));
+    token = new Token(Token::CONSTANT, new Constant(Constant::LIST, elements), Token::Location(location));
     return 1;
 
   /* Token::PUNCTUATOR */
@@ -111,7 +123,7 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
     {
       char c2 = source.peek();
 #ifndef LEXER_NEW_PUNCTUATOR
-  #define LEXER_NEW_PUNCTUATOR(t) ({ source.next(); token = new Token(Token::PUNCTUATOR, new int(t)); return 1; })
+  #define LEXER_NEW_PUNCTUATOR(t) ({ source.next(); token = new Token(Token::PUNCTUATOR, new int(t), Token::Location(location)); return 1; })
 #endif
       if (c == '+' && c2 == '=') LEXER_NEW_PUNCTUATOR(Token::PLUS_EQUAL);
       else if (c == '-' && c2 == '=') LEXER_NEW_PUNCTUATOR(Token::MINUS_EQUAL);
@@ -120,16 +132,16 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
       else if (c == '%' && c2 == '=') LEXER_NEW_PUNCTUATOR(Token::PERCENT_EQUAL);
     }
 
-    if (c == '(') token = new Token(Token::PUNCTUATOR, new int(Token::L_PAREN));
-    else if (c == ')') token = new Token(Token::PUNCTUATOR, new int(Token::R_PAREN));
-    else if (c == '=') token = new Token(Token::PUNCTUATOR, new int(Token::EQUAL));
+    if (c == '(') token = new Token(Token::PUNCTUATOR, new int(Token::L_PAREN), Token::Location(location));
+    else if (c == ')') token = new Token(Token::PUNCTUATOR, new int(Token::R_PAREN), Token::Location(location));
+    else if (c == '=') token = new Token(Token::PUNCTUATOR, new int(Token::EQUAL), Token::Location(location));
 
     return 1;
 
   /* Token::BREAK */
   }else if (c == '\n' || c == ';')
   {
-    token = new Token(Token::BREAK, nullptr);
+    token = new Token(Token::BREAK, nullptr, Token::Location(location));
     return 1;
 
   /* New Line / Comment */
@@ -142,11 +154,13 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
       c = source.next();
       
       if (c == '\n')
+      {
         break;
+      }
     }
 
     if (comment)
-      token = new Token(Token::BREAK, nullptr);
+      token = new Token(Token::BREAK, nullptr, Token::Location(location));
     return 1;
 
   /* Error */

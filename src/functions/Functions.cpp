@@ -15,4 +15,5 @@ MI::Function* MI::function::getFunction(void* ptr, const std::string &name)
 
 void MI::function::usage(const std::string &func)
 {
+  // TODO
 }

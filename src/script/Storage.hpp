@@ -9,6 +9,7 @@
 
 namespace MI {
 
+  /* Storage for all the variables and functions */
   struct Storage {
 
     std::map<std::string, Variable*> variables;

@@ -4,7 +4,6 @@
 
 #include <getopt.h>
 
-#include "Texts.h"
 #include "Functions.hpp"
 
 #include "script/Lexer.hpp"
@@ -90,6 +89,7 @@ void MI::initStorage(Storage &storage, Project* project)
   storage.functions["search"] = function::getFunction(nullptr, "search");
 
   storage.functions["project"] = function::getFunction(project, "project");
+  storage.functions["makefile"] = function::getFunction(project, "makefile");
 }
 
 int MI::initScript()
@@ -144,14 +144,14 @@ int MI::readScript(me::File &file, Storage &storage)
 
   if (!file.read(data, size))
     return 0;
+  std::string source((char*) data, size);
 
   std::vector<Token*> tokens;
 
-  me::Iterator<char> source_iter((char*) data, size);
-  if (!lexer.make(source_iter, tokens))
+  if (!lexer.make(source, tokens))
     return 0;
 
-  me::Iterator<Token*> token_iter(tokens.data(), tokens.size());
+  me::BasicIterator<Token*> token_iter(tokens.data(), tokens.size());
   if (!parser.parse(token_iter, storage))
     return 0;
 

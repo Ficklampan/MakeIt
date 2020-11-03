@@ -3,7 +3,7 @@
 
 #include "Token.hpp"
 
-#include <iterator.hpp>
+#include <lme/iterator.hpp>
 
 #include <string>
 #include <vector>
@@ -12,9 +12,13 @@ namespace MI {
 
   class Lexer {
 
+  private:
+
+    Token::Location location;
+
   public:
 
-    int make(me::Iterator<char> &source, std::vector<Token*> &tokens);
+    int make(std::string &source, std::vector<Token*> &tokens);
     int next_token(me::Iterator<char> &source, Token* &token);
 
   };

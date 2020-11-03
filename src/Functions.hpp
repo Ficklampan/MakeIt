@@ -9,14 +9,14 @@ namespace MI { namespace function {
   
   void usage(const std::string &func);
 
-  int print(void* ptr, std::vector<Constant*> &args);
-  int system(void* ptr, std::vector<Constant*> &args);
-  int search(void* ptr, std::vector<Constant*> &args);
+  int print(void* ptr, std::vector<Constant*> &args, char* &info);
+  int system(void* ptr, std::vector<Constant*> &args, char* &info);
+  int search(void* ptr, std::vector<Constant*> &args, char* &info);
 
-  int project(void* ptr, std::vector<Constant*> &args);
-  int source(void* ptr, std::vector<Constant*> &args);
-  int makefile(void* ptr, std::vector<Constant*> &args);
-  int ycm(void* ptr, std::vector<Constant*> &args);
+  int project(void* ptr, std::vector<Constant*> &args, char* &info);
+  int source(void* ptr, std::vector<Constant*> &args, char* &info);
+  int makefile(void* ptr, std::vector<Constant*> &args, char* &info);
+  int ycm(void* ptr, std::vector<Constant*> &args, char* &info);
   
 } }
 

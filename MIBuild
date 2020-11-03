@@ -7,3 +7,5 @@ headers = []
 sources += "test.cpp"
 
 print sources
+
+makefile sources

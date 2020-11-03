@@ -7,7 +7,7 @@ namespace MI {
 
   struct Function {
 
-    typedef int (func_exec) (void*, std::vector<Constant*>&);
+    typedef int (func_exec) (void*, std::vector<Constant*>&, char* &info);
 
   private:
 
@@ -22,9 +22,9 @@ namespace MI {
       this->exec = exec;
     }
 
-    int execute(std::vector<Constant*> &args)
+    int execute(std::vector<Constant*> &args, char* &info)
     {
-      return exec(ptr, args);
+      return exec(ptr, args, info);
     }
 
   };

@@ -7,6 +7,7 @@ namespace MI {
 
   struct Token {
 
+    /* Token Punctuator Type */
     enum Punctuator {
       L_PAREN, R_PAREN,
 
@@ -18,12 +19,15 @@ namespace MI {
       PERCENT_EQUAL
     };
 
+    /* Token Type */
     enum Type {
       LITERIAL,
       CONSTANT,
       PUNCTUATOR,
       BREAK
     } type;
+
+    /* Token Value */
     union {
       void* v;
       std::string* s;
@@ -31,15 +35,13 @@ namespace MI {
       Constant* c;
     } value;
 
-    Token(Type type, void* value)
-    {
-      this->type = type;
-      this->value.v = value;
-    }
+    /* Token Location in file */
+    struct Location {
+      std::string* source;
+      uint32_t pos, line, column, first;
+    } location;
 
-    ~Token()
-    {
-    }
+    Token(Type type, void* value, Location location);
 
   };
 

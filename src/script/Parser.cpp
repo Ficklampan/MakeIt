@@ -1,5 +1,9 @@
 #include "Parser.hpp"
 
+#include "Common.hpp"
+
+#include <cstring>
+
 static inline MI::Constant* PARSER_GET_CONSTANT(MI::Token* token, MI::Storage &storage)
 {
   if (token->type == MI::Token::CONSTANT)
@@ -10,7 +14,7 @@ static inline MI::Constant* PARSER_GET_CONSTANT(MI::Token* token, MI::Storage &s
   return nullptr;
 }
 
-int MI::Parser::parse(me::Iterator<Token*> &tokens, Storage &storage)
+int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage &storage)
 {
   while (tokens.hasNext())
   {
@@ -89,8 +93,12 @@ int MI::Parser::parse(me::Iterator<Token*> &tokens, Storage &storage)
 	if (!parse_args(tokens, storage, args))
 	  return 0;
 
-	if (!func->execute(args))
+	char* info = nullptr;
+	if (!func->execute(args, info))
+	{
+	  printError(info, &token->location);
 	  return 0;
+	}
       }
     }
   }
@@ -98,7 +106,7 @@ int MI::Parser::parse(me::Iterator<Token*> &tokens, Storage &storage)
   return 1;
 }
 
-int MI::Parser::parse_args(me::Iterator<Token*> &tokens, Storage &storage, std::vector<Constant*> &args)
+int MI::Parser::parse_args(me::BasicIterator<Token*> &tokens, Storage &storage, std::vector<Constant*> &args)
 {
   while (tokens.hasNext())
   {
