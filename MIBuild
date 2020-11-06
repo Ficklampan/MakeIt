@@ -3,7 +3,6 @@ project "MakeIt" "Latest" "C++"
 sources = [ "test.fjewoiuhfow" "blabla.fewio.wjgij" ]
 headers = []
 
-# this not work
 sources += "test.cpp"
 
 print sources
