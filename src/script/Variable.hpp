@@ -13,7 +13,9 @@ namespace MI {
       VOID,
       STRING,
       INTEGER,
-      LIST
+      BOOLEAN,
+      LIST,
+      STRUCT
     } type;
     union {
       void* v;
@@ -30,6 +32,20 @@ namespace MI {
 
     ~Constant()
     {
+    }
+
+    static inline const char* typeName(Type type)
+    {
+      switch (type)
+      {
+	case VOID: return "void";
+	case STRING: return "string";
+	case INTEGER: return "integer";
+	case BOOLEAN: return "boolean";
+	case LIST: return "list";
+	case STRUCT: return "struct";
+      }
+      return "?";
     }
 
   };

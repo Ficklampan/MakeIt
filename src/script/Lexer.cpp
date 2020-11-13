@@ -37,7 +37,7 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
   location.first = location.pos;
   char c = source.next();
 
-  /* Token::LITERIAL */
+  /* Token::LITERIAL / Token::CONSTANT BOOLEAN */
   if (LEXER_IS_NAME(c))
   {
     std::string* literial = new std::string;
@@ -53,7 +53,12 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
       literial->push_back(source.next());
     }
 
-    token = new Token(Token::LITERIAL, literial, Token::Location(location));
+    bool b = literial->compare("true") == 0 || literial->compare("false") == 0;
+
+    if (b)
+      token = new Token(Token::CONSTANT, new Constant(Constant::BOOLEAN, new bool(literial->compare("true") == 0)), Token::Location(location));
+    else
+      token = new Token(Token::LITERIAL, literial, Token::Location(location));
     return 1;
 
   /* Token::CONSTANT STRING */
@@ -81,7 +86,7 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
 
     return 1;
 
-  /* Token::CONSTANT STRING_LIST */
+  /* Token::CONSTANT LIST */
   }else if (c == '[')
   {
     std::vector<Constant*>* elements = new std::vector<Constant*>;

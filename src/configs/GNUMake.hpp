@@ -5,9 +5,8 @@
 
 namespace MI {
 
-  int GNUMake_config(const std::string &filepath, std::vector<std::string> &sources, std::vector<std::string> &headers, Project& project);
+  int GNUMake_config(const std::string &filepath, std::vector<std::string*> &sources, std::vector<std::string*> &headers, Project* project);
 
 }
-
 
 #endif

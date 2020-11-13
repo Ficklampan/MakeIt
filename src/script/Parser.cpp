@@ -63,7 +63,7 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage &storage)
 	  /* [Error] expected value after operator */
 	  if (constant == nullptr)
 	  {
-	    printf(":: expected value after operator.\n");
+	    printError(&token->location, "expected value after operator");
 	    return 0;
 	  }
 
@@ -73,7 +73,7 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage &storage)
 	/* [Error] Variable not found */
 	}else
 	{
-	  printf(":: variable not found '%s'.\n", var_name->c_str());
+	  printError(&token->location, "variable not found '%s'", var_name->c_str());
 	  return 0;
 	}
 
@@ -85,7 +85,7 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage &storage)
 	/* [Error] Function not found */
 	if (func == nullptr)
 	{
-	  printf(":: function not found '%s'.\n", token->value.s->c_str());
+	  printError(&token->location, "function not found '%s'", token->value.s->c_str());
 	  return 0;
 	}
 
@@ -93,10 +93,67 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage &storage)
 	if (!parse_args(tokens, storage, args))
 	  return 0;
 
-	char* info = nullptr;
-	if (!func->execute(args, info))
+	/* [Error] too few arguments */
+	if (args.size() < func->args.size())
 	{
-	  printError(info, &token->location);
+	  printError(&token->location, "too few arguments");
+	  return 0;
+	}
+
+	/* check if arguments matches the required arguments */
+	bool endless = false;
+	uint32_t arg_index = 0;
+	for (uint32_t i = 0; i < args.size(); i++)
+	{
+	  /* [Error] too many arguments */
+	  if (!endless && arg_index >= func->args.size())
+	  {
+	    printError(&token->location, "too many arguments");
+	    return 0;
+	  }
+
+	  Arg* req_arg = func->args.at(arg_index);
+	  Constant* arg = args.at(i);
+
+	  bool match = false;
+
+	  /* go through all possible argument types */
+	  for (uint8_t type : req_arg->type)
+	  {
+	    if (type == Constant::VOID || type == arg->type)
+	    {
+	      match = true;
+	      break;
+	    }
+	  }
+
+	  /* [Error] no matching type */
+	  if (!match)
+	  {
+	    std::string expected_type;
+	    for (uint32_t j = 0; j < req_arg->type.size(); j++)
+	    {
+	      expected_type += '\'';
+	      expected_type.append(Constant::typeName((Constant::Type) req_arg->type.at(j)));
+	      expected_type += '\'';
+	      if (j < req_arg->type.size() - 1)
+		expected_type += '/';
+	    }
+
+	    printError(&token->location, "expected type %s but found type '%s'", expected_type.c_str(), Constant::typeName(arg->type));
+	    return 0;
+	  }
+
+	  if (req_arg->endless)
+	    endless = true;
+	  else if (!endless)
+	    arg_index++;
+	}
+
+	char* info = nullptr;
+	if (!func->execute(&storage, args, info))
+	{
+	  printError(&token->location, info);
 	  return 0;
 	}
       }
@@ -120,7 +177,7 @@ int MI::Parser::parse_args(me::BasicIterator<Token*> &tokens, Storage &storage, 
     /* [Error] expected value as a argument */
     if (constant == nullptr)
     {
-      printf(":: expected value as a argument.\n");
+      printError(&token->location, "expected value as a argument");
       return 0;
     }
 

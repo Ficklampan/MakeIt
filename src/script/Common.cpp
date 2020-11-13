@@ -1,6 +1,7 @@
 #include "Common.hpp"
 
 #include <cstring>
+#include <cstdarg>
 
 static inline void printLocation(MI::Token::Location* loc)
 {
@@ -26,14 +27,24 @@ static inline void printLocation(MI::Token::Location* loc)
   printf("At [%u:%u]: '%s'\n", loc->line, loc->column, line.c_str());
 }
 
-void MI::printError(char* str, Token::Location* loc)
+void MI::printError(Token::Location* loc, const char* format, ...)
 {
   printLocation(loc);
-  printf("\e[31m:: %s\e[0m\n", str);
+  va_list args;
+  va_start(args, format);
+  printf("\e[31m:: ");
+  vprintf(format, args);
+  printf("\e[0m\n");
+  va_end(args);
 }
 
-void MI::printWarning(char* str, Token::Location* loc)
+void MI::printWarning(Token::Location* loc, const char* format, ...)
 {
   printLocation(loc);
-  printf("\e[33m:: %s\e[0m\n", str);
+  va_list args;
+  va_start(args, format);
+  printf("\e[33m:: ");
+  vprintf(format, args);
+  printf("\e[0m\n");
+  va_end(args);
 }

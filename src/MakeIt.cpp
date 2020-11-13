@@ -24,7 +24,7 @@ void usage()
 void version()
 {
   printf("Version: %s\n", "something");
-  printf("GNU GCC: %s\n", __VERSION__);
+  printf("Compiler: %s\n", __VERSION__);
 }
 
 int MI::parseArgs(int argc, char** argv)
@@ -45,7 +45,7 @@ int MI::parseArgs(int argc, char** argv)
       /* help */
       case 'h':
 	if (optarg != nullptr)
-	  function::usage(optarg);
+	  function::usage(function::getFunction(optarg));
 	else
 	  usage();
 	return 1;
@@ -73,25 +73,6 @@ int MI::parseArgs(int argc, char** argv)
   return 0;
 }
 
-void MI::initProject(Project &project)
-{
-  project.name = "noname";
-  project.version = "1.0.0";
-  project.language = "c";
-  project.compiler = "gcc";
-  project.build_dir = new me::File("./build");
-}
-
-void MI::initStorage(Storage &storage, Project* project)
-{
-  storage.functions["print"] = function::getFunction(nullptr, "print");
-  storage.functions["system"] = function::getFunction(nullptr, "system");
-  storage.functions["search"] = function::getFunction(nullptr, "search");
-
-  storage.functions["project"] = function::getFunction(project, "project");
-  storage.functions["makefile"] = function::getFunction(project, "makefile");
-}
-
 int MI::initScript()
 {
   /* init */
@@ -104,13 +85,11 @@ int MI::initScript()
     return 1;
   }
 
-  Project project;
   Storage storage;
+  function::init();
+  storage.functions = function::getAllFunctions();
 
-  initProject(project);
-  initStorage(storage, &project);
-
-    /* process file */
+  /* process file */
   if (!readScript(file, storage))
     return 0;
 

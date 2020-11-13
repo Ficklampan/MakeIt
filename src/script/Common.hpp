@@ -5,8 +5,8 @@
 
 namespace MI {
 
-  void printError(char* str, Token::Location* loc);
-  void printWarning(char* str, Token::Location* loc);
+  void printError(Token::Location* loc, const char* format, ...);
+  void printWarning(Token::Location* loc, const char* format, ...);
 
 }
 

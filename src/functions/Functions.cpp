@@ -1,19 +1,28 @@
 #include "../Functions.hpp"
 
-MI::Function* MI::function::getFunction(void* ptr, const std::string &name)
+static std::map<std::string, MI::Function*> functions;
+
+void MI::function::init()
 {
-  if (!name.compare("print")) return new Function(ptr, print);
-  if (!name.compare("system")) return new Function(ptr, system);
-  if (!name.compare("search")) return new Function(ptr, search);
+  functions["print"] = new function::Print;
+  functions["system"] = new function::System;
+  functions["search"] = new function::Search;
 
-  if (!name.compare("project")) return new Function(ptr, project);
-  if (!name.compare("source")) return new Function(ptr, source);
-
-  if (!name.compare("makefile")) return new Function(ptr, makefile);
-  return nullptr;
+  functions["project"] = new function::Project;
+  functions["makefile"] = new function::Makefile;
 }
 
-void MI::function::usage(const std::string &func)
+MI::Function* MI::function::getFunction(const std::string &name)
+{
+  return functions[name];
+}
+
+std::map<std::string, MI::Function*> MI::function::getAllFunctions()
+{
+  return functions;
+}
+
+void MI::function::usage(const MI::Function* func)
 {
   // TODO
 }

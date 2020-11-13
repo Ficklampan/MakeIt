@@ -1,0 +1,11 @@
+NAME = MakeIt
+CC = 
+FLAGS = 
+DEFS = 
+
+LIBS = 
+
+SOURCES = test.fjewoiuhfow \
+	blabla.fewio.wjgij \
+	test.cpp
+HEADERS = 

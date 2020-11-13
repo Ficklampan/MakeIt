@@ -1,8 +1,6 @@
 #ifndef MAKEIT_HPP
   #define MAKEIT_HPP
 
-#include "Project.hpp"
-
 #include "script/Storage.hpp"
 
 #include <lme/file.hpp>
@@ -18,8 +16,6 @@ namespace MI {
   };
 
   int parseArgs(int argc, char** argv);
-  void initProject(Project &project);
-  void initStorage(Storage &storage, Project* project);
   int initScript();
   int readScript(me::File &file, Storage &storage);
 
