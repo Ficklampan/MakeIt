@@ -16,6 +16,13 @@ int MI::GNUMake_config(const std::string &filepath, std::vector<std::string*> &s
   }
 #endif
 
+  if (!project->build_dir->exists())
+    project->build_dir->mkdir();
+
+  std::vector<me::File> objects;
+  for (std::string* src : sources)
+    objects.emplace_back(project->build_dir->getPath(), me::File::extension(*src, "o"));
+
   std::string content;
 
   content.append("NAME = ").append(project->name) += '\n';
@@ -39,15 +46,18 @@ int MI::GNUMake_config(const std::string &filepath, std::vector<std::string*> &s
   content += '\n';
 
 
-  /* append sources array */
-  content.append("SOURCES = ");
-  GNUMAKE_APPEND_ARRAY(content.append(*sources.at(i)), sources.size(), content.append(" \\\n\t"));
+  /* append objects array */
+  content.append("OBJECTS = ");
+  GNUMAKE_APPEND_ARRAY(content.append(objects.at(i).getPath()), objects.size(), content.append(" \\\n\t"));
 
   content += '\n';
 
   /* append headers array */
   content.append("HEADERS = ");
   GNUMAKE_APPEND_ARRAY(content.append(*headers.at(i)), headers.size(), content.append(" \\\n\t"));
+
+  content += '\n';
+  content += '\n';
 
   me::File file(filepath);
   if (!file.write(content.data(), content.size()))

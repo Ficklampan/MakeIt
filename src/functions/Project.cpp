@@ -14,6 +14,7 @@ int MI::function::exec_project(void* ptr, std::vector<Constant*> &args, char* &i
   project->name = *args.at(0)->value.s;
   project->version = *args.at(1)->value.s;
   project->language = *args.at(2)->value.s;
+  project->build_dir = new me::File(*args.at(3)->value.s);
 
   storage->variables["project"] = new MI::Variable(MI::Constant::STRUCT, project);
 

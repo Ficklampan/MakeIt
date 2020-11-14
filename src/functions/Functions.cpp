@@ -25,11 +25,12 @@ namespace MI { namespace function {
     exec_search};
   
   MI::Function project = {
-    3,
-    new uint16_t[3]{
+    4,
+    new uint16_t[4]{
       0 | (Constant::STRING << 1), 				/* arg[0]: type 'string' */
       0 | (Constant::STRING << 1),				/* arg[1]: type 'string' */
-      0 | (Constant::STRING << 1)				/* arg[2]: type 'string' */
+      0 | (Constant::STRING << 1),				/* arg[2]: type 'string' */
+      0 | (Constant::STRING << 1)				/* arg[3]: type 'string' */
     },
     exec_project
   };

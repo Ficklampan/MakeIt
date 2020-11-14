@@ -1,4 +1,4 @@
-project "MakeIt" "Latest" "C++"
+project "MakeIt" "Latest" "C++" "$(DIR)/build"
 
 sources = []
 headers = []

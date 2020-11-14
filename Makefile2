@@ -5,22 +5,22 @@ DEFS =
 
 LIBS = 
 
-SOURCES = ./src/MakeIt.cpp \
-	./src/script/Common.cpp \
-	./src/script/Lexer.cpp \
-	./src/script/Parser.cpp \
-	./src/script/Script.cpp \
-	./src/script/Token.cpp \
-	./src/script/Variable.cpp \
-	./src/functions/Functions.cpp \
-	./src/functions/MakeConfig.cpp \
-	./src/functions/Print.cpp \
-	./src/functions/Project.cpp \
-	./src/functions/Search.cpp \
-	./src/functions/System.cpp \
-	./src/functions/YCMConfig.cpp \
-	./src/configs/GNUMake.cpp \
-	./src/configs/YCM.cpp
+OBJECTS = ./build/src/MakeIt.o \
+	./build/src/script/Common.o \
+	./build/src/script/Lexer.o \
+	./build/src/script/Parser.o \
+	./build/src/script/Script.o \
+	./build/src/script/Token.o \
+	./build/src/script/Variable.o \
+	./build/src/functions/Functions.o \
+	./build/src/functions/MakeConfig.o \
+	./build/src/functions/Print.o \
+	./build/src/functions/Project.o \
+	./build/src/functions/Search.o \
+	./build/src/functions/System.o \
+	./build/src/functions/YCMConfig.o \
+	./build/src/configs/GNUMake.o \
+	./build/src/configs/YCM.o
 
 HEADERS = ./src/script/Script.hpp \
 	./src/script/Parser.hpp \
@@ -36,3 +36,5 @@ HEADERS = ./src/script/Script.hpp \
 	./src/functions/Functions.hpp \
 	./src/utils/Time.hpp \
 	./src/Project.hpp
+
+
