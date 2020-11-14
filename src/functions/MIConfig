@@ -1,0 +1,9 @@
+sources += [ \
+  "$(DIR)/Functions.cpp" \
+  "$(DIR)/MakeConfig.cpp" \
+  "$(DIR)/Print.cpp" \
+  "$(DIR)/Project.cpp" \
+  "$(DIR)/Search.cpp" \
+  "$(DIR)/System.cpp" \
+  "$(DIR)/YCMConfig.cpp" \
+]

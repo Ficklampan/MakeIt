@@ -1,17 +1,8 @@
-#include "../Functions.hpp"
+#include "Functions.hpp"
 
 #include "../script/Storage.hpp"
 
 #include "../configs/GNUMake.hpp"
-
-MI::function::Makefile::Makefile()
-{
-  desc = "";
-  args = ArgBuilder().type(MI::Constant::STRING)
-    .type({MI::Constant::STRING, MI::Constant::LIST})
-    .type({MI::Constant::STRING, MI::Constant::LIST})
-    .build();
-}
 
 static inline int MAKECONFIG_LIST_STRINGS(std::vector<MI::Constant*> &constants, std::vector<std::string*> &strs, char* &info)
 {
@@ -35,7 +26,7 @@ static inline int MAKECONFIG_LIST_STRINGS(std::vector<MI::Constant*> &constants,
 }
 
 /* TODO: make so you can put a string and not only a list */
-int MI::function::Makefile::execute(void* ptr, std::vector<Constant*> &args, char* &info)
+int MI::function::exec_makefile(void* ptr, std::vector<Constant*> &args, char* &info)
 {
   MI::Storage* storage = (MI::Storage*) ptr;
   MI::Project* project = (MI::Project*) storage->variables["project"]->value.v;
@@ -56,7 +47,7 @@ int MI::function::Makefile::execute(void* ptr, std::vector<Constant*> &args, cha
   #define MAKECONFIG_PROCESS_ARG(i, a) {\
     if (args.at(i)->type == MI::Constant::LIST) \
     { \
-      if (!MAKECONFIG_LIST_STRINGS(*args.at(i)->value.l, sources, info)) \
+      if (!MAKECONFIG_LIST_STRINGS(*args.at(i)->value.l, a, info)) \
         return 0; \
     }else if (args.at(i)->type == MI::Constant::STRING) \
       a.push_back(args.at(i)->value.s); \
@@ -64,7 +55,7 @@ int MI::function::Makefile::execute(void* ptr, std::vector<Constant*> &args, cha
 #endif
 
   MAKECONFIG_PROCESS_ARG(1, sources);
-  MAKECONFIG_PROCESS_ARG(2, sources);
+  MAKECONFIG_PROCESS_ARG(2, headers);
 
   GNUMake_config(filepath, sources, headers, project);
   return 1;

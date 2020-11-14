@@ -15,8 +15,11 @@ namespace MI {
 
   public:
 
-    int parse(me::BasicIterator<Token*> &tokens, Storage &storage);
-    int parse_args(me::BasicIterator<Token*> &tokens, Storage &storage, std::vector<Constant*> &args);
+    static int parse(me::BasicIterator<Token*> &tokens, Storage* storage);
+
+  private:
+
+    static int parse_args(me::BasicIterator<Token*> &tokens, Storage* storage, std::vector<Constant*> &args);
 
   };
 

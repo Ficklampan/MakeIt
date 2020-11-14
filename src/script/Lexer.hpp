@@ -12,14 +12,13 @@ namespace MI {
 
   class Lexer {
 
-  private:
-
-    Token::Location location;
-
   public:
 
-    int make(std::string &source, std::vector<Token*> &tokens);
-    int next_token(me::Iterator<char> &source, Token* &token);
+    static int make(me::File* file, std::string &source, std::vector<Token*> &tokens);
+
+  private:
+
+    static int next_token(me::Iterator<char> &source, Token::Location &location, Token* &token);
 
   };
 

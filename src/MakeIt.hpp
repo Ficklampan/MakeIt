@@ -7,18 +7,6 @@
 
 namespace MI {
 
-  struct Config {
-    std::string file;
-    bool print_time;
-  } config = {
-    .file = "MIBuild",
-    .print_time = false
-  };
-
-  int parseArgs(int argc, char** argv);
-  int initScript();
-  int readScript(me::File &file, Storage &storage);
-
 }
 
 #endif

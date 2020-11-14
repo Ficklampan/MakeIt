@@ -18,6 +18,7 @@ SRC = 	./src/MakeIt.cpp \
 	./src/script/Variable.cpp \
 	./src/script/Token.cpp \
 	./src/script/Common.cpp \
+	./src/script/Script.cpp \
 	./src/functions/Print.cpp \
 	./src/functions/System.cpp \
 	./src/functions/Search.cpp \
@@ -35,10 +36,11 @@ HEADERS =   ./src/configs/GNUMake.hpp \
 	    ./src/script/Storage.hpp \
 	    ./src/script/Token.hpp \
 	    ./src/script/Variable.hpp \
+	    ./src/script/Script.hpp \
 	    ./src/MakeIt.hpp \
 	    ./src/Project.hpp \
 	    ./src/utils/Time.hpp \
-	    ./src/Functions.hpp
+	    ./src/functions/Functions.hpp
 
 # <-- objects -->
 OBJ = 	./build/src/MakeIt.o \
@@ -49,6 +51,7 @@ OBJ = 	./build/src/MakeIt.o \
 	./build/src/script/Variable.o \
 	./build/src/script/Token.o \
 	./build/src/script/Common.o \
+	./build/src/script/Script.o \
 	./build/src/functions/Print.o \
 	./build/src/functions/System.o \
 	./build/src/functions/Search.o \

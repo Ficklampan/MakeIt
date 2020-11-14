@@ -1,12 +1,13 @@
 project "MakeIt" "Latest" "C++"
 
-sources = [ "test.fjewoiuhfow" "blabla.fewio.wjgij" ]
+sources = []
 headers = []
 
-#search "$(DIR)/src" "*.hpp" true headers
+source "$(DIR)/src/MIConfig"
 
-sources += "test.cpp"
+search "$(DIR)/src" "*.hpp" true headers
 
-print sources
+print "sources: " sources
+print "headers: " headers
 
 makefile "Makefile2" sources headers

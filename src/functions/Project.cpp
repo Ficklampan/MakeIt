@@ -1,26 +1,13 @@
-#include "../Functions.hpp"
+#include "Functions.hpp"
 
-#include "../script/Storage.hpp"
 #include "../Project.hpp"
 
-MI::function::Project::Project()
-{
-  desc = "";
-  args = ArgBuilder()
-    .type(MI::Constant::STRING)
-    .type(MI::Constant::STRING)
-    .type(MI::Constant::STRING)
-    .build();
-}
+#include "../script/Script.hpp"
 
-int MI::function::Project::execute(void* ptr, std::vector<Constant*> &args, char* &info)
-{
-  if (args.size() == 0 || args.size() > 3)
-  {
-    info = (char*) (args.size() > 3 ? "too many arguments" : "expected 1 or more arguements");
-    return 0;
-  }
+#include <climits>
 
+int MI::function::exec_project(void* ptr, std::vector<Constant*> &args, char* &info)
+{
   MI::Storage* storage = (MI::Storage*) ptr;
 
   MI::Project* project = new MI::Project;
@@ -33,13 +20,32 @@ int MI::function::Project::execute(void* ptr, std::vector<Constant*> &args, char
   return 1;
 }
 
-MI::function::Source::Source()
+int MI::function::exec_source(void* ptr, std::vector<Constant*> &args, char* &info)
 {
-  desc = "";
-  args = ArgBuilder().type({MI::Constant::STRING, MI::Constant::LIST}).endless();
+#define PROJECT_READ_SCRIPT() { \
+  if (!file.exists()) \
+  { \
+    info = new char[32 + PATH_MAX]; \
+    sprintf(info, "file not found '%s'", file.getPath().c_str()); \
+    return 0; \
+  }else if (!readScript(&file, (MI::Storage*) ptr)) \
+    return 0; \
 }
+  for (Constant* c : args)
+  {
+    if (c->type == Constant::LIST)
+    {
+      for (Constant* c2 : *c->value.l)
+      {
+	me::File file(*c2->value.s);
+	PROJECT_READ_SCRIPT();
+      }
+    }else
+    {
+      me::File file(*c->value.s);
+      PROJECT_READ_SCRIPT();
+    }
+  }
 
-int MI::function::Source::execute(void* ptr, std::vector<Constant*> &args, char* &info)
-{
   return 1;
 }

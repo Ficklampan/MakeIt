@@ -5,7 +5,34 @@ DEFS =
 
 LIBS = 
 
-SOURCES = test.fjewoiuhfow \
-	blabla.fewio.wjgij \
-	test.cpp
-HEADERS = 
+SOURCES = ./src/MakeIt.cpp \
+	./src/script/Common.cpp \
+	./src/script/Lexer.cpp \
+	./src/script/Parser.cpp \
+	./src/script/Script.cpp \
+	./src/script/Token.cpp \
+	./src/script/Variable.cpp \
+	./src/functions/Functions.cpp \
+	./src/functions/MakeConfig.cpp \
+	./src/functions/Print.cpp \
+	./src/functions/Project.cpp \
+	./src/functions/Search.cpp \
+	./src/functions/System.cpp \
+	./src/functions/YCMConfig.cpp \
+	./src/configs/GNUMake.cpp \
+	./src/configs/YCM.cpp
+
+HEADERS = ./src/script/Script.hpp \
+	./src/script/Parser.hpp \
+	./src/script/Token.hpp \
+	./src/script/Common.hpp \
+	./src/script/Lexer.hpp \
+	./src/script/Variable.hpp \
+	./src/script/Function.hpp \
+	./src/script/Storage.hpp \
+	./src/configs/YCM.hpp \
+	./src/configs/GNUMake.hpp \
+	./src/MakeIt.hpp \
+	./src/functions/Functions.hpp \
+	./src/utils/Time.hpp \
+	./src/Project.hpp

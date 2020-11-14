@@ -1,12 +1,6 @@
-#include "../Functions.hpp"
+#include "Functions.hpp"
 
-MI::function::YCM::YCM()
-{
-  desc = "";
-  args = ArgBuilder().build();
-}
-
-int MI::function::YCM::execute(void* ptr, std::vector<Constant*> &args, char* &info)
+int MI::function::exec_ycm(void* ptr, std::vector<Constant*> &args, char* &info)
 {
   return 1;
 }

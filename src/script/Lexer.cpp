@@ -5,9 +5,19 @@
 #define LEXER_IS_PUNCTUATOR(c) (c == '=' || c == '+' || c == ':')
 #define LEXER_IS_EMPTY(c) (c == ' ' || c == '\t' || c == '\n')
 
-int MI::Lexer::make(std::string &source, std::vector<Token*> &tokens)
+#define LEXER_NEXT_STRING(b) { \
+  while (source.hasNext()) \
+  { \
+    c = source.peek(); \
+    b \
+    length++; \
+    source.next(); \
+  } \
+}
+
+int MI::Lexer::make(me::File* file, std::string &source, std::vector<Token*> &tokens)
 {
-  location = { &source, 0, 0, 0, 0, };
+  Token::Location location = { file, &source, 0, 0, 0, 0, };
 
   me::Iterator<char> source_iter((char*) source.data(), source.size(), [](void* ptr, char &c, uint32_t &i) {
       MI::Token::Location* location = (MI::Token::Location*) ptr;
@@ -23,7 +33,7 @@ int MI::Lexer::make(std::string &source, std::vector<Token*> &tokens)
   while (source_iter.hasNext())
   {
     Token* token = nullptr;
-    if (!next_token(source_iter, token))
+    if (!next_token(source_iter, location, token))
       return 0;
 
     if (token != nullptr)
@@ -32,7 +42,7 @@ int MI::Lexer::make(std::string &source, std::vector<Token*> &tokens)
   return 1;
 }
 
-int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
+int MI::Lexer::next_token(me::Iterator<char> &source, Token::Location &location, Token* &token)
 {
   location.first = location.pos;
   char c = source.next();
@@ -40,23 +50,16 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
   /* Token::LITERIAL / Token::CONSTANT BOOLEAN */
   if (LEXER_IS_NAME(c))
   {
-    std::string* literial = new std::string;
-    literial->push_back(c);
+    uint32_t length = 1;
+    LEXER_NEXT_STRING(if (!LEXER_IS_NAME(c)) { break; });
 
-    while (source.hasNext())
-    {
-      c = source.peek();
+    std::string* literial = new std::string((&source.peek()) - length, length);
 
-      if (!LEXER_IS_NAME(c))
-        break;
+    bool bt = literial->compare("true") == 0;
+    bool bf = literial->compare("false") == 0;
 
-      literial->push_back(source.next());
-    }
-
-    bool b = literial->compare("true") == 0 || literial->compare("false") == 0;
-
-    if (b)
-      token = new Token(Token::CONSTANT, new Constant(Constant::BOOLEAN, new bool(literial->compare("true") == 0)), Token::Location(location));
+    if (bt || bf)
+      token = new Token(Token::CONSTANT, new Constant(Constant::BOOLEAN, new bool(bt)), Token::Location(location));
     else
       token = new Token(Token::LITERIAL, literial, Token::Location(location));
     return 1;
@@ -64,17 +67,10 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
   /* Token::CONSTANT STRING */
   }else if (c == '"')
   {
-    std::string* str = new std::string;
+    uint32_t length = 0;
+    LEXER_NEXT_STRING(if (c == '"') { source.next(); break; });
 
-    while (source.hasNext())
-    {
-      c = source.next();
-
-      if (c == '"')
-        break;
-
-      str->push_back(c);
-    }
+    std::string* str = new std::string((&source.peek()) - length - 1, length);
 
     token = new Token(Token::CONSTANT, new Constant(Constant::STRING, str), Token::Location(location));
     return 1;
@@ -102,7 +98,7 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token* &token)
       }
 
       Token* token = nullptr;
-      if (!next_token(source, token))
+      if (!next_token(source, location, token))
 	return 0;
 
       if (token == nullptr)

@@ -43,6 +43,8 @@ int MI::GNUMake_config(const std::string &filepath, std::vector<std::string*> &s
   content.append("SOURCES = ");
   GNUMAKE_APPEND_ARRAY(content.append(*sources.at(i)), sources.size(), content.append(" \\\n\t"));
 
+  content += '\n';
+
   /* append headers array */
   content.append("HEADERS = ");
   GNUMAKE_APPEND_ARRAY(content.append(*headers.at(i)), headers.size(), content.append(" \\\n\t"));

@@ -3,6 +3,8 @@
 
 #include "Variable.hpp"
 
+#include <lme/file.hpp>
+
 namespace MI {
 
   struct Token {
@@ -37,6 +39,7 @@ namespace MI {
 
     /* Token Location in file */
     struct Location {
+      me::File* file;
       std::string* source;
       uint32_t pos, line, column, first;
     } location;

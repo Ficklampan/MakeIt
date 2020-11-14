@@ -4,6 +4,8 @@
 #include "Variable.hpp"
 #include "Function.hpp"
 
+#include <lme/file.hpp>
+
 #include <map>
 #include <string>
 
@@ -14,6 +16,12 @@ namespace MI {
 
     std::map<std::string, Variable*> variables;
     std::map<std::string, Function*> functions;
+
+    ~Storage()
+    {
+      for (auto &[key, value] : variables)
+	delete value;
+    }
 
   };
 

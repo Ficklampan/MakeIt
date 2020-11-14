@@ -1,11 +1,8 @@
 #ifndef MELIB_FILE_HPP
   #define MELIB_FILE_HPP
 
-#include <sys/stat.h>
-
 #include <string>
 #include <vector>
-#include <cstdint>
 
 namespace me {
 
@@ -41,7 +38,7 @@ namespace me {
     const std::string getPath();
     int getType();
 
-    size_t listFiles(std::vector<File*> &files);
+    size_t listFiles(std::vector<File*> &files, bool sub_dirs);
 
     void normalize();
 

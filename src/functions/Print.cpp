@@ -1,10 +1,4 @@
-#include "../Functions.hpp"
-
-MI::function::Print::Print()
-{
-  desc = "Print stuff";
-  args = ArgBuilder().any().endless();
-}
+#include "Functions.hpp"
 
 static inline void print(MI::Constant* constant)
 {
@@ -16,7 +10,7 @@ static inline void print(MI::Constant* constant)
     printf("array[%lu]", constant->value.l->size());
 }
 
-int MI::function::Print::execute(void* ptr, std::vector<Constant*> &args, char* &info)
+int MI::function::exec_print(void* ptr, std::vector<Constant*> &args, char* &info)
 {
   for (Constant* arg : args)
   {
