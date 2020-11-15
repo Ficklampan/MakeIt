@@ -12,6 +12,11 @@ namespace MI { namespace function {
   int exec_search(void* ptr, std::vector<Constant*> &args, char* &info);
 
   int exec_project(void* ptr, std::vector<Constant*> &args, char* &info);
+  int exec_library(void* ptr, std::vector<Constant*> &args, char* &info);
+  int exec_library_path(void* ptr, std::vector<Constant*> &args, char* &info);
+  int exec_include(void* ptr, std::vector<Constant*> &args, char* &info);
+  int exec_include_path(void* ptr, std::vector<Constant*> &args, char* &info);
+  int exec_define(void* ptr, std::vector<Constant*> &args, char* &info);
   int exec_source(void* ptr, std::vector<Constant*> &args, char* &info);
   int exec_makefile(void* ptr, std::vector<Constant*> &args, char* &info);
   int exec_ycm(void* ptr, std::vector<Constant*> &args, char* &info);
@@ -23,6 +28,11 @@ namespace MI { namespace function {
   MI::Function* getSearch();
 
   MI::Function* getProject();
+  MI::Function* getLibrary();
+  MI::Function* getLibraryPath();
+  MI::Function* getInclude();
+  MI::Function* getIncludePath();
+  MI::Function* getDefine();
   MI::Function* getSource();
   MI::Function* getMakefile();
   MI::Function* getYCM();

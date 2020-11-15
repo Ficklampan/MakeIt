@@ -1,8 +1,6 @@
 #ifndef MI_PROJECT_HPP
   #define MI_PROJECT_HPP
 
-#include <lme/file.hpp>
-
 #include <string>
 #include <vector>
 
@@ -16,16 +14,11 @@ namespace MI {
     std::string version;
     std::string language;
 
-    std::string compiler;
-
-    me::File* build_dir;
-
-    std::vector<std::string> flag;
-    std::vector<std::string> library;
-    std::vector<std::string> include;
-    std::vector<std::string> library_dir;
-    std::vector<std::string> include_dir;
-    std::vector<std::string> definitions;
+    std::vector<std::string*> libraries;
+    std::vector<std::string*> includes;
+    std::vector<std::string*> library_paths;
+    std::vector<std::string*> include_paths;
+    std::vector<std::string*> definitions;
 
   };
 

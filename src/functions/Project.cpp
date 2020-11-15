@@ -1,5 +1,7 @@
 #include "Functions.hpp"
 
+#include "Common.hpp"
+
 #include "../Project.hpp"
 
 #include "../script/Script.hpp"
@@ -14,10 +16,65 @@ int MI::function::exec_project(void* ptr, std::vector<Constant*> &args, char* &i
   project->name = *args.at(0)->value.s;
   project->version = *args.at(1)->value.s;
   project->language = *args.at(2)->value.s;
-  project->build_dir = new me::File(*args.at(3)->value.s);
 
   storage->variables["project"] = new MI::Variable(MI::Constant::STRUCT, project);
 
+  return 1;
+}
+
+int MI::function::exec_library(void* ptr, std::vector<Constant*> &args, char* &info)
+{
+  MI::Storage* storage = (MI::Storage*) ptr;
+
+  REQUIRE_VARIABLE(project, MI::Constant::STRUCT, MI::Project*);
+
+  for (Constant* c : args)
+    APPEND_STRINGS(c, project->libraries);
+
+  return 1;
+}
+
+int MI::function::exec_library_path(void* ptr, std::vector<Constant*> &args, char* &info)
+{
+  MI::Storage* storage = (MI::Storage*) ptr;
+
+  REQUIRE_VARIABLE(project, MI::Constant::STRUCT, MI::Project*);
+
+  for (Constant* c : args)
+    APPEND_STRINGS(c, project->library_paths);
+  return 1;
+}
+
+int MI::function::exec_include(void* ptr, std::vector<Constant*> &args, char* &info)
+{
+  MI::Storage* storage = (MI::Storage*) ptr;
+
+  REQUIRE_VARIABLE(project, MI::Constant::STRUCT, MI::Project*);
+
+  for (Constant* c : args)
+    APPEND_STRINGS(c, project->includes);
+  return 1;
+}
+
+int MI::function::exec_include_path(void* ptr, std::vector<Constant*> &args, char* &info)
+{
+  MI::Storage* storage = (MI::Storage*) ptr;
+
+  REQUIRE_VARIABLE(project, MI::Constant::STRUCT, MI::Project*);
+
+  for (Constant* c : args)
+    APPEND_STRINGS(c, project->include_paths);
+  return 1;
+}
+
+int MI::function::exec_define(void* ptr, std::vector<Constant*> &args, char* &info)
+{
+  MI::Storage* storage = (MI::Storage*) ptr;
+
+  REQUIRE_VARIABLE(project, MI::Constant::STRUCT, MI::Project*);
+
+  for (Constant* c : args)
+    APPEND_STRINGS(c, project->definitions);
   return 1;
 }
 

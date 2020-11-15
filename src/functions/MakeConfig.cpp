@@ -1,62 +1,29 @@
 #include "Functions.hpp"
 
+#include "Common.hpp"
+
 #include "../script/Storage.hpp"
 
 #include "../configs/GNUMake.hpp"
 
-static inline int MAKECONFIG_LIST_STRINGS(std::vector<MI::Constant*> &constants, std::vector<std::string*> &strs, char* &info)
-{
-  for (uint32_t i = 0; i < constants.size(); i++)
-  {
-    MI::Constant* c = constants.at(i);
-    if (c->type == MI::Constant::STRING)
-      strs.push_back(c->value.s);
-    else if (c->type == MI::Constant::LIST)
-    {
-      if (!MAKECONFIG_LIST_STRINGS(*c->value.l, strs, info))
-	return 0;
-    }else
-    {
-      info = new char[128];
-      sprintf(info, "expected type 'string' or 'list' in array at [%u]", i);
-      return 0;
-    }
-  }
-  return 1;
-}
-
-/* TODO: make so you can put a string and not only a list */
 int MI::function::exec_makefile(void* ptr, std::vector<Constant*> &args, char* &info)
 {
   MI::Storage* storage = (MI::Storage*) ptr;
-  MI::Project* project = (MI::Project*) storage->variables["project"]->value.v;
 
-  /* [Error] project not found */
-  if (project == nullptr)
-  {
-    info = (char*) "project not found";
-    return 0;
-  }
+  REQUIRE_VARIABLE(project, MI::Constant::STRUCT, MI::Project*);
 
   std::string filepath = *args.at(0)->value.s;
+  std::string compiler = *args.at(1)->value.s;
+  me::File build_dir = *args.at(2)->value.s;
 
+  std::vector<std::string*> flags;
   std::vector<std::string*> sources;
   std::vector<std::string*> headers;
 
-#ifndef MAKECONFIG_PROCESS_ARG
-  #define MAKECONFIG_PROCESS_ARG(i, a) {\
-    if (args.at(i)->type == MI::Constant::LIST) \
-    { \
-      if (!MAKECONFIG_LIST_STRINGS(*args.at(i)->value.l, a, info)) \
-        return 0; \
-    }else if (args.at(i)->type == MI::Constant::STRING) \
-      a.push_back(args.at(i)->value.s); \
-  }
-#endif
+  APPEND_STRINGS(args.at(3), flags);
+  APPEND_STRINGS(args.at(4), sources);
+  APPEND_STRINGS(args.at(5), headers);
 
-  MAKECONFIG_PROCESS_ARG(1, sources);
-  MAKECONFIG_PROCESS_ARG(2, headers);
-
-  GNUMake_config(filepath, sources, headers, project);
+  GNUMake_config(filepath, compiler, build_dir, flags, sources, headers, project);
   return 1;
 }

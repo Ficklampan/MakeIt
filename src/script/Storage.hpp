@@ -16,6 +16,7 @@ namespace MI {
 
     std::map<std::string, Variable*> variables;
     std::map<std::string, Function*> functions;
+    std::vector<me::File> scripts;
 
     ~Storage()
     {

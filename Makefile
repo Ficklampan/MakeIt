@@ -1,73 +1,111 @@
 NAME = MakeIt
-BUILD = ./build
-FLAGS = -std=c++17 -Wall -g
-CC = g++
 
-LIBS = -lme
-INCS = 
-LDIR = -Lexternal/melib
-IDIR = -Iexternal/melib/include
+# compiler
+CC = g++
+FLAGS = -std=c++17
+# definitions
 DEFS = 
 
-# <-- sources -->
-SRC = 	./src/MakeIt.cpp \
-	./src/configs/GNUMake.cpp \
-	./src/configs/YCM.cpp \
-	./src/script/Lexer.cpp \
-	./src/script/Parser.cpp \
-	./src/script/Variable.cpp \
-	./src/script/Token.cpp \
-	./src/script/Common.cpp \
-	./src/script/Script.cpp \
-	./src/functions/Print.cpp \
-	./src/functions/System.cpp \
-	./src/functions/Search.cpp \
-	./src/functions/Project.cpp \
-	./src/functions/MakeConfig.cpp \
-	./src/functions/YCMConfig.cpp \
-	./src/functions/Functions.cpp
+# libraries
+LIBS = -lme
+# library paths
+LPATHS = -L./external/melib
+# includes
+INCS = 
+# include paths
+IPATHS = -I./external/melib/include
 
-# <-- headers -->
-HEADERS =   ./src/configs/GNUMake.hpp \
-	    ./src/configs/YCM.hpp \
-	    ./src/script/Function.hpp \
-	    ./src/script/Lexer.hpp \
-	    ./src/script/Parser.hpp \
-	    ./src/script/Storage.hpp \
-	    ./src/script/Token.hpp \
-	    ./src/script/Variable.hpp \
-	    ./src/script/Script.hpp \
-	    ./src/MakeIt.hpp \
-	    ./src/Project.hpp \
-	    ./src/utils/Time.hpp \
-	    ./src/functions/Functions.hpp
-
-# <-- objects -->
-OBJ = 	./build/src/MakeIt.o \
-	./build/src/configs/GNUMake.o \
-	./build/src/configs/YCM.o \
+OBJECTS = ./build/src/MakeIt.o \
+	./build/src/script/Common.o \
 	./build/src/script/Lexer.o \
 	./build/src/script/Parser.o \
-	./build/src/script/Variable.o \
-	./build/src/script/Token.o \
-	./build/src/script/Common.o \
 	./build/src/script/Script.o \
-	./build/src/functions/Print.o \
-	./build/src/functions/System.o \
-	./build/src/functions/Search.o \
-	./build/src/functions/Project.o \
+	./build/src/script/Token.o \
+	./build/src/script/Variable.o \
+	./build/src/functions/Functions.o \
 	./build/src/functions/MakeConfig.o \
+	./build/src/functions/Print.o \
+	./build/src/functions/Project.o \
+	./build/src/functions/Search.o \
+	./build/src/functions/System.o \
 	./build/src/functions/YCMConfig.o \
-	./build/src/functions/Functions.o
+	./build/src/configs/GNUMake.o \
+	./build/src/configs/YCM.o
 
-$(BUILD)/%.o: %.* $(HEADERS)
-	@$(CC) -c -o $@ $< $(FLAGS) $(IDIR) $(INCS) $(DEFS) && \
-	echo [32mcompiling [$<][0m
+HEADERS = ./src/script/Script.hpp \
+	./src/script/Parser.hpp \
+	./src/script/Token.hpp \
+	./src/script/Common.hpp \
+	./src/script/Lexer.hpp \
+	./src/script/Variable.hpp \
+	./src/script/Function.hpp \
+	./src/script/Storage.hpp \
+	./src/configs/YCM.hpp \
+	./src/configs/GNUMake.hpp \
+	./src/MakeIt.hpp \
+	./src/functions/Common.hpp \
+	./src/functions/Functions.hpp \
+	./src/System.hpp \
+	./src/utils/Time.hpp \
+	./src/Project.hpp
 
-$(NAME): $(OBJ)
-	@$(CC) -o $@ $^ $(LDIR) $(LIBS)
+
+# linking
+$(NAME): $(OBJECTS)
+	@$(CC) -o $@ $^ $(LPATHS) $(LIBS) $(FLAGS)
 
 .PHONY: clean
 
 clean:
-	rm -f $(OBJ)
+	rm -f $(OBJECTS)
+
+# compiling sources
+
+./build/src/MakeIt.o: ./src/MakeIt.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/script/Common.o: ./src/script/Common.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/script/Lexer.o: ./src/script/Lexer.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/script/Parser.o: ./src/script/Parser.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/script/Script.o: ./src/script/Script.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/script/Token.o: ./src/script/Token.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/script/Variable.o: ./src/script/Variable.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/functions/Functions.o: ./src/functions/Functions.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/functions/MakeConfig.o: ./src/functions/MakeConfig.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/functions/Print.o: ./src/functions/Print.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/functions/Project.o: ./src/functions/Project.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/functions/Search.o: ./src/functions/Search.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/functions/System.o: ./src/functions/System.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/functions/YCMConfig.o: ./src/functions/YCMConfig.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/configs/GNUMake.o: ./src/configs/GNUMake.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/configs/YCM.o: ./src/configs/YCM.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+

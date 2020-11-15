@@ -1,4 +1,4 @@
-project "MakeIt" "Latest" "C++" "$(DIR)/build"
+project "MakeIt" "Latest" "C++"
 
 sources = []
 headers = []
@@ -7,7 +7,8 @@ source "$(DIR)/src/MIConfig"
 
 search "$(DIR)/src" "*.hpp" true headers
 
-print "sources: " sources
-print "headers: " headers
+library [ "me" ]
+library_path [ "$(DIR)/external/melib" ]
+include_path [ "$(DIR)/external/melib/include" ]
 
-makefile "Makefile2" sources headers
+makefile "Makefile" "g++" "$(DIR)/build" [ "-std=c++17" ] sources headers
