@@ -4,6 +4,7 @@
 #include "../Project.hpp"
 
 #include <lme/file.hpp>
+#include <lme/string.hpp>
 
 namespace MI {
 

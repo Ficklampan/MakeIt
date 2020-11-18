@@ -1,0 +1,98 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the MakeItTranslation package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: MakeItTranslation 0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-11-18 22:16+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/MakeIt.cpp:28
+msgid "Print usage"
+msgstr ""
+
+#: src/MakeIt.cpp:29
+msgid "Print compiler and this version"
+msgstr ""
+
+#: src/MakeIt.cpp:30
+msgid "Print changes on the system"
+msgstr ""
+
+#: src/MakeIt.cpp:31
+msgid "Confirm when making system changes"
+msgstr ""
+
+#: src/MakeIt.cpp:32
+msgid "Enable debug level L"
+msgstr ""
+
+#: src/MakeIt.cpp:33
+msgid "Specify file to be read"
+msgstr ""
+
+#: src/MakeIt.cpp:35
+msgid ""
+"View info and stuff\n"
+"Use 'help FLAG' to show info and usage about FLAG"
+msgstr ""
+
+#: src/MakeIt.cpp:36
+msgid ""
+"View the compiler version the program was compiled in and the current "
+"software version"
+msgstr ""
+
+#: src/MakeIt.cpp:37
+msgid ""
+"If print all flag is specified then the software will print changes to the "
+"system (file being written/read or a command being executed)"
+msgstr ""
+
+#: src/MakeIt.cpp:38
+msgid ""
+"If block all flag is specified then the software will ask before making "
+"changes to the system (file being written/read or a command being executed)"
+msgstr ""
+
+#: src/MakeIt.cpp:39
+msgid "Higher level = more debuging"
+msgstr ""
+
+#: src/MakeIt.cpp:40
+msgid "Change the file target. Default is 'MIBuild'"
+msgstr ""
+
+#: src/Common.cpp:21
+msgid "[Y/n]"
+msgstr ""
+
+#: src/Common.cpp:23
+msgid "[y/N]"
+msgstr ""
+
+#: src/Common.cpp:32
+msgid "Y"
+msgstr ""
+
+#: src/Common.cpp:32
+msgid "YES"
+msgstr ""
+
+#: src/Common.cpp:34
+msgid "N"
+msgstr ""
+
+#: src/Common.cpp:34
+msgid "NO"
+msgstr ""

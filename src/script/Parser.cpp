@@ -1,104 +1,96 @@
 #include "Parser.hpp"
 
+#include "../Config.hpp"
+
 #include "Common.hpp"
 
 #include <cstring>
 
-static inline int PARSER_FIX_STRING(MI::Token* token, std::string* str, std::string* &fixed, MI::Storage* storage)
+extern Config config;
+
+static inline int PARSER_FIX_STRING(MI::Token* token, MI::VarString* str, MI::Storage* storage)
 {
-  if (str->find("$(") == std::string::npos)
+  bool paren = false;
+
+  for (uint32_t i = 0; i < str->value.size(); i++)
   {
-    fixed = str;
-    return 1;
-  }
+    char c = str->value.at(i);
 
-  fixed = new std::string;
-  fixed->reserve(str->size() + 32);
-
-  for (uint32_t i = 0; i < str->size(); i++)
-  {
-    char c = str->at(i);
-    char next = i < str->size() - 1 ? str->at(i + 1) : '\0';
-
-    if (c == '$' && next == '(')
+    if (c == '$')
     {
-      i += 2;
-      const char* begin = str->c_str() + i;
+      i++;
 
-      uint32_t length = 0;
-      for (; i < str->size(); i++)
-      {
-	if (str->at(i) == ')')
-	  break;
-	length++;
-      }
+      uint32_t start = 0, end = 0;
 
-      std::string var_name(begin, length);
+      do {
 
-      if (var_name.compare("DIR") == 0)
-      {
-	fixed->append(token->location.file->directoryPath());
-      }else if (var_name.compare("FILE") == 0)
-      {
-	fixed->append(token->location.file->getPath());
-      }else
-      {
-	MI::Variable* var = storage->variables[var_name];
+	c = str->value.at(i);
 
-	if (var == nullptr)
+	if (c == '(' || c == '{')
 	{
-	  printError(&token->location, "undefined variable '%s'", var_name.c_str());
-	  return 0;
-	}else
-      	{
-	  if (var->type == MI::Constant::LIST)
+	  paren = true;
+	  start = i + 1;
+	}else if (c == ')' || c == '}')
+	{
+	  paren = false;
+	  end = i;
+	}
+	i++;
+
+      }while (paren);
+
+      if (end > start)
+      {
+	std::string ref_name(&str->value.at(0) + start, end - start);
+
+	MIDEBUG(2, "[Parser] > referance found inside string '%s'\n", ref_name.c_str());
+
+	if (ref_name.compare("DIR") == 0) str->value.replace(start - 2, end + 1, token->location.file->directoryPath());
+	else if (ref_name.compare("FILE") == 0) str->value.replace(start - 2, end + 1, token->location.file->getPath());
+	else
+	{
+	  MI::VariableRef* var = storage->variables[ref_name];
+	  if (var != nullptr)
 	  {
-	    printError(&token->location, "unexpected reference type 'list'");
-	    return 0;
-	  }else if (var->type == MI::Constant::STRUCT)
-	  {
-	    printError(&token->location, "unexpected reference type 'struct'");
-	    return 0;
-	  }else if (var->type == MI::Constant::STRING)
-      	  {
-      	    fixed->append(*var->value.s);
-      	  } /* TODO: */
-      	}
+	    if (var->type == MI::VariableRef::STRING)
+	      str->value.replace(start - 2, end + 1, VARIABLE_STRING(var)->value);
+	  }
+	}
       }
 
-    }else
-      fixed->push_back(c);
+    }
   }
   return 1;
 }
 
-static inline int PARSER_FIX_CONSTANT(MI::Token* token, MI::Constant* constant, MI::Storage* storage)
+static inline int PARSER_FIX_VARIABLE(MI::Token* token, MI::VariableRef* variable, MI::Storage* storage)
 {
-  if (constant != nullptr && constant->type == MI::Constant::STRING)
+  if (variable != nullptr && variable->type == MI::VariableRef::STRING)
   {
-    if (!PARSER_FIX_STRING(token, constant->value.s, constant->value.s, storage))
+    if (!PARSER_FIX_STRING(token, (MI::VarString*) variable, storage))
       return 0;
-  }else if (constant != nullptr && constant->type == MI::Constant::LIST)
+  }else if (variable != nullptr && variable->type == MI::VariableRef::LIST)
   {
-    for (MI::Constant* c : *constant->value.l)
+    MI::VarList* list = (MI::VarList*) variable;
+    for (MI::VariableRef* v : list->value)
     {
-      if (!PARSER_FIX_CONSTANT(token, c, storage))
+      if (!PARSER_FIX_VARIABLE(token, v, storage))
 	return 0;
     }
   }
   return 1;
 }
 
-static inline int PARSER_GET_CONSTANT(MI::Token* token, MI::Storage* storage, MI::Constant* &constant)
+static inline int PARSER_GET_VARIABLE(MI::Token* token, MI::Storage* storage, MI::VariableRef* &variable)
 {
   if (token->type == MI::Token::CONSTANT)
-    constant = token->value.c;
+    variable = token->value.c;
   else if (token->type == MI::Token::LITERIAL)
-    constant = storage->variables[*token->value.s];
+    variable = storage->variables[*token->value.s];
 
-  if (constant != nullptr)
+  if (variable != nullptr)
   {
-    if (!PARSER_FIX_CONSTANT(token, constant, storage))
+    if (!PARSER_FIX_VARIABLE(token, variable, storage))
       return 0;
   }
 
@@ -111,6 +103,8 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage* storage)
   {
     Token* token = tokens.next();
 
+    MIDEBUG(2, "[Parser] > parsing %s token\n", Token::typeName(token->type));
+
     if (token->type == Token::BREAK)
       continue;
 
@@ -120,7 +114,7 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage* storage)
       if (tokens.peek()->type == Token::PUNCTUATOR)
       {
 	std::string* var_name = token->value.s;
-	Variable* var = storage->variables[*var_name];
+	VariableRef* var = storage->variables[*var_name];
 
 	token = tokens.next();
 
@@ -129,41 +123,47 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage* storage)
 
 	if (p == Token::EQUAL)
 	{
-	  if (var == nullptr)
-	  {
-	    var = new Variable(Variable::VOID, nullptr);
-	    storage->variables[*var_name] = var;
-	  }
-
 	  /* Get next Constant / Variable */
 	  token = tokens.next();
-	  Constant* constant = nullptr;
-	  if (!PARSER_GET_CONSTANT(token, storage, constant))
+	  VariableRef* var2 = nullptr;
+	  if (!PARSER_GET_VARIABLE(token, storage, var2))
 	    return 0;
 
-	  if (constant != nullptr)
+	  if (var2 != nullptr)
 	  {
-	    var->type = token->value.c->type;
-	    var->value = token->value.c->value;
+	    if (var == nullptr)
+	    {
+	      var = VariableRef::copy(var2);
+	      storage->variables[*var_name] = var;
+	    }else
+	    {
+	      if (!var->assign(var2))
+	      {
+		printError(&token->location, "could not assign type '%s' to '%s'", 
+		    VariableRef::typeName(var->type), 
+		    VariableRef::typeName(var2->type));
+		return 0;
+	      }
+	    }
 	  }
 
 	}else if (var != nullptr)
 	{
 	  /* Get next Constant / Variable */
 	  token = tokens.next();
-	  Constant* constant = nullptr;
-	  if (!PARSER_GET_CONSTANT(token, storage, constant))
+	  VariableRef* variable = nullptr;
+	  if (!PARSER_GET_VARIABLE(token, storage, variable))
 	    return 0;
 
 	  /* [Error] expected value after operator */
-	  if (constant == nullptr)
+	  if (variable == nullptr)
 	  {
 	    printError(&token->location, "expected value after operator");
 	    return 0;
 	  }
 
 	  if (p == Token::PLUS_EQUAL)
-	    *var+=*constant;
+	    *var+=variable;
 
 	/* [Error] Variable not found */
 	}else
@@ -184,7 +184,7 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage* storage)
 	  return 0;
 	}
 
-	std::vector<Constant*> args;
+	std::vector<VariableRef*> args;
 	args.reserve(5);
 	if (!parse_args(tokens, storage, args))
 	  return 0;
@@ -209,7 +209,7 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage* storage)
 	  }
 
 	  uint16_t req_arg = func->argv[arg_index];
-	  Constant* arg = args.at(i);
+	  VariableRef* arg = args.at(i);
 
 	  bool match = false;
 
@@ -219,7 +219,7 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage* storage)
 	    uint8_t type = ((req_arg >> 1) >> (j * 3)) & 0x7;
 	    if (type == 0)
 	      break;
-	    else if (type == Constant::VOID || type == arg->type)
+	    else if (type == VariableRef::VOID || type == arg->type)
 	    {
 	      match = true;
 	      break;
@@ -241,11 +241,13 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage* storage)
 		expected_type += '/';
 
 	      expected_type += '\'';
-	      expected_type.append(Constant::typeName((Constant::Type) type));
+	      expected_type.append(VariableRef::typeName((VariableRef::Type) type));
 	      expected_type += '\'';
 	    }
 
-	    printError(&token->location, "expected type %s but found type '%s'", expected_type.c_str(), Constant::typeName(arg->type));
+	    printError(&token->location, "expected type %s but found type '%s'", 
+		expected_type.c_str(), 
+		VariableRef::typeName(arg->type));
 	    return 0;
 	  }
 
@@ -256,6 +258,8 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage* storage)
 	}
 
 	char* info = nullptr;
+
+	MIDEBUG(2, "[Parser] > calling function '%s'\n", token->value.s->c_str());
 	if (!func->exec(storage, args, info))
 	{
 	  if (info != nullptr && strlen(info) > 0)
@@ -269,7 +273,7 @@ int MI::Parser::parse(me::BasicIterator<Token*> &tokens, Storage* storage)
   return 1;
 }
 
-int MI::Parser::parse_args(me::BasicIterator<Token*> &tokens, Storage* storage, std::vector<Constant*> &args)
+int MI::Parser::parse_args(me::BasicIterator<Token*> &tokens, Storage* storage, std::vector<VariableRef*> &args)
 {
   while (tokens.hasNext())
   {
@@ -278,18 +282,18 @@ int MI::Parser::parse_args(me::BasicIterator<Token*> &tokens, Storage* storage, 
     if (token->type == Token::BREAK)
       break;
 
-    Constant* constant = nullptr;
-    if (!PARSER_GET_CONSTANT(token, storage, constant))
+    VariableRef* variable = nullptr;
+    if (!PARSER_GET_VARIABLE(token, storage, variable))
       return 0;
 
     /* [Error] expected value as a argument */
-    if (constant == nullptr)
+    if (variable == nullptr)
     {
       printError(&token->location, "expected value as a argument");
       return 0;
     }
 
-    args.push_back(constant);
+    args.push_back(variable);
   }
   return 1;
 }

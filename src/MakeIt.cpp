@@ -1,53 +1,79 @@
 #include "MakeIt.hpp"
-
+#include "Config.hpp"
 #include "System.hpp"
-
-#include "utils/Time.hpp"
+#include "Common.hpp"
 
 #include "functions/Functions.hpp"
 
 #include "script/Script.hpp"
 
 #include <getopt.h>
+#include <locale.h>
 #include <memory>
 #include <cstring>
 
-struct Config {
-  std::string file;
-  bool print_time;
-  bool print_memory;
-  bool silent;
-  bool print_all;
-  bool block_all;
-} config = {
+Config config = {
   .file = "MIBuild",
-  .print_time = false,
-  .print_memory = false,
-  .silent = false,
   .print_all = false,
-  .block_all = false
+  .block_all = false,
+  .debug = false
 };
 
 struct Cache {
   std::map<std::string, std::string> vars;
 } cache;
 
-void usage()
+void makeit::usage(const char* arg)
 {
-  printf("~~~| MakeIt [WIP] |~~~\n");
-  printf("Generates GNU 'Make' file\n");
-  printf("\n");
-  printf("Usage: makeit [flags] [directory/file]\n");
-  printf("Flags:\n");
-  printf("  -h, --help                   Prints this message and exit\n");
-  printf("  -v, --version                Prints the current version\n");
-  printf("  -t, --time                   Print the execution time\n");
-  printf("  -m, --memory                 Print memory usage\n");
-  printf("  -s, --silent                 Enable silent mode\n");
-  printf("  -e, --print-all              Prints external changes\n");
-  printf("  -b, --block-all              Block all system commands\n");
-  printf("  -f, --file                   Script file\n");
-  printf("Report bugs at <https://github.com/Ficklampan/MakeIt/issues>\n");
+  const char* FLAG_HELP_SHORT = _("Print usage");
+  const char* FLAG_VERSION_SHORT = _("Print compiler and this version");
+  const char* FLAG_PRINT_ALL_SHORT = _("Print changes on the system");
+  const char* FLAG_BLOCK_ALL_SHORT = _("Confirm when making system changes");
+  const char* FLAG_DEBUG_SHORT = _("Enable debug level L");
+  const char* FLAG_FILE_SHORT = _("Specify file to be read");
+
+  const char* FLAG_HELP_LONG = _("View info and stuff\nUse 'help FLAG' to show info and usage about FLAG");
+  const char* FLAG_VERSION_LONG = _("View the compiler version the program was compiled in and the current software version");
+  const char* FLAG_PRINT_ALL_LONG = _("If print all flag is specified then the software will print changes to the system (file being written/read or a command being executed)");
+  const char* FLAG_BLOCK_ALL_LONG = _("If block all flag is specified then the software will ask before making changes to the system (file being written/read or a command being executed)");
+  const char* FLAG_DEBUG_LONG = _("Higher level = more debuging");
+  const char* FLAG_FILE_LONG = _("Change the file target. Default is 'MIBuild'");
+
+  if (arg == nullptr)
+  {
+    printf("~~~| %s [WIP] |~~~\n", NAME);
+    printf("Generates GNU 'Make' file\n");
+    printf("Usage: makeit [flags]\n");
+    printf("Flags:\n");
+    printf("  -h flag, --help=flag         %s\n", FLAG_HELP_SHORT);
+    printf("  -v, --version                %s\n", FLAG_VERSION_SHORT);
+    printf("  -e, --print-all              %s\n", FLAG_PRINT_ALL_SHORT);
+    printf("  -b, --block-all              %s\n", FLAG_BLOCK_ALL_SHORT);
+    printf("  -d [L], --debug=[L]          %s\n", FLAG_DEBUG_SHORT);
+    printf("  -f, --file                   %s\n", FLAG_FILE_SHORT);
+    printf("Report issues at <https://github.com/Ficklampan/MakeIt/issues>\n");
+  }else if (strcmp("help", arg) == 0)
+  {
+    printf("  %s --help: %s\n", NAME, FLAG_HELP_LONG);
+  }else if (strcmp("version", arg) == 0)
+  {
+    printf("  %s --version: %s\n", NAME, FLAG_VERSION_LONG);
+  }else if (strcmp("print-all", arg) == 0)
+  {
+    printf("  %s --print-all: %s\n", NAME, FLAG_PRINT_ALL_LONG);
+  }else if (strcmp("block-all", arg) == 0)
+  {
+    printf("  %s --block-all: %s\n", NAME, FLAG_BLOCK_ALL_LONG);
+  }else if (strcmp("debug", arg) == 0)
+  {
+    printf("  %s --debug: %s\n", NAME, FLAG_DEBUG_LONG);
+  }else if (strcmp("file", arg) == 0)
+  {
+    printf("  %s --file: %s\n", NAME, FLAG_FILE_LONG);
+  }else
+  {
+    printf("unknown flag '%s'\n", arg);
+  }
 }
 
 void version()
@@ -56,31 +82,33 @@ void version()
   printf("Compiler: %s\n", __VERSION__);
 }
 
-int parseArgs(int argc, char** argv)
+void makeit::setupLocale()
+{
+  setlocale(LC_ALL, "");
+  bindtextdomain(PACKAGE, LOCALEDIR);
+  textdomain(PACKAGE);
+}
+
+int makeit::parseArgs(int argc, char** argv)
 {
   static struct option long_options[] = {
     {"help", optional_argument, 0, 'h'},
     {"version", no_argument, 0, 'v'},
-    {"time", no_argument, 0, 't'},
-    {"memory", no_argument, 0, 'm'},
-    {"silent", no_argument, 0, 's'},
     {"print-all", no_argument, 0, 'e'},
     {"block-all", no_argument, 0, 'b'},
+    {"debug", optional_argument, 0, 'd'},
     {"file", required_argument, 0, 'f'},
   };
 
   int index = 0;
   int c;
-  while ((c = getopt_long(argc, argv, "h::vf:tmseb", long_options, &index)) != -1)
+  while ((c = getopt_long(argc, argv, "h::vf:ebd::", long_options, &index)) != -1)
   {
     switch (c)
     {
       /* help */
       case 'h':
-	if (optarg != nullptr)
-	  MI::function::usage(optarg);
-	else
-	  usage();
+	usage(optarg);
 	return 1;
 
       /* version */
@@ -88,29 +116,23 @@ int parseArgs(int argc, char** argv)
       	version();
 	return 1;
 
-      /* time */
-      case 't':
-	config.print_time = true;
-	break;
-
-      /* memory */
-      case 'm':
-	config.print_memory = true;
-	break;
-
-      /* silent */
-      case 's':
-	config.silent = true;
-	break;
-
       /* print all */
-      case 'e':
-	config.print_all = true;
-	break;
-
+      case 'e': config.print_all = true; break;
       /* block all */
-      case 'b':
-	config.block_all = true;
+      case 'b': config.block_all = true; break;
+
+      /* debug */
+      case 'd':
+	if (optarg != nullptr)
+	{
+	  config.debug = std::stoi(optarg);
+	  if (config.debug > 3)
+	  {
+	    printf("unknown debug level\n");
+	    return 1;
+	  }
+	}else
+	  config.debug = 1;
 	break;
 
       /* file */
@@ -126,11 +148,8 @@ int parseArgs(int argc, char** argv)
   return 0;
 }
 
-int init()
+int makeit::init()
 {
-  /* init */
-  uint64_t start_millis = tmillis();
-
   me::File file(config.file);
   if (!file.exists())
   {
@@ -153,33 +172,28 @@ int init()
   storage->functions["makefile"] = MI::function::getMakefile();
   storage->functions["ycm"] = MI::function::getYCM();
 
-  uint64_t init_millis = tmillis();
-
   /* process file */
   if (!MI::readScript(&file, storage.get()))
     return 0;
 
-  uint64_t end_millis = tmillis();
-
-  double init_time = (double) (init_millis - start_millis) / 1000.0;
-  double script_time = (double) (end_millis - init_millis) / 1000.0;
-  double total_time = (double) (end_millis - start_millis) / 1000.0;
-
-  if (config.print_time)
-    printf("Time: [Initializing %.3fms, Parsing %.3fms, Total %.3fms]\n", init_time, script_time, total_time);
-
   return 1;
 }
 
-int main(int argc, char** argv)
+int makeit::main(int argc, char** argv)
 {
   if (parseArgs(argc, argv))
     return 0;
 
+  setupLocale();
   if (!init())
     return 1;
 
   return 0;
+}
+
+int main(int argc, char** argv)
+{
+  return makeit::main(argc, argv);
 }
 
 
@@ -187,36 +201,48 @@ int main(int argc, char** argv)
 
 int MI::readFile(const me::File &file, void* &data, uint32_t &size)
 {
+  bool execute = true;
+
   if (config.print_all)
-    printf("\e[33m==> reading data from '%s' \e[0m\n", file.getPath().c_str());
-  return me::File::read(file, data, size);
+    printf("\e[33m==> reading data from '%s'\e[0m\n", file.getPath().c_str());
+
+  if (config.block_all)
+    execute = yesno(":: do you want to read data from file[%s]?", file.getPath().c_str());
+
+  if (execute)
+    return me::File::read(file, data, size);
+  return 1;
 }
 
 int MI::writeFile(const me::File &file, void* data, uint32_t size)
 {
+  bool execute = true;
+
   if (config.print_all)
-    printf("\e[33m==> writing data[%uB] to '%s' \e[0m\n", size, file.getPath().c_str());
-  if (file.isAbsolutePath())
-  {
-    printf("\e[31m==> writing data from outside the workplace!!! continue? [y/N]: ");
-    char c = getchar();
-    if (!(c == 'y' || c == 'Y'))
-      return 0;
-  }
-  return me::File::write(file, data, size);
+    printf("\e[33m==> writing data[%uB] to '%s'\e[0m\n", size, file.getPath().c_str());
+
+  if (config.block_all)
+    execute = yesno(":: do you want to write data to file[%s]?", file.getPath().c_str());
+
+  if (!config.block_all && (file.isAbsolutePath()))
+    execute = noyes(":: do you want to write data to file[%s] outside working directory?");
+
+  if (execute)
+    return me::File::write(file, data, size);
+  return 1;
 }
 
 int MI::system(const char* cmd)
 {
+  bool execute = true;
+
   if (config.print_all)
     printf("\e[33m==> executing command '%s'\n", cmd);
-  uint32_t len = strlen(cmd);
-  if (
-      ((len == 2 && strcmp("rm", cmd) == 0) || strcmp("rm ", cmd) == 0) ||
-      config.block_all
-      )
-  {
-    printf("\e[31m==> trying to execute command '%s'. continue? [y/N]: ", cmd);
-  }
-  return ::system(cmd);
+
+  if (config.block_all)
+    execute = yesno(":: do you want to execute '%s'?", cmd);
+
+  if (execute)  
+    return ::system(cmd);
+  return 1;
 }

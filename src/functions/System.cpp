@@ -4,12 +4,12 @@
 
 #include "../System.hpp"
 
-int MI::function::exec_system(void* ptr, std::vector<Constant*> &args, char* &info)
+int MI::function::exec_system(void* ptr, std::vector<VariableRef*> &args, char* &info)
 {
   std::vector<std::string*> commands;
 
-  for (Constant* c : args)
-    APPEND_STRINGS(c, commands);
+  for (VariableRef* v : args)
+    APPEND_STRINGS(v, commands);
 
   for (std::string* cmd : commands)
     MI::system(cmd->c_str());

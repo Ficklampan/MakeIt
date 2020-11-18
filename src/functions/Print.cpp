@@ -1,28 +1,35 @@
 #include "Functions.hpp"
 
-static inline void print(MI::Constant* constant)
+static inline void print(MI::VariableRef* variable)
 {
-  if (constant->type == MI::Constant::STRING)
-    printf("%s", constant->value.s->c_str());
-  else if (constant->type == MI::Constant::INTEGER)
-    printf("%i", *constant->value.i);
-  else if (constant->type == MI::Constant::LIST)
-    printf("array[%lu]", constant->value.l->size());
+  if (variable->type == MI::VariableRef::STRING)
+  {
+    MI::VarString* str = VARIABLE_STRING(variable);
+    size_t length = str->value.size();
+    for (size_t i = 0; i < length; i++)
+      putchar(str->value.at(i));
+    printf("\n");
+  }
+  else if (variable->type == MI::VariableRef::INTEGER)
+    printf("%i", VARIABLE_INTEGER(variable)->value);
+  else if (variable->type == MI::VariableRef::LIST)
+    printf("array[%lu]", VARIABLE_LIST(variable)->value.size());
 }
 
-int MI::function::exec_print(void* ptr, std::vector<Constant*> &args, char* &info)
+int MI::function::exec_print(void* ptr, std::vector<VariableRef*> &args, char* &info)
 {
-  for (Constant* arg : args)
+  for (VariableRef* arg : args)
   {
-    if (arg->type == Constant::LIST)
+    if (arg->type == VariableRef::LIST)
     {
-      for (uint32_t i = 0; i < arg->value.l->size(); i++)
+      VarList* list = VARIABLE_LIST(arg);
+      for (uint32_t i = 0; i < list->value.size(); i++)
       {
-	Constant* constant = arg->value.l->at(i);
+	VariableRef* variable = list->value.at(i);
 
-	::print(constant);
+	::print(variable);
 
-	if (i < arg->value.s->size() - 1)
+	if (i < list->value.size() - 1)
 	  printf(" ");
       }
       printf("\n");

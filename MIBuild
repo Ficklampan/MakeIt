@@ -11,4 +11,4 @@ library [ "me" ]
 library_path [ "$(DIR)/external/melib" ]
 include_path [ "$(DIR)/external/melib/include" ]
 
-makefile "Makefile" "g++" "$(DIR)/build" [ "-std=c++17" ] sources headers
+#makefile "Makefile" "g++" "$(DIR)/build" [ "-std=c++17" "-g" ] sources headers

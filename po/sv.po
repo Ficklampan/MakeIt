@@ -1,0 +1,99 @@
+# Swedish translations for MakeItTranslation package
+# Svenska översättningar för paket MakeItTranslation.
+# Copyright (C) 2020 THE MakeItTranslation'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the MakeItTranslation package.
+#  <spelfanta2@gmail.com>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: makeit 0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-11-18 22:16+0100\n"
+"PO-Revision-Date: 2020-11-18 22:22+0100\n"
+"Last-Translator:  <spelfanta2@gmail.com>\n"
+"Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/MakeIt.cpp:28
+msgid "Print usage"
+msgstr "Skriv användingsinfo"
+
+#: src/MakeIt.cpp:29
+msgid "Print compiler and this version"
+msgstr ""
+
+#: src/MakeIt.cpp:30
+msgid "Print changes on the system"
+msgstr ""
+
+#: src/MakeIt.cpp:31
+msgid "Confirm when making system changes"
+msgstr ""
+
+#: src/MakeIt.cpp:32
+msgid "Enable debug level L"
+msgstr "Aktivera debug nivå L"
+
+#: src/MakeIt.cpp:33
+msgid "Specify file to be read"
+msgstr "Välj en fil som ska läsas in"
+
+#: src/MakeIt.cpp:35
+msgid ""
+"View info and stuff\n"
+"Use 'help FLAG' to show info and usage about FLAG"
+msgstr ""
+
+#: src/MakeIt.cpp:36
+msgid ""
+"View the compiler version the program was compiled in and the current "
+"software version"
+msgstr ""
+
+#: src/MakeIt.cpp:37
+msgid ""
+"If print all flag is specified then the software will print changes to the "
+"system (file being written/read or a command being executed)"
+msgstr "Om 'print-all' flaggan är set kommer programmet skriva ut ändringar den gör på systemet (fil skrivs/läser eller om ett kommando ska köras)"
+
+#: src/MakeIt.cpp:38
+msgid ""
+"If block all flag is specified then the software will ask before making "
+"changes to the system (file being written/read or a command being executed)"
+msgstr "Om 'block-all' flaggan är set kommer programmet fråga innan det gör ändringar till systemet (fil skrivs/läser eller om ett kommando ska köras)"
+
+#: src/MakeIt.cpp:39
+msgid "Higher level = more debuging"
+msgstr "Höger nivå = mer debuging"
+
+#: src/MakeIt.cpp:40
+msgid "Change the file target. Default is 'MIBuild'"
+msgstr "Ändra filmålet. Standard är 'MIBuild'"
+
+#: src/Common.cpp:21
+msgid "[Y/n]"
+msgstr "[J/n]"
+
+#: src/Common.cpp:23
+msgid "[y/N]"
+msgstr "[j/N]"
+
+#: src/Common.cpp:32
+msgid "Y"
+msgstr "J"
+
+#: src/Common.cpp:32
+msgid "YES"
+msgstr "JA"
+
+#: src/Common.cpp:34
+msgid "N"
+msgstr "N"
+
+#: src/Common.cpp:34
+msgid "NO"
+msgstr "NEJ"

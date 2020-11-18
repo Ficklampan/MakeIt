@@ -18,7 +18,7 @@ namespace MI {
     uint8_t argc;
     uint16_t* argv;
 
-    int (*exec) (void*, std::vector<Constant*>&, char*&);
+    int (*exec) (void*, std::vector<VariableRef*>&, char*&);
 
   };
 

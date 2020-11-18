@@ -34,7 +34,7 @@ namespace MI {
       void* v;
       std::string* s;
       int* i;
-      Constant* c;
+      VariableRef* c;
     } value;
 
     /* Token Location in file */
@@ -45,6 +45,8 @@ namespace MI {
     } location;
 
     Token(Type type, void* value, Location location);
+
+    static const char* typeName(Type type);
 
   };
 

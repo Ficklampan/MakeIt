@@ -29,7 +29,7 @@ int MI::GNUMake_config(const std::string &filepath, const std::string &compiler,
     objects.emplace_back(build_dir.getPath(), me::File::extension(*src, "o"));
 
   std::string content;
-  content.reserve(2048);
+  content.reserve(4096);
 
   content.append("NAME = ").append(project->name) += '\n';
 
@@ -86,7 +86,6 @@ int MI::GNUMake_config(const std::string &filepath, const std::string &compiler,
   content += '\n';
   content += '\n';
 
-  content.append("# linking\n");
 
   /* linking stuff */
 
@@ -95,16 +94,9 @@ int MI::GNUMake_config(const std::string &filepath, const std::string &compiler,
 
   content += '\n';
 
-  content.append(".PHONY: clean\n\n");
-
-  content.append("clean:\n\trm -f $(OBJECTS)\n");
-
-  content += '\n';
-
 
   /* compiling stuff */
 
-  content.append("# compiling sources\n\n");
   for (uint32_t i = 0; i < sources.size() && i < objects.size(); i++)
   {
     std::string object = objects.at(i).getPath();
@@ -114,6 +106,15 @@ int MI::GNUMake_config(const std::string &filepath, const std::string &compiler,
     content.append("\t@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo \"\e[32mcompileing [$<]\e[0m\"\n\n");
 
   }
+
+  content += '\n';
+
+
+  /* cleanup stuff */
+  content.append(".PHONY: clean\n\n");
+
+  content.append("clean:\n\trm -f $(OBJECTS)\n");
+
 
   me::File file(filepath);
   if (!writeFile(file, content.data(), content.size()))

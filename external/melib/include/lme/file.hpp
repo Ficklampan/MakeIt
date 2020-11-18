@@ -11,6 +11,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 
 namespace me {
 
@@ -44,14 +45,15 @@ namespace me {
     bool isDirectory() const;
 
     const std::string& getPath() const;
-    const int getType() const;
+    int getType() const;
 
-    size_t listFiles(std::vector<File*> &files, bool sub_dirs);
+    size_t listFiles(bool sub_dirs, std::function<int(File&)> &callback) const;
 
-    void normalize();
 
     static int read(const File &file, void* &data, uint32_t& size);
     static int write(const File &file, void* data, uint32_t size);
+
+    static void normalize(std::string &path);
 
     static std::string extension(const std::string &filename, const std::string &ext);
 

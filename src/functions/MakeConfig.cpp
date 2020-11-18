@@ -6,15 +6,17 @@
 
 #include "../configs/GNUMake.hpp"
 
-int MI::function::exec_makefile(void* ptr, std::vector<Constant*> &args, char* &info)
+int MI::function::exec_makefile(void* ptr, std::vector<VariableRef*> &args, char* &info)
 {
   MI::Storage* storage = (MI::Storage*) ptr;
 
-  REQUIRE_VARIABLE(project, MI::Constant::STRUCT, MI::Project*);
+  REQUIRE_VARIABLE(project, MI::VariableRef::STRUCT);
 
-  std::string filepath = *args.at(0)->value.s;
-  std::string compiler = *args.at(1)->value.s;
-  me::File build_dir = *args.at(2)->value.s;
+  MI::Project* project = (MI::Project*) VARIABLE_STRUCT(storage->variables["project"])->value;
+
+  std::string &filepath = VARIABLE_STRING(args.at(0))->value;
+  std::string &compiler = VARIABLE_STRING(args.at(1))->value;
+  me::File build_dir = VARIABLE_STRING(args.at(2))->value;
 
   std::vector<std::string*> flags;
   std::vector<std::string*> sources;

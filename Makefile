@@ -2,9 +2,9 @@ NAME = MakeIt
 
 # compiler
 CC = g++
-FLAGS = -std=c++17
+FLAGS = -std=c++17 -g
 # definitions
-DEFS = 
+DEFS = -DPACKAGE=\"makeit\" -DLOCALEDIR=\"/usr/share/locale\"
 
 # libraries
 LIBS = -lme
@@ -16,6 +16,7 @@ INCS =
 IPATHS = -I./external/melib/include
 
 OBJECTS = ./build/src/MakeIt.o \
+	./build/src/Common.o \
 	./build/src/script/Common.o \
 	./build/src/script/Lexer.o \
 	./build/src/script/Parser.o \
@@ -43,25 +44,21 @@ HEADERS = ./src/script/Script.hpp \
 	./src/configs/YCM.hpp \
 	./src/configs/GNUMake.hpp \
 	./src/MakeIt.hpp \
+	./src/Common.hpp \
 	./src/functions/Common.hpp \
 	./src/functions/Functions.hpp \
+	./src/Config.hpp \
 	./src/System.hpp \
-	./src/utils/Time.hpp \
 	./src/Project.hpp
 
 
-# linking
 $(NAME): $(OBJECTS)
 	@$(CC) -o $@ $^ $(LPATHS) $(LIBS) $(FLAGS)
 
-.PHONY: clean
-
-clean:
-	rm -f $(OBJECTS)
-
-# compiling sources
-
 ./build/src/MakeIt.o: ./src/MakeIt.cpp $(HEADERS)
+	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
+
+./build/src/Common.o: ./src/Common.cpp $(HEADERS)
 	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
 
 ./build/src/script/Common.o: ./src/script/Common.cpp $(HEADERS)
@@ -109,3 +106,8 @@ clean:
 ./build/src/configs/YCM.o: ./src/configs/YCM.cpp $(HEADERS)
 	@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo "[32mcompileing [$<][0m"
 
+
+.PHONY: clean
+
+clean:
+	rm -f $(OBJECTS)

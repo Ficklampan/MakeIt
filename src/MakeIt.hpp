@@ -1,11 +1,16 @@
 #ifndef MAKEIT_HPP
   #define MAKEIT_HPP
 
-#include "script/Storage.hpp"
+#define NAME "MakeIt"
 
-#include <lme/file.hpp>
+namespace makeit {
 
-namespace MI {
+  void usage(const char* arg);
+  void setupLocale();
+
+  int main(int argc, char** argv);
+  int parseArgs(int argc, char** argv);
+  int init();
 
 }
 

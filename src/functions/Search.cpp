@@ -5,10 +5,11 @@
 #include <lme/file.hpp>
 
 #include <climits>
-#include <cstring>
 #include <fnmatch.h>
 
-int MI::function::exec_search(void* ptr, std::vector<Constant*> &args, char* &info)
+#include <functional>
+
+int MI::function::exec_search(void* ptr, std::vector<VariableRef*> &args, char* &info)
 {
   std::vector<std::string*> locations;
   std::vector<std::string*> patterns;
@@ -16,9 +17,9 @@ int MI::function::exec_search(void* ptr, std::vector<Constant*> &args, char* &in
   APPEND_STRINGS(args.at(0), locations);
   APPEND_STRINGS(args.at(1), patterns);
 
-  bool sub_dirs = *args.at(2)->value.b;
+  bool sub_dirs = VARIABLE_BOOLEAN(args.at(2))->value;
 
-  MI::Variable* output = (MI::Variable*) args.at(3);
+  MI::VariableRef* output = args.at(3);
 
   for (std::string* loc : locations)
   {
@@ -30,27 +31,16 @@ int MI::function::exec_search(void* ptr, std::vector<Constant*> &args, char* &in
       return 0;
     }
 
-    std::vector<me::File*> files;
-    file.listFiles(files, sub_dirs);
-
-    for (me::File* file : files)
-    {
+    std::function<int(me::File&)> callback = [output, patterns](me::File& file) -> int {
       for (std::string* pattern : patterns)
       {
-	if (fnmatch(pattern->c_str(), file->getPath().c_str(), 0) == 0)
-	{
-	  std::string path = file->getPath();
-	  char* copy = new char[path.size()];
-	  memcpy(copy, path.c_str(), path.size());
-	  (*output) += *new MI::Constant(MI::Constant::STRING, new std::string(copy, path.size()));
-	}
+	if (fnmatch(pattern->c_str(), file.getPath().c_str(), 0) == 0)
+	  (*output) += new MI::VarString(file.getPath());
       }
-    }
+      return 1;
+    };
 
-    /* free files */
-    for (me::File* file : files)
-      delete file;
-
+    size_t files = file.listFiles(sub_dirs, callback);
   }
 
   return 1;
