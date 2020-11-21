@@ -3,10 +3,10 @@
 
 #include "Token.hpp"
 
-namespace MI {
+namespace makeit {
 
-  void printError(Token::Location* loc, const char* format, ...);
-  void printWarning(Token::Location* loc, const char* format, ...);
+  void printError(TokenLocation &loc, const char* format, ...);
+  void printWarning(TokenLocation &loc, const char* format, ...);
 
 }
 

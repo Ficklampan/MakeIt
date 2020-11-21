@@ -9,7 +9,7 @@
 
 extern Config config;
 
-int MI::readScript(me::File* file, Storage* storage)
+int makeit::readScript(me::File* file, Storage* storage)
 {
   void* data;
   uint32_t size;
@@ -23,7 +23,7 @@ int MI::readScript(me::File* file, Storage* storage)
   tokens.reserve(128);
 
   MIDEBUG(1, "making tokens\n");
-  if (!Lexer::make(file, source, tokens))
+  if (!Lexer::make(file, source, tokens, storage))
     return 0;
 
   storage->scripts.push_back(*file);

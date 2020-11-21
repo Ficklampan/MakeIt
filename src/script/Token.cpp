@@ -2,18 +2,19 @@
 
 #include <cstring>
 
-MI::Token::Token(Type type, void* value, Location location)
+makeit::Token::Token(Type type, void* value, TokenLocation location)
 {
   this->type = type;
   this->value.v = value;
   this->location = location;
 }
 
-const char* MI::Token::typeName(Type type)
+const char* makeit::Token::type_name(Type type)
 {
   switch (type)
   {
     case LITERIAL: return "LITERIAL";
+    case CALL: return "CALL";
     case CONSTANT: return "CONSTANT";
     case PUNCTUATOR: return "PUNCTUATOR";
     case BREAK: return "BREAK";

@@ -1,14 +1,21 @@
-project "MakeIt" "Latest" "C++"
+project: "MakeIt" "Latest" "C++"
+
+LOCALEDIR = "/usr/share/locale"
+PACKAGE = "makeit"
 
 sources = []
 headers = []
 
-source "$(DIR)/src/MIConfig"
+source: "$(DIR)/src/MIConfig"
 
-search "$(DIR)/src" "*.hpp" true headers
+search: "$(DIR)/src" "*.hpp" true $headers
 
-library [ "me" ]
-library_path [ "$(DIR)/external/melib" ]
-include_path [ "$(DIR)/external/melib/include" ]
+library: [ "me" ]
+library_path: [ "$(DIR)/external/melib" ]
+include_path: [ "$(DIR)/external/melib/include" ]
+define: [
+  { name "LOCALEDIR" value $LOCALEDIR }
+  { name "PACKAGE" value $PACKAGE }
+]
 
-#makefile "Makefile" "g++" "$(DIR)/build" [ "-std=c++17" "-g" ] sources headers
+makefile: "Makefile2" "g++" "$(DIR)/build" [ "-std=c++17" "-g" ] $sources $headers

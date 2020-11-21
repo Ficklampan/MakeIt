@@ -9,19 +9,17 @@
 #include <map>
 #include <string>
 
-namespace MI {
+namespace makeit {
 
   /* Storage for all the variables and functions */
   struct Storage {
 
-    std::map<std::string, VariableRef*> variables;
+    std::map<std::string, Variable*> variables;
     std::map<std::string, Function*> functions;
     std::vector<me::File> scripts;
 
     ~Storage()
     {
-      for (auto &[key, value] : variables)
-	delete value;
     }
 
   };

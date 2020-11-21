@@ -5,7 +5,14 @@
 
 #include <lme/file.hpp>
 
-namespace MI {
+namespace makeit {
+
+    /* Token Location in file */
+  struct TokenLocation {
+    me::File* file;
+    std::string* source;
+    uint32_t pos, line, column, first;
+  };
 
   struct Token {
 
@@ -25,6 +32,7 @@ namespace MI {
     enum Type {
       LITERIAL,
       CONSTANT,
+      CALL,
       PUNCTUATOR,
       BREAK
     } type;
@@ -34,19 +42,14 @@ namespace MI {
       void* v;
       std::string* s;
       int* i;
-      VariableRef* c;
+      Variable* c;
     } value;
 
-    /* Token Location in file */
-    struct Location {
-      me::File* file;
-      std::string* source;
-      uint32_t pos, line, column, first;
-    } location;
+    TokenLocation location;
 
-    Token(Type type, void* value, Location location);
+    Token(Type type, void* value, TokenLocation location);
 
-    static const char* typeName(Type type);
+    static const char* type_name(Type type);
 
   };
 

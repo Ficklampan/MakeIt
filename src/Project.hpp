@@ -3,8 +3,9 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
-namespace MI {
+namespace makeit {
 
   class Project {
 
@@ -18,7 +19,7 @@ namespace MI {
     std::vector<std::string*> includes;
     std::vector<std::string*> library_paths;
     std::vector<std::string*> include_paths;
-    std::vector<std::string*> definitions;
+    std::map<std::string, std::string*> definitions;
 
   };
 

@@ -157,23 +157,23 @@ int makeit::init()
     return 1;
   }
 
-  std::shared_ptr<MI::Storage> storage = std::make_shared<MI::Storage>();
-  storage->functions["print"] = MI::function::getPrint();
-  storage->functions["system"] = MI::function::getSystem();
-  storage->functions["search"] = MI::function::getSearch();
+  std::shared_ptr<makeit::Storage> storage = std::make_shared<makeit::Storage>();
+  storage->functions["print"] = makeit::function::make_print();
+  storage->functions["system"] = makeit::function::make_system();
+  storage->functions["search"] = makeit::function::make_search();
 
-  storage->functions["project"] = MI::function::getProject();
-  storage->functions["library"] = MI::function::getLibrary();
-  storage->functions["library_path"] = MI::function::getLibraryPath();
-  storage->functions["include"] = MI::function::getInclude();
-  storage->functions["include_path"] = MI::function::getIncludePath();
-  storage->functions["define"] = MI::function::getDefine();
-  storage->functions["source"] = MI::function::getSource();
-  storage->functions["makefile"] = MI::function::getMakefile();
-  storage->functions["ycm"] = MI::function::getYCM();
+  storage->functions["project"] = makeit::function::make_project();
+  storage->functions["library"] = makeit::function::make_library();
+  storage->functions["library_path"] = makeit::function::make_library_path();
+  storage->functions["include"] = makeit::function::make_include();
+  storage->functions["include_path"] = makeit::function::make_include_path();
+  storage->functions["define"] = makeit::function::make_define();
+  storage->functions["source"] = makeit::function::make_source();
+  storage->functions["makefile"] = makeit::function::make_makefile();
+  storage->functions["ycm"] = makeit::function::make_YCM();
 
   /* process file */
-  if (!MI::readScript(&file, storage.get()))
+  if (!makeit::readScript(&file, storage.get()))
     return 0;
 
   return 1;
@@ -199,7 +199,7 @@ int main(int argc, char** argv)
 
 /* System.hpp */
 
-int MI::readFile(const me::File &file, void* &data, uint32_t &size)
+int makeit::readFile(const me::File &file, void* &data, uint32_t &size)
 {
   bool execute = true;
 
@@ -214,7 +214,7 @@ int MI::readFile(const me::File &file, void* &data, uint32_t &size)
   return 1;
 }
 
-int MI::writeFile(const me::File &file, void* data, uint32_t size)
+int makeit::writeFile(const me::File &file, void* data, uint32_t size)
 {
   bool execute = true;
 
@@ -232,7 +232,7 @@ int MI::writeFile(const me::File &file, void* data, uint32_t size)
   return 1;
 }
 
-int MI::system(const char* cmd)
+int makeit::system(const char* cmd)
 {
   bool execute = true;
 

@@ -22,8 +22,6 @@ namespace me {
     std::string path;
     uint8_t prefixLength;
 
-    std::string directory;
-
   public:
 
     File(const std::string &path);

@@ -4,8 +4,7 @@ NAME = MakeIt
 CC = g++
 FLAGS = -std=c++17 -g
 # definitions
-DEFS = -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"makeit\"
-
+DEFS = -DLOCALEDIR="/usr/share/locale" -DPACKAGE="makeit"
 # libraries
 LIBS = -lme
 # library paths

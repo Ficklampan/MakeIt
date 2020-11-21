@@ -8,87 +8,166 @@
 
 #include <climits>
 
-int MI::function::exec_project(void* ptr, std::vector<VariableRef*> &args, char* &info)
+makeit::Function* makeit::function::make_project()
 {
-  MI::Storage* storage = (MI::Storage*) ptr;
+  return new Function(3,
+      new uint16_t[3]{
+      0 | (Variable::STRING << 1),
+      0 | (Variable::STRING << 1),
+      0 | (Variable::STRING << 1)
+      }, exec_project);
+}
+int makeit::function::exec_project(void* ptr, std::vector<Variable*> &args, char* &info)
+{
+  Storage* storage = (Storage*) ptr;
 
-  MI::Project* project = new MI::Project;
-  project->name = VARIABLE_STRING(args.at(0))->value;
-  project->version = VARIABLE_STRING(args.at(1))->value;
-  project->language = VARIABLE_STRING(args.at(2))->value;
+  Project* project = new Project;
+  project->name = *args.at(0)->as_string();
+  project->version = *args.at(1)->as_string();
+  project->language = *args.at(2)->as_string();
 
-  storage->variables["project"] = new MI::VarStruct(project);
+  storage->variables["project"] = new Variable(Variable::POINTER, project);
 
   return 1;
 }
 
-int MI::function::exec_library(void* ptr, std::vector<VariableRef*> &args, char* &info)
+makeit::Function* makeit::function::make_library()
 {
-  MI::Storage* storage = (MI::Storage*) ptr;
+  return new Function(1,
+      new uint16_t[1]{
+      1 | (Variable::STRING << 1) | (Variable::LIST << 5)
+      }, exec_library);
+}
+int makeit::function::exec_library(void* ptr, std::vector<Variable*> &args, char* &info)
+{
+  Storage* storage = (Storage*) ptr;
 
-  REQUIRE_VARIABLE(project, MI::VariableRef::STRUCT);
+  REQUIRE_VARIABLE(project, Variable::POINTER);
 
-  MI::Project* project = (MI::Project*) VARIABLE_STRUCT(storage->variables["project"])->value;
+  Project* project = (Project*) storage->variables["project"]->as_pointer();
 
-  for (VariableRef* c : args)
-    APPEND_STRINGS(c, project->libraries);
+  for (Variable* v : args)
+    APPEND_STRINGS(v, project->libraries, storage);
 
   return 1;
 }
 
-int MI::function::exec_library_path(void* ptr, std::vector<VariableRef*> &args, char* &info)
+makeit::Function* makeit::function::make_library_path()
 {
-  MI::Storage* storage = (MI::Storage*) ptr;
+  return new Function(1,
+      new uint16_t[1]{
+      1 | (Variable::STRING << 1) | (Variable::LIST << 5)
+      }, exec_library_path);
+}
+int makeit::function::exec_library_path(void* ptr, std::vector<Variable*> &args, char* &info)
+{
+  makeit::Storage* storage = (makeit::Storage*) ptr;
 
-  REQUIRE_VARIABLE(project, MI::VariableRef::STRUCT);
+  REQUIRE_VARIABLE(project, Variable::POINTER);
 
-  MI::Project* project = (MI::Project*) VARIABLE_STRUCT(storage->variables["project"])->value;
+  Project* project = (Project*) storage->variables["project"]->as_pointer();
 
-  for (VariableRef* c : args)
-    APPEND_STRINGS(c, project->library_paths);
+  for (Variable* v : args)
+    APPEND_STRINGS(v, project->library_paths, storage);
   return 1;
 }
 
-int MI::function::exec_include(void* ptr, std::vector<VariableRef*> &args, char* &info)
+makeit::Function* makeit::function::make_include()
 {
-  MI::Storage* storage = (MI::Storage*) ptr;
+  return new Function(1,
+      new uint16_t[1]{
+      1 | (Variable::STRING << 1) | (Variable::LIST << 5)
+      }, exec_include);
+}
+int makeit::function::exec_include(void* ptr, std::vector<Variable*> &args, char* &info)
+{
+  makeit::Storage* storage = (makeit::Storage*) ptr;
 
-  REQUIRE_VARIABLE(project, MI::VariableRef::STRUCT);
+  REQUIRE_VARIABLE(project, makeit::Variable::POINTER);
 
-  MI::Project* project = (MI::Project*) VARIABLE_STRUCT(storage->variables["project"])->value;
+  Project* project = (Project*) storage->variables["project"]->as_pointer();
 
-  for (VariableRef* c : args)
-    APPEND_STRINGS(c, project->includes);
+  for (Variable* v : args)
+    APPEND_STRINGS(v, project->includes, storage);
   return 1;
 }
 
-int MI::function::exec_include_path(void* ptr, std::vector<VariableRef*> &args, char* &info)
+makeit::Function* makeit::function::make_include_path()
 {
-  MI::Storage* storage = (MI::Storage*) ptr;
+  return new Function(1,
+      new uint16_t[1]{
+      1 | (Variable::STRING << 1) | (Variable::LIST << 5)
+      }, exec_include_path);
+}
+int makeit::function::exec_include_path(void* ptr, std::vector<Variable*> &args, char* &info)
+{
+  makeit::Storage* storage = (makeit::Storage*) ptr;
 
-  REQUIRE_VARIABLE(project, MI::VariableRef::STRUCT);
+  REQUIRE_VARIABLE(project, makeit::Variable::POINTER);
 
-  MI::Project* project = (MI::Project*) VARIABLE_STRUCT(storage->variables["project"])->value;
+  Project* project = (Project*) storage->variables["project"]->as_pointer();
 
-  for (VariableRef* c : args)
-    APPEND_STRINGS(c, project->include_paths);
+  for (Variable* v : args)
+    APPEND_STRINGS(v, project->include_paths, storage);
   return 1;
 }
 
-int MI::function::exec_define(void* ptr, std::vector<VariableRef*> &args, char* &info)
+static std::map<std::string, makeit::Variable::Type> struct_define;
+makeit::Function* makeit::function::make_define()
 {
-  MI::Storage* storage = (MI::Storage*) ptr;
+  struct_define["name"] = Variable::STRING;
+  struct_define["value"] = Variable::VOID;
 
-  REQUIRE_VARIABLE(project, MI::VariableRef::STRUCT);
+  return new Function(1, 
+      new uint16_t[1]{
+      1 | (Variable::STRING << 1) | (Variable::LIST << 5) | (Variable::STRUCT << 9)
+    }, exec_define);
+}
+int makeit::function::exec_define(void* ptr, std::vector<Variable*> &args, char* &info)
+{
+  makeit::Storage* storage = (makeit::Storage*) ptr;
 
-  MI::Project* project = (MI::Project*) VARIABLE_STRUCT(storage->variables["project"])->value;
+  REQUIRE_VARIABLE(project, makeit::Variable::POINTER);
 
-  for (VariableRef* c : args)
-    APPEND_STRINGS(c, project->definitions);
+  Project* project = (Project*) storage->variables["project"]->as_pointer();
+
+  for (Variable* v : args)
+  {
+    LOOP_VARIABLES(v, [project, &info](Variable* variable) -> int {
+
+	if (variable->type == Variable::STRUCT)
+	{
+	  if (!util::variable_check_struct(variable, struct_define, info))
+	    return 0;
+
+	  Variable::v_struct &st = *variable->as_struct();
+
+	  Variable* name = st["name"];
+	  Variable* value = st["value"];
+
+	  if (value->type == Variable::STRING)
+	    project->definitions[*name->as_string()] = new std::string('"' + *value->as_string() + '"');
+
+	}else if (variable->type == Variable::STRING)
+	{
+	  project->definitions[*variable->as_string()] = nullptr;
+	}
+
+	return 1;
+
+      });
+  }
   return 1;
 }
 
-int MI::function::exec_source(void* ptr, std::vector<VariableRef*> &args, char* &info)
+makeit::Function* makeit::function::make_source()
+{
+  return new Function(1,
+      new uint16_t[1]{
+      1 | (Variable::STRING << 1) | (Variable::LIST << 5)
+      }, exec_source);
+}
+int makeit::function::exec_source(void* ptr, std::vector<Variable*> &args, char* &info)
 {
 #define PROJECT_READ_SCRIPT() { \
   if (!file.exists()) \
@@ -96,22 +175,25 @@ int MI::function::exec_source(void* ptr, std::vector<VariableRef*> &args, char* 
     info = new char[32 + PATH_MAX]; \
     sprintf(info, "file not found '%s'", file.getPath().c_str()); \
     return 0; \
-  }else if (!readScript(&file, (MI::Storage*) ptr)) \
+  }else if (!readScript(&file, (makeit::Storage*) ptr)) \
     return 0; \
 }
 
-  for (VariableRef* v : args)
+  for (Variable* v : args)
   {
-    if (v->type == VariableRef::LIST)
+    if (v->type == Variable::LIST)
     {
-      for (VariableRef* v2 : VARIABLE_LIST(v)->value)
+      for (Variable* v2 : *v->as_list())
       {
-	me::File file(VARIABLE_STRING(v2)->value);
+	if (v2->type != Variable::STRING)
+	  continue;
+
+	me::File file(*v2->as_string());
 	PROJECT_READ_SCRIPT();
       }
     }else
     {
-      me::File file(VARIABLE_STRING(v)->value);
+      me::File file(*v->as_string());
       PROJECT_READ_SCRIPT();
     }
   }

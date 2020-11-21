@@ -1,5 +1,7 @@
 #include "Lexer.hpp"
 
+#include "Common.hpp"
+
 #include "../Config.hpp"
 
 #include <lme/list.hpp>
@@ -21,12 +23,12 @@
 
 extern Config config;
 
-int MI::Lexer::make(me::File* file, std::string &source, std::vector<Token*> &tokens)
+int makeit::Lexer::make(me::File* file, std::string &source, std::vector<Token*> &tokens, Storage* storage)
 {
-  Token::Location location = { file, &source, 0, 0, 0, 0, };
+  TokenLocation location = { file, &source, 0, 0, 0, 0, };
 
   me::Iterator<char> source_iter((char*) source.data(), source.size(), [](void* ptr, char &c, uint32_t &i) {
-      MI::Token::Location* location = (MI::Token::Location*) ptr;
+      TokenLocation* location = (TokenLocation*) ptr;
       if (c == '\n')
       {
 	location->column = 0;
@@ -39,7 +41,7 @@ int MI::Lexer::make(me::File* file, std::string &source, std::vector<Token*> &to
   while (source_iter.hasNext())
   {
     Token* token = nullptr;
-    if (!next_token(source_iter, location, token))
+    if (!next_token(source_iter, location, token, storage, 0))
       return 0;
 
     if (token != nullptr)
@@ -48,12 +50,12 @@ int MI::Lexer::make(me::File* file, std::string &source, std::vector<Token*> &to
   return 1;
 }
 
-int MI::Lexer::next_token(me::Iterator<char> &source, Token::Location &location, Token* &token)
+int makeit::Lexer::next_token(me::Iterator<char> &source, TokenLocation &location, Token* &token, Storage* storage, uint8_t flags)
 {
   location.first = location.pos;
   char c = source.next();
 
-  /* Token::LITERIAL / Token::CONSTANT BOOLEAN */
+  /* Token::LITERIAL / Token::CALL / Token::CONSTANT BOOLEAN */
   if (LEXER_IS_NAME(c))
   {
     MIDEBUG(2, "[Lexer] > next token is LITERIAL\n");
@@ -67,9 +69,13 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token::Location &location,
     bool bf = literial->compare("false") == 0;
 
     if (bt || bf)
-      token = new Token(Token::CONSTANT, new VarBoolean(bt), Token::Location(location));
-    else
-      token = new Token(Token::LITERIAL, literial, Token::Location(location));
+      token = new Token(Token::CONSTANT, new Variable(Variable::INTEGER, new int(bt)), TokenLocation(location));
+    else if (c == ':')
+    {
+      source.next();
+      token = new Token(Token::CALL, literial, TokenLocation(location));
+    }else
+      token = new Token(Token::LITERIAL, literial, TokenLocation(location));
 
     MIDEBUG(2, "[Lexer] > LITERIAL token created\n");
     return 1;
@@ -82,7 +88,9 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token::Location &location,
     uint32_t length = 0;
     LEXER_NEXT_STRING(if (c == '"') { source.next(); break; });
 
-    token = new Token(Token::CONSTANT, new VarString(std::string(&source.peek() - length - 1, length)), Token::Location(location));
+    std::string* str = new std::string(&source.peek() - length - 1, length);
+
+    token = new Token(Token::CONSTANT, new Variable(Variable::STRING, str), TokenLocation(location));
 
     MIDEBUG(2, "[Lexer] > CONSTANT(STRING) token created\n");
     return 1;
@@ -99,8 +107,9 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token::Location &location,
   {
     MIDEBUG(2, "[Lexer] > next token is CONSTANT(LIST)\n");
 
-    std::vector<VariableRef*> elements;
+    std::vector<Variable*>* elements = new std::vector<Variable*>;
 
+    /* append all next token constants to 'elements' */
     while (source.hasNext())
     {
       c = source.peek();
@@ -112,27 +121,93 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token::Location &location,
       }
 
       Token* token = nullptr;
-      if (!next_token(source, location, token))
+      if (!next_token(source, location, token, storage, NO_BREAK))
+	return 0;
+
+      if (token == nullptr)
+	continue;
+      
+      /* [Error] expected constant */
+      if (token->type != Token::CONSTANT)
+      {
+	printError(token->location, "expected constant");
+	return 0;
+      }
+
+      elements->push_back(token->value.c);
+    }
+
+    MIDEBUG(2, "[Lexer] > [CONSTANT(LIST)] > found %lu elements\n", elements->size());
+
+    token = new Token(Token::CONSTANT, new Variable(Variable::LIST, elements), TokenLocation(location));
+
+    MIDEBUG(2, "[Lexer] > CONSTANT(LIST) token created\n");
+    return 1;
+
+  /* Token::CONSTANT STRUCT */
+  }else if (c == '{')
+  {
+    MIDEBUG(2, "[Lexer] > next token is CONSTANT(STRUCT)\n");
+
+    std::map<std::string, Variable*>* st = new std::map<std::string, Variable*>;
+
+    Token::Type expect = Token::LITERIAL;
+    std::string identifier;
+
+    while (source.hasNext())
+    {
+      c = source.peek();
+
+      if (c == '}')
+      {
+	source.next();
+	break;
+      }
+
+      Token* token = nullptr;
+      if (!next_token(source, location, token, storage, NO_BREAK))
 	return 0;
 
       if (token == nullptr)
 	continue;
 
-      /* [Error] expected constant */
-      if (token->type != Token::CONSTANT)
+      if (token->type != expect)
       {
-	printf(":: expected constant.\n");
+	printError(token->location, "expected type '%s' but found type '%s'", Token::type_name(expect), Token::type_name(token->type));
 	return 0;
       }
 
-      elements.push_back(token->value.c);
+      if (token->type == Token::LITERIAL)
+      {
+	identifier = *token->value.s;
+	expect = Token::CONSTANT;
+      }else if (token->type == Token::CONSTANT)
+      {
+	(*st)[identifier] = token->value.c;
+	expect = Token::LITERIAL;
+      }
     }
 
-    MIDEBUG(2, "[Lexer] > [CONSTANT(LIST)] > found %lu elements\n", elements.size());
+    MIDEBUG(2, "[Lexer] > [CONSTANT(STRUCT)] > found %lu elements\n", st->size());
+   
+    token = new Token(Token::CONSTANT, new Variable(Variable::STRUCT, st), TokenLocation(location));
 
-    token = new Token(Token::CONSTANT, new VarList(elements), Token::Location(location));
+    MIDEBUG(2, "[Lexer] > CONSTANT(STRUCT) token created\n");
+    return 1;
 
-    MIDEBUG(2, "[Lexer] > CONSTANT(LIST) token created\n");
+  /* Token::CONSTANT REFERENCE */
+  }else if (c == '$')
+  {
+    MIDEBUG(2, "[Lexer] > next token is CONSTANT(REFERENCE)\n");
+
+    uint32_t length = 0;
+    LEXER_NEXT_STRING(if (!LEXER_IS_NAME(c)) { break; });
+
+    std::string* ref = new std::string(&source.peek() - length, length);
+
+    token = new Token(Token::CONSTANT, new Variable(Variable::REFERENCE, ref), TokenLocation(location));
+
+    MIDEBUG(2, "[Lexer] > CONSTANT(REFERENCE) token created\n");
     return 1;
 
   /* Token::PUNCTUATOR */
@@ -144,7 +219,7 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token::Location &location,
     {
       char c2 = source.peek();
 #ifndef LEXER_NEW_PUNCTUATOR
-  #define LEXER_NEW_PUNCTUATOR(t) ({ source.next(); token = new Token(Token::PUNCTUATOR, new int(t), Token::Location(location)); return 1; })
+  #define LEXER_NEW_PUNCTUATOR(t) ({ source.next(); token = new Token(Token::PUNCTUATOR, new int(t), TokenLocation(location)); return 1; })
 #endif
       if (c == '+' && c2 == '=') LEXER_NEW_PUNCTUATOR(Token::PLUS_EQUAL);
       else if (c == '-' && c2 == '=') LEXER_NEW_PUNCTUATOR(Token::MINUS_EQUAL);
@@ -153,9 +228,9 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token::Location &location,
       else if (c == '%' && c2 == '=') LEXER_NEW_PUNCTUATOR(Token::PERCENT_EQUAL);
     }
 
-    if (c == '(') token = new Token(Token::PUNCTUATOR, new int(Token::L_PAREN), Token::Location(location));
-    else if (c == ')') token = new Token(Token::PUNCTUATOR, new int(Token::R_PAREN), Token::Location(location));
-    else if (c == '=') token = new Token(Token::PUNCTUATOR, new int(Token::EQUAL), Token::Location(location));
+    if (c == '(') token = new Token(Token::PUNCTUATOR, new int(Token::L_PAREN), TokenLocation(location));
+    else if (c == ')') token = new Token(Token::PUNCTUATOR, new int(Token::R_PAREN), TokenLocation(location));
+    else if (c == '=') token = new Token(Token::PUNCTUATOR, new int(Token::EQUAL), TokenLocation(location));
 
     if (token == nullptr)
     {
@@ -168,11 +243,11 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token::Location &location,
     return 1;
 
   /* Token::BREAK */
-  }else if (c == '\n' || c == ';')
+  }else if ((flags & NO_BREAK) == 0 && (c == '\n' || c == ';'))
   {
     MIDEBUG(2, "[Lexer] > next token is BREAK\n");
 
-    token = new Token(Token::BREAK, nullptr, Token::Location(location));
+    token = new Token(Token::BREAK, nullptr, TokenLocation(location));
 
     MIDEBUG(2, "[Lexer] > BREAK token created\n");
     return 1;
@@ -193,13 +268,13 @@ int MI::Lexer::next_token(me::Iterator<char> &source, Token::Location &location,
     }
 
     if (comment)
-      token = new Token(Token::BREAK, nullptr, Token::Location(location));
+      token = new Token(Token::BREAK, nullptr, TokenLocation(location));
     return 1;
 
   /* Error */
   }else if (!LEXER_IS_EMPTY(c))
   {
-    printf(":: unknown symbol '%c'.\n", c);
+    printError(location, "unknown symbol '%c'", c);
     return 0;
   }
   return 1;

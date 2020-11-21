@@ -3,7 +3,7 @@
 
 #include "Storage.hpp"
 
-namespace MI {
+namespace makeit {
 
   int readScript(me::File* file, Storage* storage);
 

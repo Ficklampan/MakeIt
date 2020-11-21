@@ -1,125 +1,94 @@
 #include "Variable.hpp"
 
-int MI::VariableRef::assign(MI::VariableRef* value)
-{
-#ifndef VARIABLE_ASSIGN
-  #define VARIABLE_ASSIGN(t) { ((t*) this)->value = ((t*) value)->value; }
-#endif
-
-  if (type == STRING && value->type == STRING) VARIABLE_ASSIGN(VarList)
-  else if (type == INTEGER && value->type == INTEGER) VARIABLE_ASSIGN(VarInteger)
-  else if (type == BOOLEAN && value->type == BOOLEAN) VARIABLE_ASSIGN(VarBoolean)
-  else if (type == LIST && value->type == LIST) VARIABLE_ASSIGN(VarList)
-  else if (type == STRUCT && value->type == STRUCT) VARIABLE_ASSIGN(VarStruct)
-  else
-    return 0;
-
-  return 1;
-}
-
-MI::VariableRef* MI::VariableRef::operator+=(VariableRef* _const)
+makeit::Variable* makeit::Variable::operator+=(makeit::Variable* v)
 {
   if (type == LIST)
   {
-    VarList* list1 = (VarList*) this;
-    if (_const->type == LIST)
+    v_list* list1 = this->as_list();
+
+    /* push all elements from 'v' list1 */
+    if (v->type == LIST)
     {
-      VarList* list2 = (VarList*) _const;
-      for (auto v : list2->value)
-        list1->value.push_back(v);
+      v_list* list2 = v->as_list();
+      for (Variable* e : *list2)
+	list1->push_back(e);
+
+    /* push 'v' to list1 */
     }else
     {
-      list1->value.push_back(_const);
+      list1->push_back(v);
     }
 
   }else if (type == STRING)
   {
-    VarString* str1 = (VarString*) this;
-    if (_const->type == STRING)
-    {
-      VarString* str2 = (VarString*) _const;
-      str1->value.append(str2->value);
-    }
+    v_string* string = this->as_string();
 
-  }else if (type == INTEGER)
-  {
-    VarInteger* int1 = (VarInteger*) this;
-    if (_const->type == INTEGER)
+    /* appending content from 'v' to 'this' string */
+    if (v->type == STRING)
     {
-      VarInteger* int2 = (VarInteger*) _const;
-      int1->value += int2->value;
+      string->append(*v->as_string());
     }
   }
-
   return this;
 }
 
-MI::VariableRef* MI::VariableRef::operator-=(VariableRef* _const)
+makeit::Variable* makeit::Variable::operator-=(makeit::Variable* v)
 {
-  if (type == INTEGER)
-  {
-    VarInteger* int1 = (VarInteger*) this;
-    if (_const->type == INTEGER)
-    {
-      VarInteger* int2 = (VarInteger*) _const;
-      int1->value -= int2->value;
-    }
-  }
-
   return this;
 }
 
-MI::VariableRef* MI::VariableRef::operator*=(VariableRef* _const)
+makeit::Variable* makeit::Variable::operator*=(makeit::Variable* v)
 {
-  if (type == INTEGER)
-  {
-    VarInteger* int1 = (VarInteger*) this;
-    if (_const->type == INTEGER)
-    {
-      VarInteger* int2 = (VarInteger*) _const;
-      int1->value *= int2->value;
-    }
-  }
-
   return this;
 }
 
-MI::VariableRef* MI::VariableRef::operator/=(VariableRef* _const)
+makeit::Variable* makeit::Variable::operator/=(makeit::Variable* v)
 {
-  if (type == INTEGER)
-  {
-    VarInteger* int1 = (VarInteger*) this;
-    if (_const->type == INTEGER)
-    {
-      VarInteger* int2 = (VarInteger*) _const;
-      int1->value /= int2->value;
-    }
-  }
-
   return this;
 }
 
-MI::VariableRef* MI::VariableRef::operator%=(VariableRef* _const)
+makeit::Variable* makeit::Variable::operator%=(makeit::Variable* v)
 {
-  if (type == INTEGER)
-  {
-    VarInteger* int1 = (VarInteger*) this;
-    if (_const->type == INTEGER)
-    {
-      VarInteger* int2 = (VarInteger*) _const;
-      int1->value %= int2->value;
-    }
-  }
-
   return this;
 }
 
-MI::VariableRef* MI::VariableRef::copy(const VariableRef* ref)
+const char* makeit::Variable::type_name(Type type)
 {
-  if (ref->type == STRING) return new VarString(((VarString*) ref)->value);
-  else if (ref->type == INTEGER) return new VarInteger(((VarInteger*) ref)->value);
-  else if (ref->type == BOOLEAN) return new VarBoolean(((VarBoolean*) ref)->value);
-  else if (ref->type == LIST) return new VarList(((VarList*) ref)->value);
-  else if (ref->type == STRUCT) return new VarStruct(((VarStruct*) ref)->value);
-  return nullptr;
+  switch (type)
+  {
+    case VOID: return "void";
+    case STRING: return "string";
+    case INTEGER: return "integer";
+    case LIST: return "list";
+    case STRUCT: return "struct";
+    case POINTER: return "pointer";
+    case REFERENCE: return "reference";
+  }
+  return "";
+}
+
+int makeit::util::variable_check_struct(Variable* var, const std::map<std::string, Variable::Type> &expected, char* &info)
+{
+  Variable::v_struct &st = *var->as_struct();
+
+  for (auto &[key, value] : expected)
+  {
+    Variable* v = st[key];
+    if (v == nullptr)
+    {
+      info = new char[32 + key.size()];
+      sprintf(info, "member '%s' not found in struct", key.c_str());
+      return 0;
+    }
+    
+    /* [Error] type not match */
+    if (value != Variable::VOID && v->type != value)
+    {
+      info = new char[64];
+      sprintf(info, "expected type '%s' but found type '%s'", Variable::type_name(value), Variable::type_name(v->type));
+      return 0;
+    }
+  }
+
+  return 1;
 }

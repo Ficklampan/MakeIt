@@ -9,7 +9,7 @@
 #include <vector>
 #include <map>
 
-namespace MI {
+namespace makeit {
 
   class Parser {
 
@@ -19,7 +19,7 @@ namespace MI {
 
   private:
 
-    static int parse_args(me::BasicIterator<Token*> &tokens, Storage* storage, std::vector<VariableRef*> &args);
+    static int parse_args(me::BasicIterator<Token*> &tokens, Storage* storage, std::vector<Variable*> &args);
 
   };
 

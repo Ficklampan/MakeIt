@@ -1,41 +1,43 @@
 #include "Functions.hpp"
+#include "../script/Storage.hpp"
 
-static inline void print(MI::VariableRef* variable)
+static inline void print(makeit::Variable* variable, makeit::Storage* storage)
 {
-  if (variable->type == MI::VariableRef::STRING)
-  {
-    MI::VarString* str = VARIABLE_STRING(variable);
-    size_t length = str->value.size();
-    for (size_t i = 0; i < length; i++)
-      putchar(str->value.at(i));
-    printf("\n");
-  }
-  else if (variable->type == MI::VariableRef::INTEGER)
-    printf("%i", VARIABLE_INTEGER(variable)->value);
-  else if (variable->type == MI::VariableRef::LIST)
-    printf("array[%lu]", VARIABLE_LIST(variable)->value.size());
+  if (variable->type == makeit::Variable::LIST)
+    printf("array[%lu]", variable->as_list()->size());
+  else if (variable->type == makeit::Variable::STRING)
+    printf("%s", variable->as_string()->c_str());
 }
 
-int MI::function::exec_print(void* ptr, std::vector<VariableRef*> &args, char* &info)
+makeit::Function* makeit::function::make_print()
 {
-  for (VariableRef* arg : args)
+  return new Function(1,
+      new uint16_t[1]{
+      1 | (Variable::STRING << 1) | (Variable::LIST << 5)
+      }, exec_print);
+}
+int makeit::function::exec_print(void* ptr, std::vector<Variable*> &args, char* &info)
+{
+  Storage* storage = (Storage*) ptr;
+
+  for (Variable* arg : args)
   {
-    if (arg->type == VariableRef::LIST)
+    if (arg->type == Variable::LIST)
     {
-      VarList* list = VARIABLE_LIST(arg);
-      for (uint32_t i = 0; i < list->value.size(); i++)
+      std::vector<Variable*>* list = arg->as_list();
+      for (uint32_t i = 0; i < list->size(); i++)
       {
-	VariableRef* variable = list->value.at(i);
+	Variable* variable = list->at(i);
 
-	::print(variable);
+	::print(variable, storage);
 
-	if (i < list->value.size() - 1)
+	if (i < list->size() - 1)
 	  printf(" ");
       }
       printf("\n");
     }else
     {
-      ::print(arg);
+      ::print(arg, storage);
       printf("\n");
     }
   }

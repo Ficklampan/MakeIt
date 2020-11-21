@@ -7,7 +7,7 @@
  * support for other compilers
 */
 
-int MI::GNUMake_config(const std::string &filepath, const std::string &compiler, me::File &build_dir, std::vector<std::string*> &flags, std::vector<std::string*> &sources, std::vector<std::string*> &headers, Project* project)
+int makeit::GNUMake_config(const std::string &filepath, const std::string &compiler, me::File &build_dir, std::vector<std::string*> &flags, std::vector<std::string*> &sources, std::vector<std::string*> &headers, Project* project)
 {
 #ifndef GNUMAKE_APPEND_ARRAY
   #define GNUMAKE_APPEND_ARRAY(v, c, s) { \
@@ -45,7 +45,21 @@ int MI::GNUMake_config(const std::string &filepath, const std::string &compiler,
   /* append definitions */
   content.append("# definitions\n");
   content.append("DEFS = ");
-  GNUMAKE_APPEND_ARRAY(content.append("-D").append(*project->definitions.at(i)), project->definitions.size(), content += ' ');
+
+  uint32_t index = 0;
+  for (auto &[key, value] : project->definitions)
+  {
+    content.append("-D").append(key);
+    if (value != nullptr)
+    {
+      content += '=';
+      content.append(*value);
+    }
+
+    if (index < project->definitions.size() - 1)
+      content += ' ';
+    index++;
+  }
 
   content += '\n';
 
@@ -117,7 +131,7 @@ int MI::GNUMake_config(const std::string &filepath, const std::string &compiler,
 
 
   me::File file(filepath);
-  if (!writeFile(file, content.data(), content.size()))
+  if (!writeFile(file, (void*) content.data(), content.size()))
     return 0;
   return 1;
 }

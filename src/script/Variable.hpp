@@ -1,91 +1,57 @@
-#ifndef MI_VARIABLE_HPP
-  #define MI_VARIABLE_HPP
+#ifndef MAKEIT_VARIABLE_HPP
+  #define MAKEIT_VARIABLE_HPP
 
 #include <cstdio>
 #include <vector>
 #include <string>
+#include <map>
 
-#define VARIABLE_STRING(v) (((MI::VarString*) v))
-#define VARIABLE_INTEGER(v) (((MI::VarInteger*) v))
-#define VARIABLE_BOOLEAN(v) (((MI::VarBoolean*) v))
-#define VARIABLE_LIST(v) (((MI::VarList*) v))
-#define VARIABLE_STRUCT(v) (((MI::VarStruct*) v))
+namespace makeit {
 
-namespace MI {
+  struct Variable {
 
-  struct VariableRef {
+    /* variable value types */
+    typedef std::string v_string;
+    typedef int v_integer;
+    typedef std::vector<Variable*> v_list;
+    typedef std::map<std::string, Variable*> v_struct;
+    typedef void* v_pointer;
+    typedef std::string v_reference;
+    /* -------------------- */
 
     enum Type : uint8_t {
-      VOID = 1,
-      STRING = 2,
-      INTEGER = 3,
-      BOOLEAN = 4,
-      LIST = 5,
-      STRUCT = 6
+      VOID = 1 /* used as 'any' type */, STRING = 2, INTEGER = 3, LIST = 4, STRUCT = 5, POINTER = 6, REFERENCE = 7
     } type;
+    void* value;
 
-    VariableRef(Type type)
-    {
-      this->type = type;
-    }
-
-    int assign(VariableRef* value);
-
-    VariableRef* operator+=(VariableRef* _const);
-    VariableRef* operator-=(VariableRef* _const);
-    VariableRef* operator*=(VariableRef* _const);
-    VariableRef* operator/=(VariableRef* _const);
-    VariableRef* operator%=(VariableRef* _const);
-
-    static VariableRef* copy(const VariableRef* ref);
-
-    static inline const char* typeName(Type type)
-    {
-      switch (type)
-      {
-	case VOID: return "void";
-	case STRING: return "string";
-	case INTEGER: return "integer";
-	case BOOLEAN: return "boolean";
-	case LIST: return "list";
-	case STRUCT: return "struct";
-      }
-      return "?";
-    }
-
-  };
-
-  template<typename T>
-  struct Variable : VariableRef {
-
-    T value;
-
-    Variable(Type type, T value) : VariableRef(type)
+    Variable(Type type, void* value = nullptr)
     {
       this->type = type;
       this->value = value;
     }
 
-    ~Variable()
-    {
-    }
+    v_string* as_string() { return (v_string*) value; }
+    v_integer* as_integer() { return (v_integer*) value; }
+    v_list* as_list() { return (v_list*) value; }
+    v_struct* as_struct() { return (v_struct*) value; }
+    /* useless */ v_pointer* as_pointer() { return (v_pointer*) value; }
+    v_reference* as_reference() { return (v_reference*) value; }
+
+    /* append/addition (v)ariable */ Variable* operator+=(Variable* v);
+    /* remove/subtract (v)ariable */ Variable* operator-=(Variable* v);
+    /* multiply with (v)ariable*/ Variable* operator*=(Variable* v);
+    /* divide with (v)ariable */ Variable* operator/=(Variable* v);
+    /* 'modulo' for integers */ Variable* operator%=(Variable* v);
+
+    static const char* type_name(Type type);
 
   };
 
-  struct VarString : Variable<std::string> 
-  { VarString(const std::string &str) : Variable<std::string>(VariableRef::STRING, str) { } };
+  namespace util {
 
-  struct VarInteger : Variable<int> 
-  { VarInteger(const int &i) : Variable<int>(VariableRef::INTEGER, i) { } };
+    int variable_check_struct(Variable* var, const std::map<std::string, Variable::Type> &expected, char* &info);
 
-  struct VarBoolean : Variable<bool> 
-  { VarBoolean(const bool &b) : Variable<bool>(VariableRef::BOOLEAN, b) { } };
-
-  struct VarList : Variable<std::vector<VariableRef*>>
-  { VarList(const std::vector<VariableRef*> &list) : Variable<std::vector<VariableRef*>>(VariableRef::LIST, list) { } };
-
-  struct VarStruct : Variable<void*> 
-  { VarStruct(void* st) : Variable<void*>(VariableRef::STRUCT, st) { } };
+  }
 
 }
 

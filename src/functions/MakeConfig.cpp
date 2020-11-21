@@ -6,25 +6,37 @@
 
 #include "../configs/GNUMake.hpp"
 
-int MI::function::exec_makefile(void* ptr, std::vector<VariableRef*> &args, char* &info)
+makeit::Function* makeit::function::make_makefile()
 {
-  MI::Storage* storage = (MI::Storage*) ptr;
+  return new Function(6,
+      new uint16_t[6]{
+      0 | (Variable::STRING << 1),
+      0 | (Variable::STRING << 1),
+      0 | (Variable::STRING << 1),
+      0 | (Variable::STRING << 1) | (Variable::LIST << 5),
+      0 | (Variable::LIST << 1),
+      0 | (Variable::LIST << 1)
+      }, exec_makefile);
+}
+int makeit::function::exec_makefile(void* ptr, std::vector<Variable*> &args, char* &info)
+{
+  Storage* storage = (Storage*) ptr;
 
-  REQUIRE_VARIABLE(project, MI::VariableRef::STRUCT);
+  REQUIRE_VARIABLE(project, Variable::POINTER);
 
-  MI::Project* project = (MI::Project*) VARIABLE_STRUCT(storage->variables["project"])->value;
+  Project* project = (Project*) storage->variables["project"]->as_pointer();
 
-  std::string &filepath = VARIABLE_STRING(args.at(0))->value;
-  std::string &compiler = VARIABLE_STRING(args.at(1))->value;
-  me::File build_dir = VARIABLE_STRING(args.at(2))->value;
+  std::string filepath = *args.at(0)->as_string();
+  std::string compiler = *args.at(1)->as_string();
+  me::File build_dir = *args.at(2)->as_string();
 
   std::vector<std::string*> flags;
   std::vector<std::string*> sources;
   std::vector<std::string*> headers;
 
-  APPEND_STRINGS(args.at(3), flags);
-  APPEND_STRINGS(args.at(4), sources);
-  APPEND_STRINGS(args.at(5), headers);
+  APPEND_STRINGS(args.at(3), flags, storage);
+  APPEND_STRINGS(args.at(4), sources, storage);
+  APPEND_STRINGS(args.at(5), headers, storage);
 
   GNUMake_config(filepath, compiler, build_dir, flags, sources, headers, project);
   return 1;

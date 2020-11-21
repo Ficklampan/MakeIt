@@ -3,7 +3,7 @@
 
 #include <lme/file.hpp>
 
-namespace MI {
+namespace makeit {
 
   int readFile(const me::File &file, void* &data, uint32_t &size);
   int writeFile(const me::File &file, void* data, uint32_t size);
