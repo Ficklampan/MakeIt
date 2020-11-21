@@ -59,6 +59,11 @@ namespace me {
       return entries[index];
     }
 
+    inline T& last()
+    {
+      return entries[index - 1];
+    }
+
     inline bool hasNext()
     {
       return index < size;

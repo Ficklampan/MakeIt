@@ -6,16 +6,28 @@ PACKAGE = "makeit"
 sources = []
 headers = []
 
-source: "$(DIR)/src/MIConfig"
+source: "$(DIR)/src/makeit/MIConfig"
+source: "$(DIR)/src/util/MIConfig"
 
 search: "$(DIR)/src" "*.hpp" true $headers
 
 library: [ "me" ]
 library_path: [ "$(DIR)/external/melib" ]
-include_path: [ "$(DIR)/external/melib/include" ]
+include_path: [ "$(DIR)/external/melib/include" "$(DIR)/src/util" ]
 define: [
   { name "LOCALEDIR" value $LOCALEDIR }
   { name "PACKAGE" value $PACKAGE }
 ]
+
+# default mode
+if !?debug then
+  debug = ""
+end
+
+if ?debug then
+  define: [ "DEBUG" ]
+else if ?release then
+  define: [ "NDEBUG" "RELEASE" ]
+end
 
 makefile: "Makefile2" "g++" "$(DIR)/build" [ "-std=c++17" "-g" ] $sources $headers

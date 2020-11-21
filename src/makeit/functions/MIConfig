@@ -1,0 +1,18 @@
+sources += [
+  "$(DIR)/Functions.cpp"
+
+  "$(DIR)/config/FuncMakefile.cpp"
+  "$(DIR)/config/FuncYCM.cpp"
+
+  "$(DIR)/project/FuncDefine.cpp"
+  "$(DIR)/project/FuncInclude.cpp"
+  "$(DIR)/project/FuncIncludePath.cpp"
+  "$(DIR)/project/FuncLibrary.cpp"
+  "$(DIR)/project/FuncLibraryPath.cpp"
+  "$(DIR)/project/FuncProject.cpp"
+  "$(DIR)/project/FuncSource.cpp"
+
+  "$(DIR)/system/FuncPrint.cpp"
+  "$(DIR)/system/FuncSearch.cpp"
+  "$(DIR)/system/FuncSystem.cpp"
+]

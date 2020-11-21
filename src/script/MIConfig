@@ -1,8 +1,0 @@
-sources += [
-  "$(DIR)/Common.cpp"
-  "$(DIR)/Lexer.cpp"
-  "$(DIR)/Parser.cpp"
-  "$(DIR)/Script.cpp"
-  "$(DIR)/Token.cpp"
-  "$(DIR)/Variable.cpp"
-]

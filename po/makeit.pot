@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the MakeItTranslation package.
+# This file is distributed under the same license as the makeit package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: MakeItTranslation 0\n"
+"Project-Id-Version: makeit 0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-18 22:16+0100\n"
+"POT-Creation-Date: 2020-11-21 22:45+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,82 +17,199 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/MakeIt.cpp:28
+#: src/makeit/MakeIt.cpp:27
+msgid "Generates GNU 'Make' file"
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:28
+msgid "Usage: makeit [flags] config ..."
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:29
+msgid "Report issues at"
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:30
+msgid "unknown flag"
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:32
 msgid "Print usage"
 msgstr ""
 
-#: src/MakeIt.cpp:29
+#: src/makeit/MakeIt.cpp:33
 msgid "Print compiler and this version"
 msgstr ""
 
-#: src/MakeIt.cpp:30
+#: src/makeit/MakeIt.cpp:34
 msgid "Print changes on the system"
 msgstr ""
 
-#: src/MakeIt.cpp:31
+#: src/makeit/MakeIt.cpp:35
 msgid "Confirm when making system changes"
 msgstr ""
 
-#: src/MakeIt.cpp:32
+#: src/makeit/MakeIt.cpp:36
 msgid "Enable debug level L"
 msgstr ""
 
-#: src/MakeIt.cpp:33
+#: src/makeit/MakeIt.cpp:37
 msgid "Specify file to be read"
 msgstr ""
 
-#: src/MakeIt.cpp:35
+#: src/makeit/MakeIt.cpp:38
+msgid "Print error info"
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:39
+msgid "Print warning info"
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:41
 msgid ""
 "View info and stuff\n"
 "Use 'help FLAG' to show info and usage about FLAG"
 msgstr ""
 
-#: src/MakeIt.cpp:36
+#: src/makeit/MakeIt.cpp:42
 msgid ""
 "View the compiler version the program was compiled in and the current "
 "software version"
 msgstr ""
 
-#: src/MakeIt.cpp:37
+#: src/makeit/MakeIt.cpp:43
 msgid ""
 "If print all flag is specified then the software will print changes to the "
 "system (file being written/read or a command being executed)"
 msgstr ""
 
-#: src/MakeIt.cpp:38
+#: src/makeit/MakeIt.cpp:44
 msgid ""
 "If block all flag is specified then the software will ask before making "
 "changes to the system (file being written/read or a command being executed)"
 msgstr ""
 
-#: src/MakeIt.cpp:39
+#: src/makeit/MakeIt.cpp:45
 msgid "Higher level = more debuging"
 msgstr ""
 
-#: src/MakeIt.cpp:40
+#: src/makeit/MakeIt.cpp:46
 msgid "Change the file target. Default is 'MIBuild'"
 msgstr ""
 
-#: src/Common.cpp:21
+#: src/makeit/MakeIt.cpp:47
+msgid "Show what a error ERR means (specify 'all' to show all error codes)"
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:48
+msgid ""
+"Show what a warning WARN means (specify 'all' to show all warning codes)"
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:224
+#, c-format
+msgid ":: file not found `%s`.\n"
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:259
+msgid ":: avoid running as root. continue?"
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:304
+#, c-format
+msgid ":: do you want to write data to file[%s]?"
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:307
+#, c-format
+msgid ":: do you want to write data to file[%s] outside working directory?"
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:322
+#, c-format
+msgid ":: do you want to execute '%s'?"
+msgstr ""
+
+#: src/makeit/MakeIt.cpp:333
+msgid "ERROR"
+msgstr ""
+
+#: src/makeit/Text.hpp:29
+msgid "tried to access a variable that was not defined"
+msgstr ""
+
+#: src/makeit/Text.hpp:30
+msgid "tried to access a variable from name that was not defined"
+msgstr ""
+
+#: src/makeit/Text.hpp:31
+msgid "tried to call a function that did not exists"
+msgstr ""
+
+#: src/makeit/Text.hpp:32
+msgid "found a identifier/literial with no context"
+msgstr ""
+
+#: src/makeit/Text.hpp:33
+msgid "too few arguments was specified when calling a function"
+msgstr ""
+
+#: src/makeit/Text.hpp:34
+msgid "too many arguments was specified when calling a function"
+msgstr ""
+
+#: src/makeit/Text.hpp:35
+msgid "expected a value/variable but found nothing or something else"
+msgstr ""
+
+#: src/makeit/Text.hpp:36
+msgid "expected a constant variable"
+msgstr ""
+
+#: src/makeit/Text.hpp:37
+msgid "provided unexpected variable type at argument[index]"
+msgstr ""
+
+#: src/makeit/Text.hpp:38
+msgid "provided unexpected variable type"
+msgstr ""
+
+#: src/makeit/Text.hpp:39
+msgid "expected a token"
+msgstr ""
+
+#: src/makeit/Text.hpp:40
+msgid "expected a expression in a if statement"
+msgstr ""
+
+#: src/makeit/Text.hpp:41
+msgid "expected a identifier/literial"
+msgstr ""
+
+#: src/makeit/Text.hpp:42
+msgid "unknown symbol found when tokenize"
+msgstr ""
+
+#: src/util/Common.cpp:21
 msgid "[Y/n]"
 msgstr ""
 
-#: src/Common.cpp:23
+#: src/util/Common.cpp:23
 msgid "[y/N]"
 msgstr ""
 
-#: src/Common.cpp:32
+#: src/util/Common.cpp:32
 msgid "Y"
 msgstr ""
 
-#: src/Common.cpp:32
+#: src/util/Common.cpp:32
 msgid "YES"
 msgstr ""
 
-#: src/Common.cpp:34
+#: src/util/Common.cpp:34
 msgid "N"
 msgstr ""
 
-#: src/Common.cpp:34
+#: src/util/Common.cpp:34
 msgid "NO"
 msgstr ""

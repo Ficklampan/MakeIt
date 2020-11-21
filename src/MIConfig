@@ -1,3 +1,0 @@
-sources += [ "$(DIR)/MakeIt.cpp" "$(DIR)/Common.cpp" ]
-
-source: "$(DIR)/script/MIConfig" "$(DIR)/functions/MIConfig" "$(DIR)/configs/MIConfig"

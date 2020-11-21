@@ -1,0 +1,16 @@
+sources += [
+  "$(DIR)/Script.cpp"
+  "$(DIR)/Token.cpp"
+  "$(DIR)/Variable.cpp"
+
+  "$(DIR)/lexer/Lexer.cpp"
+  "$(DIR)/lexer/ConstantLexer.cpp"
+  "$(DIR)/lexer/LiterialLexer.cpp"
+  "$(DIR)/lexer/PunctuatorLexer.cpp"
+  "$(DIR)/lexer/WildcardLexer.cpp"
+
+  "$(DIR)/parser/Parser.cpp"
+  "$(DIR)/parser/FunctionParser.cpp"
+  "$(DIR)/parser/LiterialParser.cpp"
+  "$(DIR)/parser/StatementParser.cpp"
+]

@@ -1,2 +1,3 @@
-src/MakeIt.cpp
-src/Common.cpp
+src/makeit/MakeIt.cpp
+src/makeit/Text.hpp
+src/util/Common.cpp
