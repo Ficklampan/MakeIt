@@ -2,6 +2,8 @@
 #include "../../Text.hpp"
 #include "../Script.hpp"
 
+#include "../../Config.hpp"
+
 static inline int GET_BOOLEAN(me::BasicIterator<makeit::Token*> &tokens, makeit::Storage* storage, bool &out, uint8_t flags)
 {
 #define SET_OUT(b) { if (invert) out = !(b); else out = (b); }
@@ -77,8 +79,7 @@ static inline int GET_BOOLEAN(me::BasicIterator<makeit::Token*> &tokens, makeit:
   /* [Error] expected expression */
   if (i == 0)
   {
-    printError(token == nullptr ? tokens.last()->location : token->location, makeit::Eexpected_expression);
-    return 0;
+    throw makeit::Exception(token == nullptr ? tokens.last()->location : token->location, makeit::EEXPECTED_EXPRESSION, { });
   }
 
 #undef SET_OUT
@@ -139,8 +140,7 @@ int makeit::Parser::parse_statement(Token* token, me::BasicIterator<Token*> &tok
   /* [Error] expected token */
   if (token == nullptr || token->type != Token::THEN)
   {
-    printError(tokens.last()->location, Eexpected_token, Token::type_name(Token::THEN));
-    return 0;
+    throw Exception(tokens.last()->location, EEXPECTED_TOKEN, { Token::type_name(Token::THEN) });
   }
 
   /* execute stuff under the if statement */

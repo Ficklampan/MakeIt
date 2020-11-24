@@ -2,136 +2,112 @@
 
 #include "../System.hpp"
 
-/* TODO */
-/*
- * support for other compilers
-*/
+#define FOR_EACH(v, e) { \
+  for (uint32_t i = 0; i < v.size(); i++) \
+  { \
+    bool last = i == v.size() - 1; \
+    e \
+  } \
+}
 
-int makeit::GNUMake_config(const std::string &filepath, const std::string &compiler, me::File &build_dir, std::vector<std::string*> &flags, std::vector<std::string*> &sources, std::vector<std::string*> &headers, Project* project)
+makeit::GNUMake::GNUMake(const std::string &name, const BuildConfig* config, const Options &options) : name(name), config(config), options(options)
 {
-#ifndef GNUMAKE_APPEND_ARRAY
-  #define GNUMAKE_APPEND_ARRAY(v, c, s) { \
-    for (uint32_t i = 0; i < c; i++) \
-    { \
-      v; \
-      if (i < c - 1) \
-	s; \
-    } \
-    content += '\n'; \
-  }
-#endif
+}
 
-  if (!build_dir.exists())
-    build_dir.mkdir();
+int makeit::GNUMake::write_header(std::string &str)
+{
+  str.append("NAME = ").append(name) += '\n';
+  str.append("CC = ").append(config->cc) += '\n';
+  str.append("BUILD = ").append(config->build.getPath()) += '\n';
+  str += '\n';
 
-  std::vector<me::File> objects;
-  for (std::string* src : sources)
-    objects.emplace_back(build_dir.getPath(), me::File::extension(*src, "o"));
+  str.append("FLAGS = ");
+  FOR_EACH(config->flags, { str.append(*config->flags.at(i)); if (!last) str += ' '; });
+  str += '\n';
+  str += '\n';
 
-  std::string content;
-  content.reserve(4096);
+  str.append("LIBS = ");
+  FOR_EACH(config->libraries, { str.append("-l").append(*config->libraries.at(i)); if (!last) str += ' '; });
+  str += '\n';
+  str.append("INCS = ");
+  FOR_EACH(config->includes, { str.append("-i").append(*config->includes.at(i)); if (!last) str += ' '; });
+  str += '\n';
+  str.append("LPATHS = ");
+  FOR_EACH(config->library_paths, { str.append("-L").append(*config->library_paths.at(i)); if (!last) str += ' '; });
+  str += '\n';
+  str.append("IPATHS = ");
+  FOR_EACH(config->include_paths, { str.append("-I").append(*config->include_paths.at(i)); if (!last) str += ' '; });
+  str += '\n';
+  str += '\n';
 
-  content.append("NAME = ").append(project->name) += '\n';
-
-  content += '\n';
-
-  content.append("# compiler\n");
-  content.append("CC = ").append(compiler) += '\n';
-
-  /* append flags */
-  content.append("FLAGS = ");
-  GNUMAKE_APPEND_ARRAY(content.append(*flags.at(i)), flags.size(), content += ' ');
-
-  /* append definitions */
-  content.append("# definitions\n");
-  content.append("DEFS = ");
-
+  str.append("DEFS = ");
   uint32_t index = 0;
-  for (auto &[key, value] : project->definitions)
+  for (auto &[key, value] : config->definitions)
   {
-    content.append("-D").append(key);
-    if (value != nullptr)
-    {
-      content += '=';
-      content.append(*value);
-    }
+    str.append("-D").append(key);
 
-    if (index < project->definitions.size() - 1)
-      content += ' ';
+    if (value != nullptr)
+      str.append("=").append(*value);
+
+    if (index < config->definitions.size() - 1)
+      str += ' ';
+
     index++;
   }
+  str += '\n';
+  str += '\n';
 
-  content += '\n';
-
-
-  /* append libraries */
-  content.append("# libraries\n");
-  content.append("LIBS = ");
-  GNUMAKE_APPEND_ARRAY(content.append("-l").append(*project->libraries.at(i)), project->libraries.size(), content += ' ');
-
-  /* append library paths */
-  content.append("# library paths\n");
-  content.append("LPATHS = ");
-  GNUMAKE_APPEND_ARRAY(content.append("-L").append(*project->library_paths.at(i)), project->library_paths.size(), content += ' ');
-
-  /* append includes */
-  content.append("# includes\n");
-  content.append("INCS = ");
-  GNUMAKE_APPEND_ARRAY(content.append("-i").append(*project->includes.at(i)), project->includes.size(), content += ' ');
-
-  /* append include paths */
-  content.append("# include paths\n");
-  content.append("IPATHS = ");
-  GNUMAKE_APPEND_ARRAY(content.append("-I").append(*project->include_paths.at(i)), project->include_paths.size(), content += ' ');
-
-  content += '\n';
-
-
-  /* append objects array */
-  content.append("OBJECTS = ");
-  GNUMAKE_APPEND_ARRAY(content.append(objects.at(i).getPath()), objects.size(), content.append(" \\\n\t"));
-
-  content += '\n';
-
-  /* append headers array */
-  content.append("HEADERS = ");
-  GNUMAKE_APPEND_ARRAY(content.append(*headers.at(i)), headers.size(), content.append(" \\\n\t"));
-
-  content += '\n';
-  content += '\n';
-
-
-  /* linking stuff */
-
-  content.append("$(NAME): $(OBJECTS)\n");
-  content.append("\t@$(CC) -o $@ $^ $(LPATHS) $(LIBS) $(FLAGS)\n");
-
-  content += '\n';
-
-
-  /* compiling stuff */
-
-  for (uint32_t i = 0; i < sources.size() && i < objects.size(); i++)
+  if (options.depends.size() > 0)
   {
-    std::string object = objects.at(i).getPath();
-    std::string &source = *sources.at(i);
+    str.append("EXTRADEPS = ");
+    FOR_EACH(options.depends, { str.append(*options.depends.at(i)); if (!last) str += ' '; });
 
-    content.append(object).append(": ").append(source).append(" $(HEADERS)\n");
-    content.append("\t@$(CC) -c -o $@ $< $(IPATHS) $(INCS) $(DEFS) $(FLAGS) && echo \"\e[32mcompileing [$<]\e[0m\"\n\n");
-
+    str += '\n';
+    str += '\n';
   }
 
-  content += '\n';
+  str.append("COPTS = $(FLAGS) $(INCS) $(IPATHS) $(DEFS)\n");
+  str.append("LOPTS = $(FLAGS) $(LIBS) $(LPATHS)\n\n");
+  return 1;
+}
 
+int makeit::GNUMake::write_depends(std::string &str)
+{
+  str.append("SOURCES = ");
+  FOR_EACH(config->sources, { str.append(*config->sources.at(i)); if (!last) str.append(" \\\n\t"); });
+  str += '\n';
+  str += '\n';
 
-  /* cleanup stuff */
-  content.append(".PHONY: clean\n\n");
+  str.append("OBJECTS = $(SOURCES:%=$(BUILD)/%.o)\n");
+  str.append("DEPENDS = $(OBJECTS:%.o=%.d)\n\n");
 
-  content.append("clean:\n\trm -f $(OBJECTS)\n");
+  str.append("$(NAME): $(OBJECTS)").append(options.depends.size() > 0 ? " $(EXTRADEPS)\n" : "\n");
+  str.append("\t@$(CC) -o $@ $^ $(LOPTS)\n\n");
 
+  str.append("-include $(DEPENDS)\n\n");
 
-  me::File file(filepath);
-  if (!writeFile(file, (void*) content.data(), content.size()))
+  str.append("$(BUILD)/%.o: %\n");
+  str.append("\t@echo \"==> \e[32mcompiling source \e[33m[$<]\e[0m\"\n");
+  str.append("\t@mkdir -p $(@D)\n");
+  str.append("\t@$(CC) -c -o $@ $< $(COPTS) -MMD\n\n");
+
+  return 1;
+}
+
+int makeit::GNUMake::write_footer(std::string &str)
+{
+  str.append(".PHONY: clean\n\n");
+  str.append("clean:\n\trm -f $(OBJECTS) $(DEPENDS)\n");
+  return 1;
+}
+
+int makeit::GNUMake::generate(std::string &str)
+{
+  if (!write_header(str))
+    return 0;
+  if (!write_depends(str))
+    return 0;
+  if (!write_footer(str))
     return 0;
   return 1;
 }

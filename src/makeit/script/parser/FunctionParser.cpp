@@ -15,8 +15,7 @@ int makeit::Parser::parse_function(Token* token, me::BasicIterator<Token*> &toke
   /* [Error] Function not found */
   if (func == nullptr)
   {
-    printError(token->location, Eundefined_function, token->value.s->c_str());
-    return 0;
+    throw Exception(token->location, EUNDEFINED_FUNCTION, { token->value.s->c_str() });
   }
 
   std::vector<Variable*> args;
@@ -27,8 +26,7 @@ int makeit::Parser::parse_function(Token* token, me::BasicIterator<Token*> &toke
   /* [Error] too few arguments */
   if (args.size() < func->argc)
   {
-    printError(token->location, Etoo_few_args);
-    return 0;
+    throw Exception(token->location, ETOO_FEW_ARGS, { });
   }
 
   /* check if arguments matches the required arguments */
@@ -39,8 +37,7 @@ int makeit::Parser::parse_function(Token* token, me::BasicIterator<Token*> &toke
     /* [Error] too many arguments */
     if (!endless && arg_index >= func->argc)
     {
-      printError(token->location, Etoo_many_args);
-      return 0;
+      throw Exception(token->location, ETOO_MANY_ARGS, { });
     }
 
     uint16_t req_arg = func->argv[arg_index];
@@ -51,7 +48,7 @@ int makeit::Parser::parse_function(Token* token, me::BasicIterator<Token*> &toke
     /* go through all possible argument types */
     for (uint32_t j = 0; j < 3; j++)
     {
-      uint8_t type = ((req_arg >> 1) >> (j * 4)) & 0xF;
+      uint8_t type = ((req_arg >> 2) >> (j * 4)) & 0xF;
       if (type == 0)
         break;
       else if (type == Variable::VOID || type == arg->type)
@@ -67,27 +64,21 @@ int makeit::Parser::parse_function(Token* token, me::BasicIterator<Token*> &toke
       std::string expected_type;
       for (uint32_t j = 0; j < 3; j++)
       {
-        uint8_t type = ((req_arg >> 1) >> (j * 4)) & 0xF;
+        uint8_t type = ((req_arg >> 2) >> (j * 4)) & 0xF;
 
         if (type == 0)
-  	break;
+	  break;
 
         if (j > 0)
-  	expected_type += '/';
+	  expected_type += '/';
 
-        expected_type += '\'';
         expected_type.append(Variable::type_name((Variable::Type) type));
-        expected_type += '\'';
       }
 
-    printError(token->location, Eexpected_type_at_arg, 
-  	expected_type.c_str(), 
-    i,
-  	Variable::type_name(arg->type));
-      return 0;
+      throw Exception(token->location, EEXPECTED_TYPE_AT_ARG, { expected_type.c_str(), i, Variable::type_name(arg->type) });
     }
 
-    if (req_arg & 0x1)
+    if (req_arg & Variable::ENDLESS)
       endless = true;
     else if (!endless)
       arg_index++;
@@ -96,11 +87,12 @@ int makeit::Parser::parse_function(Token* token, me::BasicIterator<Token*> &toke
   char* info = nullptr;
 
   MIDEBUG(2, "[Parser] > calling function '%s'\n", token->value.s->c_str());
-  if (!func->exec(storage, args, info))
+  try {
+    func->exec(storage, args, info);
+  }catch (const Exception<int> &e)
   {
-    if (info != nullptr && strlen(info) > 0)
-      printError(token->location, info);
-    return 0;
+    TokenLocation* location = e.get_location() >= 0 ? args.at(e.get_location())->location : &token->location;
+    throw Exception(location == nullptr ? token->location : *location, e.get_err(), e.get_args());
   }
   return 1;
 }

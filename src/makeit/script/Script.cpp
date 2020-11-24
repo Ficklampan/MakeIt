@@ -10,7 +10,7 @@
 
 extern makeit::Config config;
 
-int makeit::readScript(me::File* file, Storage* storage)
+int makeit::read_script(me::File* file, Storage* storage)
 {
   void* data;
   uint32_t size;
@@ -24,21 +24,28 @@ int makeit::readScript(me::File* file, Storage* storage)
   tokens.reserve(128);
 
   MIDEBUG(1, "making tokens\n");
-  if (!Lexer::tokenize_tokens(file, source, tokens, storage, 0))
-    return 0;
+  try {
+    Lexer::tokenize_tokens(file, source, tokens, storage, 0);
+  }catch (const Exception<TokenLocation> &e)
+  {
+    print_error(e.get_location(), e.what());
+  }
 
   storage->scripts.push_back(*file);
 
   me::BasicIterator<Token*> token_iter(tokens.data(), tokens.size());
 
   MIDEBUG(1, "parsing tokens[%lu]\n", tokens.size());
-  if (!Parser::parse_tokens(token_iter, storage, 0))
-    return 0;
-
+  try {
+    Parser::parse_tokens(token_iter, storage, 0);
+  }catch (const Exception<TokenLocation> &e)
+  {
+    print_error(e.get_location(), e.what());
+  };
   return 1;
 }
 
-static inline void printLocation(makeit::TokenLocation &loc)
+static inline void printLocation(const makeit::TokenLocation &loc)
 {
   uint32_t end = loc.source->size();
   for (uint32_t i = loc.pos; i < loc.source->size(); i++)
@@ -62,24 +69,20 @@ static inline void printLocation(makeit::TokenLocation &loc)
   printf("%s[%u:%u]: '%s'\n", loc.file->getPath().c_str(), loc.line, loc.column, line.c_str());
 }
 
-void makeit::printError(TokenLocation &loc, const char* format, ...)
+void makeit::print_error(const TokenLocation &loc, const char* format, ...)
 {
   printLocation(loc);
   va_list args;
   va_start(args, format);
-  printf("\e[31m:: ");
-  vprintf(format, args);
-  printf("\e[0m\n");
+  error(format, args);
   va_end(args);
 }
 
-void makeit::printWarning(TokenLocation &loc, const char* format, ...)
+void makeit::print_warning(const TokenLocation &loc, const char* format, ...)
 {
   printLocation(loc);
   va_list args;
   va_start(args, format);
-  printf("\e[33m:: ");
-  vprintf(format, args);
-  printf("\e[0m\n");
+  warning(format, args);
   va_end(args);
 }

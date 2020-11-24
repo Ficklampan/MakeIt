@@ -14,7 +14,7 @@ makeit::Function* makeit::function::make_print()
 {
   return new Function(1,
       new uint16_t[1]{
-      1 | (Variable::STRING << 1) | (Variable::LIST << 5)
+      1 | (Variable::STRING << 2) | (Variable::LIST << 6)
       }, exec_print);
 }
 

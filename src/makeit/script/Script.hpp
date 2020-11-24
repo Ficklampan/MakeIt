@@ -6,10 +6,10 @@
 
 namespace makeit {
 
-  int readScript(me::File* file, Storage* storage);
+  int read_script(me::File* file, Storage* storage);
 
-  void printError(TokenLocation &loc, const char* format, ...);
-  void printWarning(TokenLocation &loc, const char* format, ...);
+  void print_error(const TokenLocation &loc, const char* format, ...);
+  void print_warning(const TokenLocation &loc, const char* format, ...);
 
 
 

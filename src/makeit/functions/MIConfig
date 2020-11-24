@@ -5,6 +5,8 @@ sources += [
   "$(DIR)/config/FuncYCM.cpp"
 
   "$(DIR)/project/FuncDefine.cpp"
+  "$(DIR)/project/FuncFiles.cpp"
+  "$(DIR)/project/FuncFlags.cpp"
   "$(DIR)/project/FuncInclude.cpp"
   "$(DIR)/project/FuncIncludePath.cpp"
   "$(DIR)/project/FuncLibrary.cpp"

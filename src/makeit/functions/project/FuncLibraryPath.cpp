@@ -7,7 +7,7 @@ makeit::Function* makeit::function::make_library_path()
 {
   return new Function(1,
       new uint16_t[1]{
-      1 | (Variable::STRING << 1) | (Variable::LIST << 5)
+      1 | (Variable::STRING << 2) | (Variable::LIST << 6)
       }, exec_library_path);
 }
 
@@ -15,12 +15,12 @@ int makeit::function::exec_library_path(void* ptr, std::vector<Variable*> &args,
 {
   makeit::Storage* storage = (makeit::Storage*) ptr;
 
-  REQUIRE_VARIABLE(project, Variable::POINTER);
+  REQUIRE_VARIABLE("project", Variable::POINTER, storage);
 
   Project* project = (Project*) storage->variables["project"]->as_pointer();
 
   for (Variable* v : args)
-    APPEND_STRINGS(v, project->library_paths, storage);
+    GET_STRINGS(v, project->config.library_paths);
   return 1;
 }
 

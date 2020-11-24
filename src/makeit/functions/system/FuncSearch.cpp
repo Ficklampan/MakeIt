@@ -11,10 +11,10 @@ makeit::Function* makeit::function::make_search()
 {
   return new Function(4,
       new uint16_t[4]{
-      0 | (Variable::STRING << 1) | (Variable::LIST << 5),
-      0 | (Variable::STRING << 1) | (Variable::LIST << 5),
-      0 | (Variable::INTEGER << 1),
-      0 | (Variable::LIST << 1)
+      0 | (Variable::STRING << 2) | (Variable::LIST << 6),
+      0 | (Variable::STRING << 2) | (Variable::LIST << 6),
+      0 | (Variable::INTEGER << 2),
+      0 | (Variable::LIST << 2)
       }, exec_search);
 }
 int makeit::function::exec_search(void* ptr, std::vector<Variable*> &args, char* &info)
@@ -24,8 +24,8 @@ int makeit::function::exec_search(void* ptr, std::vector<Variable*> &args, char*
   std::vector<std::string*> locations;
   std::vector<std::string*> patterns;
 
-  APPEND_STRINGS(args.at(0), locations, storage);
-  APPEND_STRINGS(args.at(1), patterns, storage);
+  GET_STRINGS(args.at(0), locations);
+  GET_STRINGS(args.at(1), patterns);
 
   bool sub_dirs = args.at(2)->as_integer();
 
@@ -47,7 +47,7 @@ int makeit::function::exec_search(void* ptr, std::vector<Variable*> &args, char*
       {
 	const std::string &file_path = file.getPath();
 	if (fnmatch(pattern->c_str(), file_path.c_str(), 0) == 0)
-	  (*output) += new Variable(Variable::STRING, new std::string(file_path));
+	  (*output) += new Variable(nullptr, Variable::STRING, new std::string(file_path));
       }
       return 1;
     };

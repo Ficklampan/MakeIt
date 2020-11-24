@@ -18,7 +18,7 @@ int makeit::Lexer::tokenize_literial(char c, me::Iterator<char> &source, TokenLo
 
   if (bt || bf)
   {
-    token = new Token(Token::CONSTANT, new Variable(Variable::INTEGER, new int(bt)), TokenLocation(location));
+    token = new Token(Token::CONSTANT, new Variable(&token->location, Variable::INTEGER, new int(bt)), TokenLocation(location));
   }else if (c == ':')
   {
     source.next();

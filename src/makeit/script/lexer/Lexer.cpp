@@ -99,8 +99,7 @@ int makeit::Lexer::tokenize_token(me::Iterator<char> &source, TokenLocation &loc
   /* Error */
   }else if (!LEXER_IS_EMPTY(c))
   {
-    printError(location, Eunknown_symbol, c);
-    return 0;
+    throw Exception(location, EUNKNOWN_SYMBOL, { c });
   }
   return 1;
 }

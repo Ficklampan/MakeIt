@@ -7,7 +7,7 @@ makeit::Function* makeit::function::make_system()
 {
   return new Function(1,
       new uint16_t[1]{
-      1 | (Variable::STRING << 1) | (Variable::LIST << 5)
+      1 | (Variable::STRING << 2) | (Variable::LIST << 6)
       }, exec_system);
 }
 
@@ -18,7 +18,7 @@ int makeit::function::exec_system(void* ptr, std::vector<Variable*> &args, char*
   std::vector<std::string*> commands;
 
   for (Variable* v : args)
-    APPEND_STRINGS(v, commands, storage);
+    GET_STRINGS(v, commands);
 
   for (std::string* cmd : commands)
     makeit::system(cmd->c_str());

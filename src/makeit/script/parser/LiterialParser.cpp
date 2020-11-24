@@ -2,6 +2,8 @@
 #include "../../Text.hpp"
 #include "../Script.hpp"
 
+#include "../../Config.hpp"
+
 int makeit::Parser::parse_literial(Token* token, me::BasicIterator<Token*> &tokens, Storage* storage, uint8_t flags)
 {
   std::string* name = token->value.s;
@@ -26,7 +28,7 @@ int makeit::Parser::parse_literial(Token* token, me::BasicIterator<Token*> &toke
     {
       if (variable_a == nullptr)
       {
-        variable_a = new Variable(variable_b->type, nullptr);
+        variable_a = new Variable(&token->location, variable_b->type, nullptr);
         storage->variables[*name] = variable_a;
       }else
         variable_a->type = variable_b->type;
@@ -36,15 +38,9 @@ int makeit::Parser::parse_literial(Token* token, me::BasicIterator<Token*> &toke
     /* [Error] undefined variable */
     if (variable_a == nullptr)
     {
-      printError(token->location, Eundefined_variable, name->c_str());
-      return 0;
+      throw Exception(token->location, EUNDEFINED_VARIABLE, { name->c_str() });
     }else if (p == Token::PLUS_EQUAL)
       (*variable_a) += variable_b;
-
-  /* [Error] found identifier in the wild */
-  }else
-  {
-    printWarning(token->location, Ewild_identifier);
   }
   return 1;
 }

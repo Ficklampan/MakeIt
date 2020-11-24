@@ -35,8 +35,6 @@ void makeit::usage(const char* arg)
   const char* FLAG_BLOCK_ALL_SHORT = _("Confirm when making system changes");
   const char* FLAG_DEBUG_SHORT = _("Enable debug level L");
   const char* FLAG_FILE_SHORT = _("Specify file to be read");
-  const char* FLAG_ERROR_SHORT = _("Print error info");
-  const char* FLAG_WARNING_SHORT = _("Print warning info");
 
   const char* FLAG_HELP_LONG = _("View info and stuff\nUse 'help FLAG' to show info and usage about FLAG");
   const char* FLAG_VERSION_LONG = _("View the compiler version the program was compiled in and the current software version");
@@ -44,8 +42,6 @@ void makeit::usage(const char* arg)
   const char* FLAG_BLOCK_ALL_LONG = _("If block all flag is specified then the software will ask before making changes to the system (file being written/read or a command being executed)");
   const char* FLAG_DEBUG_LONG = _("Higher level = more debuging");
   const char* FLAG_FILE_LONG = _("Change the file target. Default is 'MIBuild'");
-  const char* FLAG_ERROR_LONG = _("Show what a error ERR means (specify 'all' to show all error codes)");
-  const char* FLAG_WARNING_LONG = _("Show what a warning WARN means (specify 'all' to show all warning codes)");
 
   if (arg == nullptr)
   {
@@ -59,8 +55,6 @@ void makeit::usage(const char* arg)
     printf("  -b, --block-all              %s\n", FLAG_BLOCK_ALL_SHORT);
     printf("  -d [L], --debug=[L]          %s\n", FLAG_DEBUG_SHORT);
     printf("  -f, --file                   %s\n", FLAG_FILE_SHORT);
-    printf("  -E ERR, --error=ERR          %s\n", FLAG_ERROR_SHORT);
-    printf("  -W WARN, --warn=WARN         %s\n", FLAG_WARNING_SHORT);
     printf("%s <https://github.com/Ficklampan/MakeIt/issues>\n", TEXT_REPORT);
   }else if (strcmp("help", arg) == 0)
   {
@@ -80,12 +74,6 @@ void makeit::usage(const char* arg)
   }else if (strcmp("file", arg) == 0)
   {
     printf("  %s --file: %s\n", NAME, FLAG_FILE_LONG);
-  }else if (strcmp("error", arg) == 0)
-  {
-    printf("  %s --error: %s\n", NAME, FLAG_ERROR_LONG);
-  }else if (strcmp("warn", arg) == 0)
-  {
-    printf("  %s --warn: %s\n", NAME, FLAG_WARNING_LONG);
   }else
   {
     error("%s '%s'", TEXT_UNKNOWN_FLAG, arg);
@@ -113,14 +101,12 @@ int makeit::parseArgs(int argc, char** argv)
     {"print-all", no_argument, 0, 'p'},
     {"block-all", no_argument, 0, 'b'},
     {"debug", optional_argument, 0, 'd'},
-    {"file", required_argument, 0, 'f'},
-    {"error", required_argument, 0, 'E'},
     {"warn", required_argument, 0, 'W'},
   };
 
   int index = 0;
   int c;
-  while ((c = getopt_long(argc, argv, "h::vf:pbd::E:W:", long_options, &index)) != -1)
+  while ((c = getopt_long(argc, argv, "h::vf:pbd::", long_options, &index)) != -1)
   {
     switch (c)
     {
@@ -158,50 +144,6 @@ int makeit::parseArgs(int argc, char** argv)
 	config.file = optarg;
 	break;
 
-      /* error */
-      case 'E': {
-
-	/* show all error codes */
-	if (strcmp("all", optarg) == 0)
-	{
-	  printf("Error Codes:\n%s", error_list());
-	  return 1;
-	}
-
-	const char* info = error_info(optarg);
-
-	if (info == nullptr)
-	{
-	  error("unknown error code '%s'", optarg);
-	  return 1;
-	}
-
-	printf("[%s]: %s\n", optarg, info);
-	return 1;
-      }
-
-      /* warn */
-      case 'W': {
-
-	/* show all warning codes */
-	if (strcmp("all", optarg) == 0)
-	{
-	  printf("Warning Codes:\n%s", warning_list());
-	  return 1;
-	}
-
-	const char* info = warning_info(optarg);
-
-	if (info == nullptr)
-	{
-	  error("unknown warning code '%s'", optarg);
-	  return 1;
-	}
-
-	printf("[%s]: %s\n", optarg, info);
-	return 1;
-      }
-
       case '?':
       default:
         abort();
@@ -236,17 +178,19 @@ int makeit::init()
   storage->functions["include"] = makeit::function::make_include();
   storage->functions["include_path"] = makeit::function::make_include_path();
   storage->functions["define"] = makeit::function::make_define();
+  storage->functions["flags"] = makeit::function::make_flags();
   storage->functions["source"] = makeit::function::make_source();
+  storage->functions["files"] = makeit::function::make_files();
   storage->functions["makefile"] = makeit::function::make_makefile();
   storage->functions["ycm"] = makeit::function::make_YCM();
 
   for (std::string &cfg : config.configs)
   {
-    storage->variables[cfg] = new Variable(Variable::INTEGER, new int(1));
+    storage->variables[cfg] = new Variable(nullptr, Variable::INTEGER, new int(1));
   }
 
   /* process file */
-  if (!makeit::readScript(&file, storage.get()))
+  if (!makeit::read_script(&file, storage.get()))
     return 0;
 
   return 1;
@@ -330,7 +274,18 @@ void makeit::error(const char* format, ...)
 {
   va_list args;
   va_start(args, format);
-  printf("%s: ", _("ERROR"));
+  printf("\e[31m%s: ", _("ERROR"));
   vprintf(format, args);
+  printf("\n\e[0m");
+  va_end(args);
+}
+
+void makeit::warning(const char* format, ...)
+{
+  va_list args;
+  va_start(args, format);
+  printf("\e[33m%s: ", _("WARN"));
+  vprintf(format, args);
+  printf("\n\e[0m");
   va_end(args);
 }

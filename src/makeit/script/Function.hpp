@@ -3,15 +3,20 @@
 
 #include "Variable.hpp"
 
+#include "../Text.hpp"
+
 namespace makeit {
 
-  struct Function {
+  class Function {
+
+  public:
 
     /*
-     * [1]: endless
-     * [1 - 4]: type1
-     * [5 - 8]: type2
-     * [9 - 12]: type3
+     * [0]: endless
+     * [1]: optional
+     * [2 - 5]: type1
+     * [6 - 9]: type2
+     * [10 - 13]: type3
      */
     uint8_t argc;
     uint16_t* argv;

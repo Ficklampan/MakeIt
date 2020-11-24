@@ -9,6 +9,7 @@ namespace makeit {
   int writeFile(const me::File &file, void* data, uint32_t size);
   int system(const char* cmd);
   void error(const char* format, ...);
+  void warning(const char* format, ...);
 
 }
 

@@ -1,19 +1,22 @@
 #include "../Functions.hpp"
 
 #include "../FuncUtils.hpp"
-#include "../../Project.hpp"
+
 #include "../../configs/GNUMake.hpp"
+
+#include "../../Project.hpp"
+#include "../../System.hpp"
+
+static std::map<std::string, uint16_t> struct_makefile;
 
 makeit::Function* makeit::function::make_makefile()
 {
-  return new Function(6,
-      new uint16_t[6]{
-      0 | (Variable::STRING << 1),
-      0 | (Variable::STRING << 1),
-      0 | (Variable::STRING << 1),
-      0 | (Variable::STRING << 1) | (Variable::LIST << 5),
-      0 | (Variable::LIST << 1),
-      0 | (Variable::LIST << 1)
+  struct_makefile["comments"] = Variable::OPTIONAL | (Variable::INTEGER << 2);
+
+  return new Function(2,
+      new uint16_t[2]{
+      0 | (Variable::STRING << 2),
+      Variable::OPTIONAL | (Variable::STRUCT << 2)
       }, exec_makefile);
 }
 
@@ -21,22 +24,43 @@ int makeit::function::exec_makefile(void* ptr, std::vector<Variable*> &args, cha
 {
   Storage* storage = (Storage*) ptr;
 
-  REQUIRE_VARIABLE(project, Variable::POINTER);
+  REQUIRE_VARIABLE("project", Variable::POINTER, storage);
 
   Project* project = (Project*) storage->variables["project"]->as_pointer();
 
-  std::string filepath = *args.at(0)->as_string();
-  std::string compiler = *args.at(1)->as_string();
-  me::File build_dir = *args.at(2)->as_string();
+  me::File file = *args.at(0)->as_string();
+  GNUMake::Options options;
 
-  std::vector<std::string*> flags;
-  std::vector<std::string*> sources;
-  std::vector<std::string*> headers;
+  if (args.size() > 0)
+  {
+    Variable::v_struct* st = args.at(1)->as_struct();
 
-  APPEND_STRINGS(args.at(3), flags, storage);
-  APPEND_STRINGS(args.at(4), sources, storage);
-  APPEND_STRINGS(args.at(5), headers, storage);
+    try {
+      ERROR_CHECK_STRUCT(*st, struct_makefile);
+    }catch (const Exception<int> &e)
+    {
+      throw Exception(1, e.get_err(), e.get_args());
+    }
 
-  GNUMake_config(filepath, compiler, build_dir, flags, sources, headers, project);
+    for (auto &[key, value] : *st)
+    {
+      if (key.compare("comments") == 0)
+	options.comments = *value->as_integer() > 0;
+    }
+  }
+
+  GNUMake makefile(project->name, &project->config, options);
+
+  std::string makefile_data;
+  makefile_data.reserve(4096);
+
+  try {
+    makefile.generate(makefile_data);
+  }catch (const Exception<std::string> &e)
+  {
+    throw Exception(-1, EMAKEFILE, { e.get_location().c_str() });
+  }
+
+  makeit::writeFile(file, makefile_data.data(), makefile_data.size());
   return 1;
 }

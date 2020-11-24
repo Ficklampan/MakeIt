@@ -1,17 +1,17 @@
 #include "../Functions.hpp"
-
 #include "../FuncUtils.hpp"
+
 #include "../../Project.hpp"
 
-makeit::Function* makeit::function::make_library()
+makeit::Function* makeit::function::make_flags()
 {
   return new Function(1,
       new uint16_t[1]{
-      1 | (Variable::STRING << 2) | (Variable::LIST << 6)
-      }, exec_library);
+      0 | (Variable::LIST << 2)
+      }, exec_flags);
 }
 
-int makeit::function::exec_library(void* ptr, std::vector<Variable*> &args, char* &info)
+int makeit::function::exec_flags(void* ptr, std::vector<Variable*> &args, char* &info)
 {
   Storage* storage = (Storage*) ptr;
 
@@ -19,8 +19,7 @@ int makeit::function::exec_library(void* ptr, std::vector<Variable*> &args, char
 
   Project* project = (Project*) storage->variables["project"]->as_pointer();
 
-  for (Variable* v : args)
-    GET_STRINGS(v, project->config.libraries);
+  GET_STRINGS(args.at(0), project->config.flags);
 
   return 1;
 }

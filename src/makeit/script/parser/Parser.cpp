@@ -73,13 +73,12 @@ static inline int PARSER_FIX_VARIABLE(makeit::Token* token, makeit::Variable* &v
   /* get the Variable from reference */
   if (variable->type == makeit::Variable::REFERENCE)
   {
-    std::string* ref_name = variable->as_reference();
+    const std::string* ref_name = variable->as_reference();
     variable = storage->variables[*ref_name];
 
     if (variable == nullptr)
     {
-      printError(token->location, makeit::Eundefined_variable, ref_name->c_str());
-      return 0;
+      throw makeit::Exception(token->location, makeit::EUNDEFINED_VARIABLE, { ref_name->c_str() });
     }
   }
 
@@ -142,7 +141,7 @@ int makeit::Parser::parse_token(Token* token, me::BasicIterator<Token*> &tokens,
       return 0;
   }else if (!get_bit_flag(flags, NO_WARNING))
   {
-    printWarning(token->location, Wwild_token);
+    print_warning(token->location, get_warning(WWILD_TOKEN));
   }
   return 1;
 }
@@ -172,13 +171,12 @@ int makeit::Parser::get_variable(Token* token, me::BasicIterator<Token*> &tokens
   else if (token->type == Token::WILDCARD)
   {
     bool found = storage->variables[token->value.w->value] != nullptr;
-    variable = new Variable(Variable::INTEGER, new int(found));
+    variable = new Variable(&token->location, Variable::INTEGER, new int(found));
   }
 
   if (variable == nullptr && !get_bit_flag(flags, NO_ERROR))
   {
-    printError(token->location, Eexpected_value);
-    return 0;
+    throw Exception(token->location, EEXPECTED_VALUE, { });
   }else if (variable != nullptr)
   {
     if (!PARSER_FIX_VARIABLE(token, variable, storage))

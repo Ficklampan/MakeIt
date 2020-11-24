@@ -1,5 +1,7 @@
 #include "Variable.hpp"
 
+#include "../Config.hpp"
+
 bool makeit::Variable::operator==(makeit::Variable* v)
 {
   if (type == INTEGER)
@@ -91,28 +93,3 @@ const char* makeit::Variable::type_name(Type type)
   return "";
 }
 
-int makeit::util::variable_check_struct(Variable* var, const std::map<std::string, Variable::Type> &expected, char* &info)
-{
-  Variable::v_struct &st = *var->as_struct();
-
-  for (auto &[key, value] : expected)
-  {
-    Variable* v = st[key];
-    if (v == nullptr)
-    {
-      info = new char[32 + key.size()];
-      sprintf(info, "member '%s' not found in struct", key.c_str());
-      return 0;
-    }
-    
-    /* [Error] type not match */
-    if (value != Variable::VOID && v->type != value)
-    {
-      info = new char[64];
-      sprintf(info, "expected type '%s' but found type '%s'", Variable::type_name(value), Variable::type_name(v->type));
-      return 0;
-    }
-  }
-
-  return 1;
-}

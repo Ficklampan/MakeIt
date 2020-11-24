@@ -12,7 +12,7 @@ makeit::Function* makeit::function::make_source()
 {
   return new Function(1,
       new uint16_t[1]{
-      1 | (Variable::STRING << 1) | (Variable::LIST << 5)
+      1 | (Variable::STRING << 2) | (Variable::LIST << 6)
       }, exec_source);
 }
 
@@ -24,7 +24,7 @@ int makeit::function::exec_source(void* ptr, std::vector<Variable*> &args, char*
     info = new char[32 + PATH_MAX]; \
     sprintf(info, "file not found '%s'", file.getPath().c_str()); \
     return 0; \
-  }else if (!readScript(&file, (makeit::Storage*) ptr)) \
+  }else if (!read_script(&file, (makeit::Storage*) ptr)) \
     return 0; \
 }
 

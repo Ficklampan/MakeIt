@@ -1,4 +1,9 @@
-project: "MakeIt" "Latest" "C++"
+project: {
+  name "MakeIt"
+  lang "C++"
+  cc "g++"
+  build "build"
+}
 
 LOCALEDIR = "/usr/share/locale"
 PACKAGE = "makeit"
@@ -19,15 +24,8 @@ define: [
   { name "PACKAGE" value $PACKAGE }
 ]
 
-# default mode
-if !?debug then
-  debug = ""
-end
-
-if ?debug then
-  define: [ "DEBUG" ]
-else if ?release then
-  define: [ "NDEBUG" "RELEASE" ]
-end
-
-makefile: "Makefile2" "g++" "$(DIR)/build" [ "-std=c++17" "-g" ] $sources $headers
+flags: [ "-std=c++17" ]
+files: $sources
+makefile: "Makefile" {
+  comments true
+}

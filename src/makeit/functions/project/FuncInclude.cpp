@@ -7,7 +7,7 @@ makeit::Function* makeit::function::make_include()
 {
   return new Function(1,
       new uint16_t[1]{
-      1 | (Variable::STRING << 1) | (Variable::LIST << 5)
+      1 | (Variable::STRING << 2) | (Variable::LIST << 6)
       }, exec_include);
 }
 
@@ -15,11 +15,11 @@ int makeit::function::exec_include(void* ptr, std::vector<Variable*> &args, char
 {
   makeit::Storage* storage = (makeit::Storage*) ptr;
 
-  REQUIRE_VARIABLE(project, makeit::Variable::POINTER);
+  REQUIRE_VARIABLE("project", makeit::Variable::POINTER, storage);
 
   Project* project = (Project*) storage->variables["project"]->as_pointer();
 
   for (Variable* v : args)
-    APPEND_STRINGS(v, project->includes, storage);
+    GET_STRINGS(v, project->config.includes);
   return 1;
 }
