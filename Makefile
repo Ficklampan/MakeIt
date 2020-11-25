@@ -4,9 +4,9 @@ BUILD = build
 
 FLAGS = -std=c++17
 
-LIBS = -lme
+LIBS = 
 INCS = 
-LPATHS = -L./external/melib
+LPATHS = 
 IPATHS = -I./external/melib/include -I./src/util
 
 DEFS = -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"makeit\"
@@ -46,7 +46,8 @@ SOURCES = ./src/makeit/MakeIt.cpp \
 	./src/makeit/configs/GNUMake.cpp \
 	./src/makeit/configs/YCM.cpp \
 	./src/util/Common.cpp \
-	./src/util/Util.cpp
+	./src/util/Util.cpp \
+	./external/melib/src/file.cpp
 
 OBJECTS = $(SOURCES:%=$(BUILD)/%.o)
 DEPENDS = $(OBJECTS:%.o=%.d)

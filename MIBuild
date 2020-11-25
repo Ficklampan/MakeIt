@@ -14,10 +14,10 @@ headers = []
 source: "$(DIR)/src/makeit/MIConfig"
 source: "$(DIR)/src/util/MIConfig"
 
+source: "$(DIR)/external/melib/MIBuild"
+
 search: "$(DIR)/src" "*.hpp" true $headers
 
-library: [ "me" ]
-library_path: [ "$(DIR)/external/melib" ]
 include_path: [ "$(DIR)/external/melib/include" "$(DIR)/src/util" ]
 define: [
   { name "LOCALEDIR" value $LOCALEDIR }

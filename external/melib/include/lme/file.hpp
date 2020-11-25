@@ -33,6 +33,8 @@ namespace me {
     const std::string directoryPath() const;
     const std::string canonicalPath() const;
 
+    int parentPath(std::string &path) const;
+
     int mkdir() const;
     int mkdirs() const;
     int mkfile() const;
@@ -40,6 +42,7 @@ namespace me {
     bool exists() const;
     bool isFile() const;
     bool isAbsolutePath() const;
+    bool isRelativePath() const;
     bool isDirectory() const;
 
     const std::string& getPath() const;
