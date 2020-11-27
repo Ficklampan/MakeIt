@@ -79,7 +79,7 @@ static inline int GET_BOOLEAN(me::BasicIterator<makeit::Token*> &tokens, makeit:
   /* [Error] expected expression */
   if (i == 0)
   {
-    throw makeit::Exception(token == nullptr ? tokens.last()->location : token->location, makeit::EEXPECTED_EXPRESSION, { });
+    throw makeit::Exception(token == nullptr ? &tokens.last()->location : &token->location, makeit::EEXPECTED_EXPRESSION, { });
   }
 
 #undef SET_OUT
@@ -140,7 +140,7 @@ int makeit::Parser::parse_statement(Token* token, me::BasicIterator<Token*> &tok
   /* [Error] expected token */
   if (token == nullptr || token->type != Token::THEN)
   {
-    throw Exception(tokens.last()->location, EEXPECTED_TOKEN, { Token::type_name(Token::THEN) });
+    throw Exception(&tokens.last()->location, EEXPECTED_TOKEN, { Token::type_name(Token::THEN) });
   }
 
   /* execute stuff under the if statement */

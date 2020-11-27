@@ -33,28 +33,6 @@ namespace makeit { namespace function {
     return 0;
   }
 
-
-  static inline int ERROR_CHECK_STRUCT(Variable::v_struct &provided, std::map<std::string, uint16_t> &expected)
-  {
-    for (auto &[key, value] : expected)
-    {
-      Variable* var = provided.find(key) == provided.end() ? nullptr : provided[key];
-      bool opt = (value & Variable::OPTIONAL) > 0;
-      if (var == nullptr)
-      {
-        if (opt)
-  	continue;
-        return -2;
-      }
-  
-      Variable::Type type = (Variable::Type) ((value >> 2) & 0xF);
-  
-      if (type != Variable::VOID && type != var->type)
-        throw Exception(0, EEXPECTED_TYPE_AT_MEMBER, { Variable::type_name(type), key.c_str(), Variable::type_name(var->type) });
-    }
-    return 0;
-  }
-
   static inline int REQUIRE_VARIABLE(const std::string &name, const Variable::Type type, Storage* storage)
   {
     Variable* var = storage->variables[name];

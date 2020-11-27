@@ -6,21 +6,21 @@
 
 namespace makeit { namespace function {
 
-  int exec_print(void* ptr, std::vector<Variable*> &args, char* &info);
-  int exec_system(void* ptr, std::vector<Variable*> &args, char* &info);
-  int exec_search(void* ptr, std::vector<Variable*> &args, char* &info);
+  int exec_print(void* ptr, std::vector<Variable*> &args);
+  int exec_system(void* ptr, std::vector<Variable*> &args);
+  int exec_search(void* ptr, std::vector<Variable*> &args);
 
-  int exec_project(void* ptr, std::vector<Variable*> &args, char* &info);
-  int exec_library(void* ptr, std::vector<Variable*> &args, char* &info);
-  int exec_library_path(void* ptr, std::vector<Variable*> &args, char* &info);
-  int exec_include(void* ptr, std::vector<Variable*> &args, char* &info);
-  int exec_include_path(void* ptr, std::vector<Variable*> &args, char* &info);
-  int exec_define(void* ptr, std::vector<Variable*> &args, char* &info);
-  int exec_flags(void* ptr, std::vector<Variable*> &args, char* &info);
-  int exec_source(void* ptr, std::vector<Variable*> &args, char* &info);
-  int exec_files(void* ptr, std::vector<Variable*> &args, char* &info);
-  int exec_makefile(void* ptr, std::vector<Variable*> &args, char* &info);
-  int exec_ycm(void* ptr, std::vector<Variable*> &args, char* &info);
+  int exec_project(void* ptr, std::vector<Variable*> &args);
+  int exec_library(void* ptr, std::vector<Variable*> &args);
+  int exec_library_path(void* ptr, std::vector<Variable*> &args);
+  int exec_include(void* ptr, std::vector<Variable*> &args);
+  int exec_include_path(void* ptr, std::vector<Variable*> &args);
+  int exec_define(void* ptr, std::vector<Variable*> &args);
+  int exec_flags(void* ptr, std::vector<Variable*> &args);
+  int exec_source(void* ptr, std::vector<Variable*> &args);
+  int exec_files(void* ptr, std::vector<Variable*> &args);
+  int exec_makefile(void* ptr, std::vector<Variable*> &args);
+  int exec_ycm(void* ptr, std::vector<Variable*> &args);
 
   void usage(const std::string &func);
 

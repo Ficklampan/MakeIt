@@ -44,5 +44,12 @@ const char* makeit::Exception<L>::get_message() const
     msg[pos++] = *(raw++);
   }
 
+  msg[pos] = '\0';
   return msg;
+}
+
+template<typename L>
+const char* makeit::Exception<L>::what() const throw()
+{
+  return get_message();
 }

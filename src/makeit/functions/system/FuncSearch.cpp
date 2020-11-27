@@ -9,15 +9,15 @@
 
 makeit::Function* makeit::function::make_search()
 {
-  return new Function(4,
-      new uint16_t[4]{
-      0 | (Variable::STRING << 2) | (Variable::LIST << 6),
-      0 | (Variable::STRING << 2) | (Variable::LIST << 6),
-      0 | (Variable::INTEGER << 2),
-      0 | (Variable::LIST << 2)
+  return new Function({
+      new Argument(Variable::LIST),
+      new Argument(Variable::LIST),
+      new Argument(Variable::INTEGER),
+      new Argument(Variable::REFERENCE)
       }, exec_search);
 }
-int makeit::function::exec_search(void* ptr, std::vector<Variable*> &args, char* &info)
+
+int makeit::function::exec_search(void* ptr, std::vector<Variable*> &args)
 {
   Storage* storage = (Storage*) ptr;
 
@@ -37,9 +37,7 @@ int makeit::function::exec_search(void* ptr, std::vector<Variable*> &args, char*
     me::File file(loc);
     if (!file.exists() || !file.isDirectory())
     {
-      info = new char[PATH_MAX + 32];
-      sprintf(info, "directory not found '%s'", file.getPath().c_str());
-      return 0;
+      throw Exception(0, EDIR_NOT_FOUND, { file.getPath().c_str() });
     }
 
     std::function<int(me::File&)> callback = [storage, output, patterns](me::File& file) -> int {

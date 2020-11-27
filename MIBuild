@@ -9,17 +9,14 @@ LOCALEDIR = "/usr/share/locale"
 PACKAGE = "makeit"
 
 sources = []
-headers = []
 
 source: "$(DIR)/src/makeit/MIConfig"
 source: "$(DIR)/src/util/MIConfig"
 
 source: "$(DIR)/external/melib/MIBuild"
 
-search: "$(DIR)/src" "*.hpp" true $headers
-
 include_path: [ "$(DIR)/external/melib/include" "$(DIR)/src/util" ]
-define: [
+define: "hi" [
   { name "LOCALEDIR" value $LOCALEDIR }
   { name "PACKAGE" value $PACKAGE }
 ]
@@ -27,9 +24,6 @@ define: [
 flags: [ "-std=c++17" ]
 files: $sources
 makefile: "Makefile2" {
-  type "comment"
   pos -1 # top of the file
-  value {
-    lines [ "Copyright something" ]
-  }
+  lines [ "# Copyright something" ]
 }

@@ -26,7 +26,7 @@ int makeit::read_script(me::File* file, Storage* storage)
   MIDEBUG(1, "making tokens\n");
   try {
     Lexer::tokenize_tokens(file, source, tokens, storage, 0);
-  }catch (const Exception<TokenLocation> &e)
+  }catch (const Exception<TokenLocation*> &e)
   {
     print_error(e.get_location(), e.get_message());
   }
@@ -38,7 +38,7 @@ int makeit::read_script(me::File* file, Storage* storage)
   MIDEBUG(1, "parsing tokens[%lu]\n", tokens.size());
   try {
     Parser::parse_tokens(token_iter, storage, 0);
-  }catch (const Exception<TokenLocation> &e)
+  }catch (const Exception<TokenLocation*> &e)
   {
     print_error(e.get_location(), e.get_message());
   };
@@ -69,18 +69,20 @@ static inline void printLocation(const makeit::TokenLocation &loc)
   printf("%s[%u:%u]: '%s'\n", loc.file->getPath().c_str(), loc.line, loc.column, line.c_str());
 }
 
-void makeit::print_error(const TokenLocation &loc, const char* format, ...)
+void makeit::print_error(const TokenLocation* loc, const char* format, ...)
 {
-  printLocation(loc);
+  if (loc != nullptr)
+    printLocation(*loc);
   va_list args;
   va_start(args, format);
   error(format, args);
   va_end(args);
 }
 
-void makeit::print_warning(const TokenLocation &loc, const char* format, ...)
+void makeit::print_warning(const TokenLocation* loc, const char* format, ...)
 {
-  printLocation(loc);
+  if (loc != nullptr)
+    printLocation(*loc);
   va_list args;
   va_start(args, format);
   warning(format, args);

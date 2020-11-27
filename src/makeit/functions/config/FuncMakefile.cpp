@@ -11,14 +11,17 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
 
 makeit::Function* makeit::function::make_makefile()
 {
-  return new Function(2,
-      new uint16_t[2]{
-      0 | (Variable::STRING << 2),
-      Variable::OPTIONAL | (Variable::STRUCT << 2)
+  return new Function(
+      {
+      new Argument(Variable::STRING),
+      new StructArg({
+	  StructArg::Arg("pos", false, new Argument(Variable::INTEGER)),
+	  StructArg::Arg("lines", true, new ListArg(new Argument(Variable::STRING)))
+	  }, Argument::ENDLESS)
       }, exec_makefile);
 }
 
-int makeit::function::exec_makefile(void* ptr, std::vector<Variable*> &args, char* &info)
+int makeit::function::exec_makefile(void* ptr, std::vector<Variable*> &args)
 {
   Storage* storage = (Storage*) ptr;
 
@@ -32,16 +35,13 @@ int makeit::function::exec_makefile(void* ptr, std::vector<Variable*> &args, cha
   for (uint32_t i = 1; i < args.size(); i++)
   {
     Variable::v_struct &st = *args.at(i)->as_struct();
-    const std::string &st_type = *st["type"]->as_string();
-    Variable::v_struct &st_value = *st["value"]->as_struct();
+
+    Variable* st_value = st["lines"];
     int pos = st.find("pos") == st.end() ? -2 : *st["pos"]->as_integer();
 
-    if (st_type.compare("comment") == 0)
-    {
-      std::vector<std::string> lines;
-      GET_STRINGS(st_value["lines"], lines);
-      elements.push_back(new gnu_make::Text(lines, true, pos));
-    }
+    std::vector<std::string> lines;
+    GET_STRINGS(st_value, lines);
+    elements.push_back(new gnu_make::Text(lines, false, pos));
   }
 
   gnu_make::Makefile makefile;

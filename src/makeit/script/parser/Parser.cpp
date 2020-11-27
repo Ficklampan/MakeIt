@@ -78,7 +78,7 @@ static inline int PARSER_FIX_VARIABLE(makeit::Token* token, makeit::Variable* &v
 
     if (variable == nullptr)
     {
-      throw makeit::Exception(token->location, makeit::EUNDEFINED_VARIABLE, { ref_name->c_str() });
+      throw makeit::Exception(&token->location, makeit::EUNDEFINED_VARIABLE, { ref_name->c_str() });
     }
   }
 
@@ -141,7 +141,7 @@ int makeit::Parser::parse_token(Token* token, me::BasicIterator<Token*> &tokens,
       return 0;
   }else if (!get_bit_flag(flags, NO_WARNING))
   {
-    print_warning(token->location, get_warning(WWILD_TOKEN));
+    print_warning(&token->location, get_warning(WWILD_TOKEN));
   }
   return 1;
 }
@@ -176,7 +176,7 @@ int makeit::Parser::get_variable(Token* token, me::BasicIterator<Token*> &tokens
 
   if (variable == nullptr && !get_bit_flag(flags, NO_ERROR))
   {
-    throw Exception(token->location, EEXPECTED_VALUE, { });
+    throw Exception(&token->location, EEXPECTED_VALUE, { });
   }else if (variable != nullptr)
   {
     if (!PARSER_FIX_VARIABLE(token, variable, storage))

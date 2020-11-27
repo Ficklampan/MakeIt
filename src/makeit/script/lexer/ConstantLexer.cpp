@@ -65,7 +65,7 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
       /* [Error] expected constant */
       if (token->type != Token::CONSTANT)
       {
-	throw Exception(token->location, EEXPECTED_CONSTANT, { });
+	throw Exception(&token->location, EEXPECTED_CONSTANT, { });
       }
 
       elements->push_back(token->value.c);
@@ -107,7 +107,7 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
 
       if (token->type != expect)
       {
-	throw Exception(token->location, EEXPECTED_TOKEN_TYPE, { Token::type_name(expect), Token::type_name(token->type) });
+	throw Exception(&token->location, EEXPECTED_TOKEN_TYPE, { Token::type_name(expect), Token::type_name(token->type) });
       }
 
       if (token->type == Token::LITERIAL)

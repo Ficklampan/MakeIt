@@ -11,22 +11,12 @@ namespace makeit {
 
   public:
 
-    /*
-     * [0]: endless
-     * [1]: optional
-     * [2 - 5]: type1
-     * [6 - 9]: type2
-     * [10 - 13]: type3
-     */
-    uint8_t argc;
-    uint16_t* argv;
+    const std::vector<Argument*> args;
+    int (*exec) (void*, std::vector<Variable*>&);
 
-    int (*exec) (void*, std::vector<Variable*>&, char*&);
-
-    Function(uint8_t argc, uint16_t* argv, int (*exec) (void*, std::vector<Variable*>&, char*&))
+    Function(const std::vector<Argument*> &args, int (*exec) (void*, std::vector<Variable*>&))
+      : args(args)
     {
-      this->argc = argc;
-      this->argv = argv;
       this->exec = exec;
     }
 

@@ -8,8 +8,8 @@ namespace makeit {
 
   int read_script(me::File* file, Storage* storage);
 
-  void print_error(const TokenLocation &loc, const char* format, ...);
-  void print_warning(const TokenLocation &loc, const char* format, ...);
+  void print_error(const TokenLocation* loc, const char* format, ...);
+  void print_warning(const TokenLocation* loc, const char* format, ...);
 
 
 

@@ -5,13 +5,12 @@
 
 makeit::Function* makeit::function::make_flags()
 {
-  return new Function(1,
-      new uint16_t[1]{
-      0 | (Variable::LIST << 2)
+  return new Function({
+      new ListArg(new Argument(Variable::STRING))
       }, exec_flags);
 }
 
-int makeit::function::exec_flags(void* ptr, std::vector<Variable*> &args, char* &info)
+int makeit::function::exec_flags(void* ptr, std::vector<Variable*> &args)
 {
   Storage* storage = (Storage*) ptr;
 

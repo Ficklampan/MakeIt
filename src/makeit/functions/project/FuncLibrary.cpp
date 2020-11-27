@@ -5,13 +5,12 @@
 
 makeit::Function* makeit::function::make_library()
 {
-  return new Function(1,
-      new uint16_t[1]{
-      1 | (Variable::STRING << 2) | (Variable::LIST << 6)
+  return new Function({
+      new ListArg(new Argument(Variable::STRING))
       }, exec_library);
 }
 
-int makeit::function::exec_library(void* ptr, std::vector<Variable*> &args, char* &info)
+int makeit::function::exec_library(void* ptr, std::vector<Variable*> &args)
 {
   Storage* storage = (Storage*) ptr;
 

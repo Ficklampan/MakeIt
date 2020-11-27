@@ -93,3 +93,60 @@ const char* makeit::Variable::type_name(Type type)
   return "";
 }
 
+void makeit::Argument::match(Variable* var) const
+{
+  if (type == Variable::VOID)
+    return;
+  if (var->type != type)
+    throw Exception<TokenLocation*>(var->location, EEXPECTED_VALUE_TYPE, { Variable::type_name(type), Variable::type_name(var->type) });
+}
+
+void makeit::StructArg::match(Variable* var) const
+{
+  try {
+    Argument::match(var);
+  }catch (const Exception<TokenLocation> &e)
+  {
+    throw e;
+  }
+
+  Variable::v_struct &st = *var->as_struct();
+
+  for (const Arg arg : args)
+  {
+    bool found = st.find(arg.name) != st.end();
+    if (arg.required && !found)
+      throw Exception<TokenLocation*>(var->location, EEXPECTED_MEMBER, { arg.name.c_str() });
+    else if (!found)
+      continue;
+
+    try {
+      arg.arg->match(st[arg.name]);
+    }catch (const Exception<TokenLocation> &e)
+    {
+      throw e;
+    }
+  }
+}
+
+void makeit::ListArg::match(Variable* var) const
+{
+  try {
+    Argument::match(var);
+  }catch (const Exception<TokenLocation> &e)
+  {
+    throw e;
+  }
+
+  Variable::v_list &list = *var->as_list();
+
+  for (Variable* var2 : list)
+  {
+    try {
+      arg_type->match(var2);
+    }catch (const Exception<TokenLocation> &e)
+    {
+      throw e;
+    }
+  }
+}

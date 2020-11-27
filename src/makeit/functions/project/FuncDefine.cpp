@@ -5,20 +5,17 @@
 
 #include "Util.hpp"
 
-static std::map<std::string, uint16_t> struct_define;
-
 makeit::Function* makeit::function::make_define()
 {
-  struct_define["name"] = 0 | (Variable::STRING << 2);
-  struct_define["value"] = 0 | (Variable::VOID << 2);
-
-  return new Function(1, 
-      new uint16_t[1]{
-      1 | (Variable::STRING << 2) | (Variable::LIST << 6) | (Variable::STRUCT << 10)
-    }, exec_define);
+  return new Function({
+      new ListArg(new StructArg({
+	    StructArg::Arg("name", true, new Argument(Variable::STRING)),
+	    StructArg::Arg("value", false, new Argument(Variable::VOID))
+	    }), Argument::ENDLESS)
+      }, exec_define);
 }
 
-int makeit::function::exec_define(void* ptr, std::vector<Variable*> &args, char* &info)
+int makeit::function::exec_define(void* ptr, std::vector<Variable*> &args)
 {
   makeit::Storage* storage = (makeit::Storage*) ptr;
 
@@ -29,7 +26,7 @@ int makeit::function::exec_define(void* ptr, std::vector<Variable*> &args, char*
   for (uint32_t i = 0; i < args.size(); i++)
   {
     Variable* v = args.at(i);
-    LOOP_VARIABLES(v, [i, project, &info](Variable* variable) -> int {
+    LOOP_VARIABLES(v, [i, project](Variable* variable) -> int {
 
 	if (variable->type == Variable::STRUCT)
 	{

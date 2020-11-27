@@ -38,7 +38,7 @@ int makeit::Parser::parse_literial(Token* token, me::BasicIterator<Token*> &toke
     /* [Error] undefined variable */
     if (variable_a == nullptr)
     {
-      throw Exception(token->location, EUNDEFINED_VARIABLE, { name->c_str() });
+      throw Exception(&token->location, EUNDEFINED_VARIABLE, { name->c_str() });
     }else if (p == Token::PLUS_EQUAL)
       (*variable_a) += variable_b;
   }

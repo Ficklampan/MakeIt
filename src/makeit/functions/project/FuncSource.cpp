@@ -10,26 +10,24 @@
 
 makeit::Function* makeit::function::make_source()
 {
-  return new Function(1,
-      new uint16_t[1]{
-      1 | (Variable::STRING << 2) | (Variable::LIST << 6)
+  return new Function({
+      new Argument(Variable::STRING, Argument::ENDLESS)
       }, exec_source);
 }
 
-int makeit::function::exec_source(void* ptr, std::vector<Variable*> &args, char* &info)
+int makeit::function::exec_source(void* ptr, std::vector<Variable*> &args)
 {
 #define PROJECT_READ_SCRIPT() { \
   if (!file.exists()) \
   { \
-    info = new char[32 + PATH_MAX]; \
-    sprintf(info, "file not found '%s'", file.getPath().c_str()); \
-    return 0; \
+    throw Exception((int) i, EFILE_NOT_FOUND, { file.getPath().c_str() }); \
   }else if (!read_script(&file, (makeit::Storage*) ptr)) \
-    return 0; \
+    throw Exception((int) i, EFAILED_TO_READ_FILE, { file.getPath().c_str() }); \
 }
 
-  for (Variable* v : args)
+  for (uint32_t i = 0; i < args.size(); i++)
   {
+    Variable* v = args.at(i);
     if (v->type == Variable::LIST)
     {
       for (Variable* v2 : *v->as_list())

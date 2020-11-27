@@ -38,6 +38,8 @@ namespace makeit {
     const std::vector<ExceptionArg>& get_args() const;
     const char* get_message() const;
 
+    const char* what() const throw();
+
   };
 
 }

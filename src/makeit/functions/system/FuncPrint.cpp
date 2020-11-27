@@ -12,13 +12,12 @@ static inline void print(makeit::Variable* variable, makeit::Storage* storage)
 
 makeit::Function* makeit::function::make_print()
 {
-  return new Function(1,
-      new uint16_t[1]{
-      1 | (Variable::STRING << 2) | (Variable::LIST << 6)
+  return new Function({
+      new Argument(Variable::STRING, Argument::ENDLESS)
       }, exec_print);
 }
 
-int makeit::function::exec_print(void* ptr, std::vector<Variable*> &args, char* &info)
+int makeit::function::exec_print(void* ptr, std::vector<Variable*> &args)
 {
   Storage* storage = (Storage*) ptr;
 
