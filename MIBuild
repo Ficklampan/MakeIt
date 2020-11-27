@@ -26,6 +26,10 @@ define: [
 
 flags: [ "-std=c++17" ]
 files: $sources
-makefile: "Makefile" {
-  comments true
+makefile: "Makefile2" {
+  type "comment"
+  pos -1 # top of the file
+  value {
+    lines [ "Copyright something" ]
+  }
 }

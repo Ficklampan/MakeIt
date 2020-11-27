@@ -28,7 +28,7 @@ int makeit::read_script(me::File* file, Storage* storage)
     Lexer::tokenize_tokens(file, source, tokens, storage, 0);
   }catch (const Exception<TokenLocation> &e)
   {
-    print_error(e.get_location(), e.what());
+    print_error(e.get_location(), e.get_message());
   }
 
   storage->scripts.push_back(*file);
@@ -40,7 +40,7 @@ int makeit::read_script(me::File* file, Storage* storage)
     Parser::parse_tokens(token_iter, storage, 0);
   }catch (const Exception<TokenLocation> &e)
   {
-    print_error(e.get_location(), e.what());
+    print_error(e.get_location(), e.get_message());
   };
   return 1;
 }

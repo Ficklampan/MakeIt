@@ -46,7 +46,7 @@ int makeit::Lexer::tokenize_token(me::Iterator<char> &source, TokenLocation &loc
     return 1;
 
   /* Token::CONSTANT */
-  }else if (c == '"' || LEXER_IS_DIGIT(c) || c == '[' || c == '{' || c == '$')
+  }else if (c == '"' || (LEXER_IS_DIGIT(c) || (c == '-' && LEXER_IS_DIGIT(source.peek()))) || c == '[' || c == '{' || c == '$')
   {
     if (!tokenize_constant(c, source, location, token, storage, flags))
       return 0;
@@ -91,9 +91,6 @@ int makeit::Lexer::tokenize_token(me::Iterator<char> &source, TokenLocation &loc
         break;
       }
     }
-
-    if (comment)
-      token = new Token(Token::BREAK, nullptr, TokenLocation(location));
     return 1;
 
   /* Error */

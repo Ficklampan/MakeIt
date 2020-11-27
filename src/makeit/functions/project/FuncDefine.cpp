@@ -35,25 +35,18 @@ int makeit::function::exec_define(void* ptr, std::vector<Variable*> &args, char*
 	{
 	  Variable::v_struct &st = *variable->as_struct();
 
-	  try {
-	    ERROR_CHECK_STRUCT(st, struct_define);
-	  }catch (const Exception<int> &e)
-	  {
-	    throw Exception(i, e.get_err(), e.get_args());
-	  }
-
 	  Variable* name = st["name"];
 	  Variable* value = st["value"];
 
 	  if (value->type == Variable::STRING)
 	  {
-	    std::string* str = project->config.definitions[*name->as_string()] = new std::string("\\\"" + *value->as_string() + "\\\"");
-	    makeit::string_replace(*str, " ", "\\ ");
+	    std::string str = project->config.definitions[*name->as_string()] = std::string("\\\"" + *value->as_string() + "\\\"");
+	    makeit::string_replace(str, " ", "\\ ");
 	  }
 
 	}else if (variable->type == Variable::STRING)
 	{
-	  project->config.definitions[*variable->as_string()] = nullptr;
+	  project->config.definitions[*variable->as_string()] = "";
 	}
 
 	return 1;

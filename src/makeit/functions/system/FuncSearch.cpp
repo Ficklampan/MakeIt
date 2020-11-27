@@ -21,8 +21,8 @@ int makeit::function::exec_search(void* ptr, std::vector<Variable*> &args, char*
 {
   Storage* storage = (Storage*) ptr;
 
-  std::vector<std::string*> locations;
-  std::vector<std::string*> patterns;
+  std::vector<std::string> locations;
+  std::vector<std::string> patterns;
 
   GET_STRINGS(args.at(0), locations);
   GET_STRINGS(args.at(1), patterns);
@@ -32,9 +32,9 @@ int makeit::function::exec_search(void* ptr, std::vector<Variable*> &args, char*
   makeit::Variable* output = args.at(3);
   output->as_list()->reserve(32);
 
-  for (std::string* loc : locations)
+  for (const std::string &loc : locations)
   {
-    me::File file(*loc);
+    me::File file(loc);
     if (!file.exists() || !file.isDirectory())
     {
       info = new char[PATH_MAX + 32];
@@ -43,10 +43,10 @@ int makeit::function::exec_search(void* ptr, std::vector<Variable*> &args, char*
     }
 
     std::function<int(me::File&)> callback = [storage, output, patterns](me::File& file) -> int {
-      for (std::string* pattern : patterns)
+      for (const std::string &pattern : patterns)
       {
 	const std::string &file_path = file.getPath();
-	if (fnmatch(pattern->c_str(), file_path.c_str(), 0) == 0)
+	if (fnmatch(pattern.c_str(), file_path.c_str(), 0) == 0)
 	  (*output) += new Variable(nullptr, Variable::STRING, new std::string(file_path));
       }
       return 1;

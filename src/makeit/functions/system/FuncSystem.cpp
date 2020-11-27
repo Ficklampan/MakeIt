@@ -15,13 +15,12 @@ int makeit::function::exec_system(void* ptr, std::vector<Variable*> &args, char*
 {
   makeit::Storage* storage = (makeit::Storage*) ptr;
 
-  std::vector<std::string*> commands;
+  std::vector<std::string> commands;
 
   for (Variable* v : args)
     GET_STRINGS(v, commands);
 
-  for (std::string* cmd : commands)
-    makeit::system(cmd->c_str());
-
+  for (const std::string &cmd : commands)
+    makeit::system(cmd.c_str());
   return 1;
 }

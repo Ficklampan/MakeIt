@@ -20,6 +20,6 @@ int makeit::function::exec_include(void* ptr, std::vector<Variable*> &args, char
   Project* project = (Project*) storage->variables["project"]->as_pointer();
 
   for (Variable* v : args)
-    GET_STRINGS(v, project->config.includes);
+    GET_STRINGS(v, project->config.includes, "-i");
   return 1;
 }

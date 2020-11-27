@@ -23,7 +23,7 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
     return 1;
 
   /* Token::CONSTANT INTEGER */
-  }else if (LEXER_IS_DIGIT(c))
+  }else if (LEXER_IS_DIGIT(c) || c == '-')
   {
     MIDEBUG(2, "[Lexer] > next token is CONSTANT(INTEGER)\n");
 

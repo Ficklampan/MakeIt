@@ -20,7 +20,6 @@ int makeit::function::exec_library(void* ptr, std::vector<Variable*> &args, char
   Project* project = (Project*) storage->variables["project"]->as_pointer();
 
   for (Variable* v : args)
-    GET_STRINGS(v, project->config.libraries);
-
+    GET_STRINGS(v, project->config.libraries, "-l");
   return 1;
 }

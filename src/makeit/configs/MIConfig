@@ -1,1 +1,1 @@
-sources += [ "$(DIR)/GNUMake.cpp" "$(DIR)/YCM.cpp" ]
+sources += [ "$(DIR)/make/Makefile.cpp" "$(DIR)/YCM.cpp" ]
