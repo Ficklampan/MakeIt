@@ -180,6 +180,7 @@ int makeit::init()
   storage->functions["define"] = makeit::function::make_define();
   storage->functions["flags"] = makeit::function::make_flags();
   storage->functions["source"] = makeit::function::make_source();
+  storage->functions["extern"] = makeit::function::make_extern();
   storage->functions["files"] = makeit::function::make_files();
   storage->functions["makefile"] = makeit::function::make_makefile();
   storage->functions["ycm"] = makeit::function::make_YCM();

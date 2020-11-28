@@ -18,6 +18,7 @@ namespace makeit { namespace function {
   int exec_define(void* ptr, std::vector<Variable*> &args);
   int exec_flags(void* ptr, std::vector<Variable*> &args);
   int exec_source(void* ptr, std::vector<Variable*> &args);
+  int exec_extern(void* ptr, std::vector<Variable*> &args);
   int exec_files(void* ptr, std::vector<Variable*> &args);
   int exec_makefile(void* ptr, std::vector<Variable*> &args);
   int exec_ycm(void* ptr, std::vector<Variable*> &args);
@@ -36,6 +37,7 @@ namespace makeit { namespace function {
   makeit::Function* make_define();
   makeit::Function* make_flags();
   makeit::Function* make_source();
+  makeit::Function* make_extern();
   makeit::Function* make_files();
   makeit::Function* make_makefile();
   makeit::Function* make_YCM();

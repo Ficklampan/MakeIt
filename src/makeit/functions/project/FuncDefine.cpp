@@ -31,11 +31,12 @@ int makeit::function::exec_define(void* ptr, std::vector<Variable*> &args)
     Variable* value = st.find("value") == st.end() ? nullptr : st["value"];
 
     if (value == nullptr)
-      project->config.definitions[*name->as_string()] = "";
+      project->config.definitions.push_back(*name->as_string());
     else if (value->type == Variable::STRING)
     {
-      std::string str = project->config.definitions[*name->as_string()] = std::string("\\\"" + *value->as_string() + "\\\"");
-      makeit::string_replace(str, " ", "\\ ");
+      std::string value_str = std::string("\\\"" + *value->as_string() + "\\\"");
+      makeit::string_replace(value_str, " ", "\\ ");
+      project->config.definitions.push_back(*name->as_string() + "=" + value_str);
     }
   }
   return 1;

@@ -17,6 +17,8 @@ static const char* Eexpected_token_type = "expected token type '%s' [-Eexpected_
 static const char* Eexpected_expression = "expected expression [-Eexpected_expression]";
 static const char* Eexpected_identifier = "expected identifier [-Eexpected_identifier]";
 static const char* Eunknown_symbol = "unknown symbol '%c' [-Eunknown_symbol]";
+static const char* Eunknown_config_type = "unknown config type '%s' [-Eunknown_config_type]";
+static const char* Eunknown_build_type = "unknown build type '%s' [-Eunknown_build_type]";
 static const char* Emakefile = "failed to generate Makefile '%s' [-Emakefile]";
 static const char* Efile_not_found = "file not found '%s' [-Efile_not_found]";
 static const char* Efailed_to_read_file = "failed to read file '%s' [-Efailed_to_read_file]";
@@ -46,6 +48,8 @@ const char* makeit::get_error(const Error err)
     case EEXPECTED_EXPRESSION: return Eexpected_expression;
     case EEXPECTED_IDENTIFIER: return Eexpected_identifier;
     case EUNKNOWN_SYMBOL: return Eunknown_symbol;
+    case EUNKNOWN_CONFIG_TYPE: return Eunknown_config_type;
+    case EUNKNOWN_BUILD_TYPE: return Eunknown_build_type;
     case EMAKEFILE: return Emakefile;
     case EFILE_NOT_FOUND: return Efile_not_found;
     case EFAILED_TO_READ_FILE: return Efailed_to_read_file;
@@ -75,6 +79,8 @@ const char* makeit::get_error_id(const Error err)
   ERROR_ID(EEXPECTED_EXPRESSION);
   ERROR_ID(EEXPECTED_IDENTIFIER);
   ERROR_ID(EUNKNOWN_SYMBOL);
+  ERROR_ID(EUNKNOWN_CONFIG_TYPE);
+  ERROR_ID(EUNKNOWN_BUILD_TYPE);
   ERROR_ID(EMAKEFILE);
   ERROR_ID(EFILE_NOT_FOUND);
   ERROR_ID(EFAILED_TO_READ_FILE);

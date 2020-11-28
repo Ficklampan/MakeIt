@@ -78,15 +78,15 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   makefile.put_element(new Variable("IPATHS", project.config.include_paths));
 
   /* definitions */
-  std::vector<std::string> defs;
-  for (auto &[key, value] : project.config.definitions)
+  makefile.put_element(new Variable("DEFS", project.config.definitions));
+
+  /* external configs */
+  std::vector<std::string> extern_configs;
+  for (const makeit::ExternConfig &config : project.config.extern_configs)
   {
-    std::string def = "-D" + key;
-    if (!value.empty())
-      def.append("=").append(value);
-    defs.push_back(def);
+    extern_configs.push_back(config.name);
   }
-  makefile.put_element(new Variable("DEFS", defs));
+  makefile.put_element(new Variable("EXT", extern_configs));
 
   /* empty line */
   makefile.put_element(new Text({""}, false));
@@ -114,9 +114,26 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   makefile.put_element(new Text({""}, false));
 
   /* linking rule */
-  makefile.put_element(new Rule("$(NAME)", "$(OBJECTS)", {
-	Command("@$(CC) -o $@ $^ $(LOPTS)")
+  if (project.config.output_type == makeit::BuildConfig::EXECUTABLE)
+  {
+    makefile.put_element(new Rule("$(NAME)", "$(OBJECTS) $(EXT)", {
+	  Command("@$(CC) -o $@ $^ $(LOPTS)")
+	  }, 0));
+
+  /* static library rule */
+  }else if (project.config.output_type == makeit::BuildConfig::STATIC_LIBRARY)
+  {
+    makefile.put_element(new Rule("$(NAME)", "$(OBJECTS) $(EXT)", {
+	Command("@ar rcs $@.a $^")
 	}, 0));
+
+  /* shared library rule */
+  }else if (project.config.output_type == makeit::BuildConfig::SHARED_LIBRARY)
+  {
+    makefile.put_element(new Rule("$(NAME)", "$(OBJECTS) $(EXT)", {
+	Command("@$(CC) -shared -o $@.so $^")
+	}, 0));
+  }
 
   /* empty line */
   makefile.put_element(new Text({""}, false));
@@ -130,6 +147,27 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
 
   /* empty line */
   makefile.put_element(new Text({""}, false));
+
+  for (const makeit::ExternConfig &config : project.config.extern_configs)
+  {
+    std::string command = "";
+    switch (config.type)
+    {
+      case makeit::ExternConfig::MAKEIT: command = "makeit $(notdir $<)"; break;
+      case makeit::ExternConfig::CMAKE: command = "cmake $(notdir $<)"; break;
+      case makeit::ExternConfig::PREMAKE: command = "premake $(notdir $<)"; break;
+      case makeit::ExternConfig::GNUMAKE: command = "make -f $(notdir $<)"; break;
+      case makeit::ExternConfig::SHELL: command = "shell $(notdir $<)"; break;
+    }
+
+    makefile.put_element(new Rule(config.name, config.target, {
+	  Command("@echo \"\e[97mbuilding external target '$@'\e[0m\""),
+	  Command("{ cd $(dir $<); " + command + (config.args.empty() ? "" : " " + config.args) + "}")
+	  }, 0));
+
+    /* empty line */
+    makefile.put_element(new Text({""}, false));
+  }
 
   /* cleaning rule */
   makefile.put_element(new Rule("clean", "", {

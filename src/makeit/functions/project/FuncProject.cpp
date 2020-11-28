@@ -13,7 +13,8 @@ makeit::Function* makeit::function::make_project()
 	  StructArg::Arg("version", false, new Argument(Variable::STRING)),
 	  StructArg::Arg("lang", false, new Argument(Variable::STRING)),
 	  StructArg::Arg("cc", false, new Argument(Variable::STRING)),
-	  StructArg::Arg("build", false, new Argument(Variable::STRING))
+	  StructArg::Arg("build", false, new Argument(Variable::STRING)),
+	  StructArg::Arg("output", false, new Argument(Variable::STRING))
 	  })
       }, exec_project);
 }
@@ -37,6 +38,18 @@ int makeit::function::exec_project(void* ptr, std::vector<Variable*> &args)
       project->config.cc = *value->as_string();
     else if (key.compare("build") == 0)
       project->config.build = *value->as_string();
+    else if (key.compare("output") == 0)
+    {
+      std::string &type = *value->as_string();
+      if (type.compare("executable") == 0)
+	project->config.output_type = BuildConfig::EXECUTABLE;
+      else if (type.compare("static_library") == 0)
+	project->config.output_type = BuildConfig::STATIC_LIBRARY;
+      else if (type.compare("shared_library") == 0)
+	project->config.output_type = BuildConfig::SHARED_LIBRARY;
+      else
+	throw Exception(value->location, EUNKNOWN_BUILD_TYPE, { type.c_str() });
+    }
   }
 
   storage->variables["project"] = new Variable(nullptr, Variable::POINTER, project);

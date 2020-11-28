@@ -1,1 +1,12 @@
-sources += "$(DIR)/src/file.cpp"
+project: {
+  name "melib"
+  cc "g++"
+  lang "C++"
+  output "static_library"
+}
+
+sources = [ "$(DIR)/src/file.cpp" "$(DIR)/src/util.cpp" ]
+
+flags: [ "-std=c++17" ]
+files: $sources
+makefile: "Makefile"
