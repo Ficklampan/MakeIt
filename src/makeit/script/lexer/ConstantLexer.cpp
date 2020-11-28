@@ -17,7 +17,8 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
 
     std::string* str = new std::string(&source.peek() - length - 1, length);
 
-    token = new Token(Token::CONSTANT, new Variable(&token->location, Variable::STRING, str), TokenLocation(location));
+    token = new Token(Token::CONSTANT, new Variable(nullptr, Variable::STRING, str), TokenLocation(location));
+    token->value.c->location = &token->location;
 
     MIDEBUG(2, "[Lexer] > CONSTANT(STRING) token created\n");
     return 1;
@@ -32,7 +33,8 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
 
     std::string* number = new std::string(&source.peek() - length, length);
 
-    token = new Token(Token::CONSTANT, new Variable(&token->location, Variable::INTEGER, new int(std::stoi(*number))), TokenLocation(location));
+    token = new Token(Token::CONSTANT, new Variable(nullptr, Variable::INTEGER, new int(std::stoi(*number))), TokenLocation(location));
+    token->value.c->location = &token->location;
 
     MIDEBUG(2, "[Lexer] > CONSTANT(INTEGER) token created\n");
     return 1;
@@ -73,7 +75,8 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
 
     MIDEBUG(2, "[Lexer] > [CONSTANT(LIST)] > found %lu elements\n", elements->size());
 
-    token = new Token(Token::CONSTANT, new Variable(&token->location, Variable::LIST, elements), TokenLocation(location));
+    token = new Token(Token::CONSTANT, new Variable(nullptr, Variable::LIST, elements), TokenLocation(location));
+    token->value.c->location = &token->location;
 
     MIDEBUG(2, "[Lexer] > CONSTANT(LIST) token created\n");
     return 1;
@@ -123,7 +126,8 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
 
     MIDEBUG(2, "[Lexer] > [CONSTANT(STRUCT)] > found %lu elements\n", st->size());
    
-    token = new Token(Token::CONSTANT, new Variable(&token->location, Variable::STRUCT, st), TokenLocation(location));
+    token = new Token(Token::CONSTANT, new Variable(nullptr, Variable::STRUCT, st), TokenLocation(location));
+    token->value.c->location = &token->location;
 
     MIDEBUG(2, "[Lexer] > CONSTANT(STRUCT) token created\n");
     return 1;
@@ -138,7 +142,8 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
 
     std::string* ref = new std::string(&source.peek() - length, length);
 
-    token = new Token(Token::CONSTANT, new Variable(&token->location, Variable::REFERENCE, ref), TokenLocation(location));
+    token = new Token(Token::CONSTANT, new Variable(nullptr, Variable::REFERENCE, ref), TokenLocation(location));
+    token->value.c->location = &token->location;
 
     MIDEBUG(2, "[Lexer] > CONSTANT(REFERENCE) token created\n");
     return 1;

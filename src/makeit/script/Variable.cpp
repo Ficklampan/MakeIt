@@ -103,12 +103,7 @@ void makeit::Argument::match(Variable* var) const
 
 void makeit::StructArg::match(Variable* var) const
 {
-  try {
-    Argument::match(var);
-  }catch (const Exception<TokenLocation> &e)
-  {
-    throw e;
-  }
+  Argument::match(var);
 
   Variable::v_struct &st = *var->as_struct();
 
@@ -120,33 +115,20 @@ void makeit::StructArg::match(Variable* var) const
     else if (!found)
       continue;
 
-    try {
-      arg.arg->match(st[arg.name]);
-    }catch (const Exception<TokenLocation> &e)
-    {
-      throw e;
-    }
+    arg.arg->match(st[arg.name]);
   }
 }
 
 void makeit::ListArg::match(Variable* var) const
 {
-  try {
-    Argument::match(var);
-  }catch (const Exception<TokenLocation> &e)
-  {
-    throw e;
-  }
+  Argument::match(var);
 
   Variable::v_list &list = *var->as_list();
 
   for (Variable* var2 : list)
   {
-    try {
-      arg_type->match(var2);
-    }catch (const Exception<TokenLocation> &e)
-    {
-      throw e;
-    }
+    arg_type->match(var2);
   }
 }
+
+#undef VARIABLE_MATCH

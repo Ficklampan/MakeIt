@@ -156,8 +156,7 @@ int makeit::Parser::get_args(me::BasicIterator<Token*> &tokens, Storage* storage
       break;
 
     Variable* variable = nullptr;
-    if (!get_variable(token, tokens, storage, variable, flags))
-      return 0;
+    get_variable(token, tokens, storage, variable, flags);
 
     args.push_back(variable);
   }

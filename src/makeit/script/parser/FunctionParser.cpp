@@ -46,23 +46,13 @@ int makeit::Parser::parse_function(Token* token, me::BasicIterator<Token*> &toke
       throw Exception(&token->location, ETOO_MANY_ARGS, { (uint32_t) func->args.size(), (uint32_t) args.size() });
 
     const Argument* arg = func->args.at(arg_index);
-    try {
-      arg->match(args.at(i));
-    }catch (const Exception<TokenLocation> &e)
-    {
-      throw e;
-    }
+    arg->match(args.at(i));
 
     if (!arg->is_endless())
       arg_index++;
   }
 
   MIDEBUG(2, "[Parser] > calling function '%s'\n", token->value.s->c_str());
-  try {
-    func->exec(storage, args);
-  }catch (const Exception<TokenLocation*> &e)
-  {
-    throw e;
-  }
+  func->exec(storage, args);
   return 1;
 }

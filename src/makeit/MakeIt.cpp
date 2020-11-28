@@ -276,7 +276,7 @@ void makeit::error(const char* format, ...)
   va_start(args, format);
   printf("\e[31m%s: ", _("ERROR"));
   vprintf(format, args);
-  printf("\n\e[0m");
+  printf("\e[0m\n");
   va_end(args);
 }
 
