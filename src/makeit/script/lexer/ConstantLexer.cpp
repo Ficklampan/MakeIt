@@ -6,7 +6,7 @@
 
 extern makeit::Config config;
 
-int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLocation &location, Token* &token, Storage* storage, uint8_t flags)
+int makeit::Lexer::tokenize_constant(char c, Iterator &source, Token* &token, Storage* storage, uint8_t flags)
 {
   if (c == '"')
   {
@@ -15,10 +15,8 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
     uint32_t length = 0;
     LEXER_NEXT_STRING(if (c == '"') { source.next(); break; });
 
-    std::string* str = new std::string(&source.peek() - length - 1, length);
-
-    token = new Token(Token::CONSTANT, new Variable(nullptr, Variable::STRING, str), TokenLocation(location));
-    token->value.c->location = &token->location;
+    LEXER_NEW_TOKEN(Token::CONSTANT, new Variable(nullptr, Variable::STRING, 
+	  new std::string(&source.peek() - length - 1, length)));
 
     MIDEBUG(2, "[Lexer] > CONSTANT(STRING) token created\n");
     return 1;
@@ -31,10 +29,9 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
     uint32_t length = 1;
     LEXER_NEXT_STRING(if (!LEXER_IS_DIGIT(c)) { break; });
 
-    std::string* number = new std::string(&source.peek() - length, length);
+    std::string number(&source.peek() - length, length);
 
-    token = new Token(Token::CONSTANT, new Variable(nullptr, Variable::INTEGER, new int(std::stoi(*number))), TokenLocation(location));
-    token->value.c->location = &token->location;
+    LEXER_NEW_TOKEN(Token::CONSTANT, new Variable(nullptr, Variable::INTEGER, new int(std::stoi(number))));
 
     MIDEBUG(2, "[Lexer] > CONSTANT(INTEGER) token created\n");
     return 1;
@@ -58,25 +55,22 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
       }
 
       Token* token = nullptr;
-      if (!tokenize_token(source, location, token, storage, NO_BREAK | flags))
-	return 0;
+      tokenize_token(source, token, storage, NO_BREAK | flags);
 
       if (token == nullptr)
 	continue;
       
       /* [Error] expected constant */
-      if (token->type != Token::CONSTANT)
+      if ((flags & NO_ERROR) == 0 && token->type != Token::CONSTANT)
       {
 	throw Exception(&token->location, EEXPECTED_CONSTANT, { });
       }
 
-      elements->push_back(token->value.c);
+      if (token->type == Token::CONSTANT)
+	elements->push_back(token->value.c);
     }
 
-    MIDEBUG(2, "[Lexer] > [CONSTANT(LIST)] > found %lu elements\n", elements->size());
-
-    token = new Token(Token::CONSTANT, new Variable(nullptr, Variable::LIST, elements), TokenLocation(location));
-    token->value.c->location = &token->location;
+    LEXER_NEW_TOKEN(Token::CONSTANT, new Variable(nullptr, Variable::LIST, elements));
 
     MIDEBUG(2, "[Lexer] > CONSTANT(LIST) token created\n");
     return 1;
@@ -102,13 +96,12 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
       }
 
       Token* token = nullptr;
-      if (!tokenize_token(source, location, token, storage, NO_BREAK | flags))
-	return 0;
+      tokenize_token(source, token, storage, NO_BREAK | flags);
 
       if (token == nullptr)
 	continue;
 
-      if (token->type != expect)
+      if ((flags & NO_ERROR) == 0 && token->type != expect)
       {
 	throw Exception(&token->location, EEXPECTED_TOKEN_TYPE, { Token::type_name(expect), Token::type_name(token->type) });
       }
@@ -124,10 +117,7 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
       }
     }
 
-    MIDEBUG(2, "[Lexer] > [CONSTANT(STRUCT)] > found %lu elements\n", st->size());
-   
-    token = new Token(Token::CONSTANT, new Variable(nullptr, Variable::STRUCT, st), TokenLocation(location));
-    token->value.c->location = &token->location;
+    LEXER_NEW_TOKEN(Token::CONSTANT, new Variable(nullptr, Variable::STRUCT, st));
 
     MIDEBUG(2, "[Lexer] > CONSTANT(STRUCT) token created\n");
     return 1;
@@ -140,10 +130,7 @@ int makeit::Lexer::tokenize_constant(char c, me::Iterator<char> &source, TokenLo
     uint32_t length = 0;
     LEXER_NEXT_STRING(if (!LEXER_IS_NAME(c)) { break; });
 
-    std::string* ref = new std::string(&source.peek() - length, length);
-
-    token = new Token(Token::CONSTANT, new Variable(nullptr, Variable::REFERENCE, ref), TokenLocation(location));
-    token->value.c->location = &token->location;
+    LEXER_NEW_TOKEN(Token::CONSTANT, new Variable(nullptr, Variable::REFERENCE, new std::string(&source.peek() - length, length)));
 
     MIDEBUG(2, "[Lexer] > CONSTANT(REFERENCE) token created\n");
     return 1;

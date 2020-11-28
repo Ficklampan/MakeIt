@@ -4,7 +4,7 @@
 
 extern makeit::Config config;
 
-int makeit::Lexer::tokenize_literial(char c, me::Iterator<char> &source, TokenLocation &location, Token* &token, Storage* storage, uint8_t flags)
+int makeit::Lexer::tokenize_literial(char c, Iterator &source, Token* &token, Storage* storage, uint8_t flags)
 {
   MIDEBUG(2, "[Lexer] > next token is LITERIAL\n");
 
@@ -18,25 +18,25 @@ int makeit::Lexer::tokenize_literial(char c, me::Iterator<char> &source, TokenLo
 
   if (bt || bf)
   {
-    token = new Token(Token::CONSTANT, new Variable(&token->location, Variable::INTEGER, new int(bt)), TokenLocation(location));
+    LEXER_NEW_TOKEN(Token::CONSTANT, new Variable(&token->location, Variable::INTEGER, new int(bt)));
   }else if (c == ':')
   {
     source.next();
-    token = new Token(Token::CALL, literial, TokenLocation(location));
+    LEXER_NEW_TOKEN(Token::CALL, literial);
   }else if (literial->compare("if") == 0)
   {
-    token = new Token(Token::IF, nullptr, TokenLocation(location));
+    LEXER_NEW_TOKEN(Token::IF, nullptr);
   }else if (literial->compare("then") == 0)
   {
-    token = new Token(Token::THEN, nullptr, TokenLocation(location));
+    LEXER_NEW_TOKEN(Token::THEN, nullptr);
   }else if (literial->compare("else") == 0)
   {
-    token = new Token(Token::ELSE, nullptr, TokenLocation(location));
+    LEXER_NEW_TOKEN(Token::ELSE, nullptr);
   }else if (literial->compare("end") == 0)
   {
-    token = new Token(Token::END, nullptr, TokenLocation(location));
+    LEXER_NEW_TOKEN(Token::END, nullptr);
   }else
-    token = new Token(Token::LITERIAL, literial, TokenLocation(location));
+    LEXER_NEW_TOKEN(Token::LITERIAL, literial);
 
   MIDEBUG(2, "[Lexer] > LITERIAL token created\n");
   return 1;

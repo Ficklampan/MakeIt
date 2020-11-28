@@ -4,8 +4,6 @@
 #include "../Token.hpp"
 #include "../Storage.hpp"
 
-#include <lme/iterator.hpp>
-
 #include <string>
 #include <vector>
 
@@ -25,9 +23,39 @@
   } \
 }
 
+#define LEXER_NEW_TOKEN(t, v) { \
+  token = new Token(t, v, TokenLocation(source)); \
+  token->location.size = source.index; \
+  token->location.line = source.start_line; \
+  token->location.column = source.start_column; \
+  if (t == Token::CONSTANT) \
+  { \
+    token->value.c->location = &token->location; \
+  } \
+}
+
 namespace makeit {
 
   class Lexer {
+
+  public:
+
+    struct Iterator : TokenLocation {
+
+      uint32_t start_line = 1, start_column = 0;
+
+      size_t index = 0;
+
+      Iterator(me::File* file, std::string* source)
+	: TokenLocation(file, source)
+      {
+      }
+
+      const bool hasNext() const;
+      char& peek() const;
+      char& next();
+
+    };
 
   public:
 
@@ -38,14 +66,14 @@ namespace makeit {
     };
 
     static int tokenize_tokens(me::File* file, std::string &source, std::vector<Token*> &tokens, Storage* storage, uint8_t flags);
-    static int tokenize_token(me::Iterator<char> &source, TokenLocation &location, Token* &token, Storage* storage, uint8_t flags);
+    static int tokenize_token(Iterator &source, Token* &token, Storage* storage, uint8_t flags);
 
   private:
 
-    static int tokenize_literial(char c, me::Iterator<char> &source, TokenLocation &location, Token* &token, Storage* storage, uint8_t flags);
-    static int tokenize_constant(char c, me::Iterator<char> &source, TokenLocation &location, Token* &token, Storage* storage, uint8_t flags);
-    static int tokenize_punctuator(char c, me::Iterator<char> &source, TokenLocation &location, Token* &token, Storage* storage, uint8_t flags);
-    static int tokenize_wildcard(char c, me::Iterator<char> &source, TokenLocation &location, Token* &token, Storage* storage, uint8_t flags);
+    static int tokenize_literial(char c, Iterator &source, Token* &token, Storage* storage, uint8_t flags);
+    static int tokenize_constant(char c, Iterator &source, Token* &token, Storage* storage, uint8_t flags);
+    static int tokenize_punctuator(char c, Iterator &source, Token* &token, Storage* storage, uint8_t flags);
+    static int tokenize_wildcard(char c, Iterator &source, Token* &token, Storage* storage, uint8_t flags);
 
   };
 

@@ -47,44 +47,65 @@ int makeit::read_script(me::File* file, Storage* storage)
 
 static inline void printLocation(const makeit::TokenLocation &loc)
 {
-  uint32_t end = loc.source->size();
-  for (uint32_t i = loc.pos; i < loc.source->size(); i++)
+  std::string str;
+  uint32_t line = loc.begin_line;
+  bool marked = false;
+  for (uint32_t i = loc.begin; i < loc.source->size(); i++)
   {
-    if (loc.source->at(i) == '\n')
+    char c = loc.source->at(i);
+
+    if (i == loc.size)
     {
-      end = i - loc.pos;
-      break;
+      str.append("\e[0m");
+      marked = false;
     }
+
+    if (c == '\n')
+    {
+      printf(" %u | %s\e[0m\n", line, str.c_str());
+      str.clear();
+      if (marked)
+	str.append("\e[4m");
+      line++;
+      if (i >= loc.pos + loc.size)
+	break;
+    }
+
+    if (i == loc.pos)
+    {
+      str.append("\e[4m");
+      marked = true;
+    }
+
+    if (c != '\n')
+      str += c;
   }
-
-  if (end - loc.first < 1 || loc.pos - loc.first < 1)
-  {
-    return;
-  }
-
-  std::string marked(&loc.source->c_str()[loc.first], loc.pos - loc.first);
-  std::string line = "\e[4m" + marked + "\e[0m" + std::string(&loc.source->c_str()[loc.pos], end);
-
-  /* printing the stuff */
-  printf("%s[%u:%u]: '%s'\n", loc.file->getPath().c_str(), loc.line, loc.column, line.c_str());
 }
 
 void makeit::print_error(const TokenLocation* loc, const char* format, ...)
 {
   if (loc != nullptr)
-    printLocation(*loc);
+    printf("\e[97m%s:%u:%u:\e[0m ", loc->file->getPath().c_str(), loc->line, loc->column);
+
   va_list args;
   va_start(args, format);
   error(format, args);
   va_end(args);
+
+  if (loc != nullptr)
+    printLocation(*loc);
 }
 
 void makeit::print_warning(const TokenLocation* loc, const char* format, ...)
 {
   if (loc != nullptr)
-    printLocation(*loc);
+    printf("\e[97m%s:%u:%u:\e[0m ", loc->file->getPath().c_str(), loc->line, loc->column);
+
   va_list args;
   va_start(args, format);
   warning(format, args);
   va_end(args);
+
+  if (loc != nullptr)
+    printLocation(*loc);
 }

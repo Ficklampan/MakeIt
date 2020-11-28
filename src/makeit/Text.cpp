@@ -9,18 +9,18 @@ static const char* Etoo_many_args = "too many arguments, expected %u but found %
 static const char* Eexpected_value = "expected value [-Eexpected_value]";
 static const char* Eexpected_constant = "expected constant [-Eexpected_constant]";
 static const char* Eexpected_token = "expected token '%s' [-Eexpected_token]";
-static const char* Eexpected_member = "expected member '%s' [-Eexpected_token]";
+static const char* Eexpected_member = "expected member '%s' [-Eexpected_member]";
 static const char* Eexpected_type_at_arg = "expected type '%s' at arg[%u] but found type '%s' [-Eexpected_type_at_arg]";
-static const char* Eexpected_type_at_member = "expected type '%s' at member[%s] but found type '%s' [-Eexpected_type]";
-static const char* Eexpected_value_type = "expected type '%s' but found type '%s' [-Eexpected_type]";
-static const char* Eexpected_token_type = "expected token type '%s' [-Eexpected_token]";
+static const char* Eexpected_type_at_member = "expected type '%s' at member[%s] but found type '%s' [-Eexpected_type_at_member]";
+static const char* Eexpected_value_type = "expected type '%s' but found type '%s' [-Eexpected_value_type]";
+static const char* Eexpected_token_type = "expected token type '%s' [-Eexpected_token_type]";
 static const char* Eexpected_expression = "expected expression [-Eexpected_expression]";
 static const char* Eexpected_identifier = "expected identifier [-Eexpected_identifier]";
 static const char* Eunknown_symbol = "unknown symbol '%c' [-Eunknown_symbol]";
 static const char* Emakefile = "failed to generate Makefile '%s' [-Emakefile]";
-static const char* Efile_not_found = "file not found '%s' [-Emakefile]";
-static const char* Efailed_to_read_file = "failed to read file '%s' [-Emakefile]";
-static const char* Edir_not_found = "directory not found '%s' [-Emakefile]";
+static const char* Efile_not_found = "file not found '%s' [-Efile_not_found]";
+static const char* Efailed_to_read_file = "failed to read file '%s' [-Efailed_to_read_file]";
+static const char* Edir_not_found = "directory not found '%s' [-Edir_not_found]";
 
 /* warnings */
 static const char* Wwild_token = "found token in the wild [-Wwild_token]";

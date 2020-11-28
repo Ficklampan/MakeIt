@@ -4,7 +4,7 @@
 
 extern makeit::Config config;
 
-int makeit::Lexer::tokenize_wildcard(char c, me::Iterator<char> &source, TokenLocation &location, Token* &token, Storage* storage, uint8_t flags)
+int makeit::Lexer::tokenize_wildcard(char c, Iterator &source, Token* &token, Storage* storage, uint8_t flags)
 {
   if (c == '?')
   {
@@ -13,7 +13,7 @@ int makeit::Lexer::tokenize_wildcard(char c, me::Iterator<char> &source, TokenLo
     uint32_t length = 0;
     LEXER_NEXT_STRING(if (!LEXER_IS_NAME(c)) { break; });
 
-    token = new Token(Token::WILDCARD, new Wildcard(Wildcard::DEFINED, std::string(&source.peek() - length, length)), TokenLocation(location));
+    LEXER_NEW_TOKEN(Token::WILDCARD, new Wildcard(Wildcard::DEFINED, std::string(&source.peek() - length, length)));
 
     MIDEBUG(2, "[Lexer] > WILDCARD(DEFINED) token created\n");
     return 1;
