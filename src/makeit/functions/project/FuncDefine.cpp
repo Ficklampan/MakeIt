@@ -25,30 +25,18 @@ int makeit::function::exec_define(void* ptr, std::vector<Variable*> &args)
 
   for (uint32_t i = 0; i < args.size(); i++)
   {
-    Variable* v = args.at(i);
-    LOOP_VARIABLES(v, [i, project](Variable* variable) -> int {
+    Variable::v_struct &st = *args.at(i)->as_struct();
 
-	if (variable->type == Variable::STRUCT)
-	{
-	  Variable::v_struct &st = *variable->as_struct();
+    Variable* name = st["name"];
+    Variable* value = st.find("value") == st.end() ? nullptr : st["value"];
 
-	  Variable* name = st["name"];
-	  Variable* value = st["value"];
-
-	  if (value->type == Variable::STRING)
-	  {
-	    std::string str = project->config.definitions[*name->as_string()] = std::string("\\\"" + *value->as_string() + "\\\"");
-	    makeit::string_replace(str, " ", "\\ ");
-	  }
-
-	}else if (variable->type == Variable::STRING)
-	{
-	  project->config.definitions[*variable->as_string()] = "";
-	}
-
-	return 1;
-
-      });
+    if (value == nullptr)
+      project->config.definitions[*name->as_string()] = "";
+    else if (value->type == Variable::STRING)
+    {
+      std::string str = project->config.definitions[*name->as_string()] = std::string("\\\"" + *value->as_string() + "\\\"");
+      makeit::string_replace(str, " ", "\\ ");
+    }
   }
   return 1;
 }
