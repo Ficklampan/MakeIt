@@ -23,9 +23,9 @@ int makeit::function::exec_define(void* ptr, std::vector<Variable*> &args)
 
   Project* project = (Project*) storage->variables["project"]->as_pointer();
 
-  for (uint32_t i = 0; i < args.size(); i++)
+  for (Variable* var : *args.at(0)->as_list())
   {
-    Variable::v_struct &st = *args.at(i)->as_struct();
+    Variable::v_struct &st = *var->as_struct();
 
     Variable* name = st["name"];
     Variable* value = st.find("value") == st.end() ? nullptr : st["value"];

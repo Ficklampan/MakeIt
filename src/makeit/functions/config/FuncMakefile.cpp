@@ -17,7 +17,7 @@ makeit::Function* makeit::function::make_makefile()
       new StructArg({
 	  StructArg::Arg("pos", false, new Argument(Variable::INTEGER)),
 	  StructArg::Arg("lines", true, new ListArg(new Argument(Variable::STRING)))
-	  }, Argument::ENDLESS)
+	  }, Argument::ENDLESS | Argument::OPTIONAL)
       }, exec_makefile);
 }
 
