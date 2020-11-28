@@ -6,17 +6,36 @@
 
 extern makeit::Config config;
 
+static char escape_char(char c)
+{
+  switch (c)
+  {
+    case 't': return '\t';
+    case 'n': return '\n';
+    case 'r': return '\r';
+    case '0': return '\0';
+    default: return c;
+  }
+}
+
 int makeit::Lexer::tokenize_constant(char c, Iterator &source, Token* &token, Storage* storage, uint8_t flags)
 {
   if (c == '"')
   {
     MIDEBUG(2, "[Lexer] > next token is CONSTANT(STRING)\n");
 
-    uint32_t length = 0;
-    LEXER_NEXT_STRING(if (c == '"') { source.next(); break; });
+    std::string* str = new std::string;
+    while (source.hasNext())
+    {
+      c = source.next();
+      if (c == '"')
+	break;
+      if (c == '\\')
+	c = escape_char(source.next());
+      (*str) += c;
+    }
 
-    LEXER_NEW_TOKEN(Token::CONSTANT, new Variable(nullptr, Variable::STRING, 
-	  new std::string(&source.peek() - length - 1, length)));
+    LEXER_NEW_TOKEN(Token::CONSTANT, new Variable(nullptr, Variable::STRING, str));
 
     MIDEBUG(2, "[Lexer] > CONSTANT(STRING) token created\n");
     return 1;

@@ -62,3 +62,7 @@ $(BUILD)/%.o: %
 .PHONY: clean
 clean:
 	rm -f $(OBJECTS) $(DEPENDS)
+
+.PHONY: install
+install:
+	cp MakeIt /bin/makeit

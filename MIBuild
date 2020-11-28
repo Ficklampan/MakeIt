@@ -23,7 +23,11 @@ define: [
 
 flags: [ "-std=c++17" ]
 files: $sources
-makefile: "Makefile2" {
-  pos -1 # top of the file
-  lines [ "# Copyright something" ]
+makefile: "Makefile2" { pos -1 lines [ "# Copyright something" ] } { 
+  lines [
+    "" 
+    ".PHONY: install" 
+    "install:" 
+    "\tcp MakeIt /bin/makeit"
+  ]
 }
