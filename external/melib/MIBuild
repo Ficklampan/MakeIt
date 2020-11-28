@@ -1,5 +1,5 @@
 project: {
-  name "melib"
+  name "libme"
   cc "g++"
   lang "C++"
   output "static_library"

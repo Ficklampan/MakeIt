@@ -15,6 +15,7 @@ namespace makeit {
     std::string file;
     bool print_all;
     bool block_all;
+    bool execute_output;
     uint8_t debug;
     std::vector<std::string> configs;
   };

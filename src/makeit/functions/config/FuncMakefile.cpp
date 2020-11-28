@@ -7,6 +7,8 @@
 #include "../../Project.hpp"
 #include "../../System.hpp"
 
+extern makeit::Config config;
+
 static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Project &project, std::vector<makeit::gnu_make::Element*> &elements);
 
 makeit::Function* makeit::function::make_makefile()
@@ -52,6 +54,11 @@ int makeit::function::exec_makefile(void* ptr, std::vector<Variable*> &args)
   makefile.write(makefile_data);
 
   makeit::writeFile(file, makefile_data.data(), makefile_data.size());
+
+  /* execute the Makefile */
+  if (config.execute_output)
+    makeit::system(std::string("make -f " + file.getPath()).c_str());
+
   return 1;
 }
 
@@ -84,7 +91,7 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   std::vector<std::string> extern_configs;
   for (const makeit::ExternConfig &config : project.config.extern_configs)
   {
-    extern_configs.push_back(config.target);
+    extern_configs.push_back(config.name);
   }
   makefile.put_element(new Variable("EXT", extern_configs));
 
@@ -113,24 +120,31 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   /* empty line */
   makefile.put_element(new Text({""}, false));
 
+  /* build rule */
+  makefile.put_element(new Rule("build", "$(EXT) $(NAME)", {
+	}, Rule::PHONY));
+
+  /* empty line */
+  makefile.put_element(new Text({""}, false));
+
   /* linking rule */
   if (project.config.output_type == makeit::BuildConfig::EXECUTABLE)
   {
-    makefile.put_element(new Rule("$(NAME)", "$(OBJECTS) $(EXT)", {
+    makefile.put_element(new Rule("$(NAME)", "$(OBJECTS)", {
 	  Command("@$(CC) -o $@ $^ $(LOPTS)")
 	  }, 0));
 
   /* static library rule */
   }else if (project.config.output_type == makeit::BuildConfig::STATIC_LIBRARY)
   {
-    makefile.put_element(new Rule("$(NAME)", "$(OBJECTS) $(EXT)", {
+    makefile.put_element(new Rule("$(NAME)", "$(OBJECTS)", {
 	Command("@ar rcs $@.a $^")
 	}, 0));
 
   /* shared library rule */
   }else if (project.config.output_type == makeit::BuildConfig::SHARED_LIBRARY)
   {
-    makefile.put_element(new Rule("$(NAME)", "$(OBJECTS) $(EXT)", {
+    makefile.put_element(new Rule("$(NAME)", "$(OBJECTS)", {
 	Command("@$(CC) -shared -o $@.so $^")
 	}, 0));
   }
@@ -141,7 +155,7 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   /* compiling rule */
   makefile.put_element(new Rule("$(BUILD)/%.o", "%", {
 	Command("@echo \"\e[32m==> compiling source \e[33m[$<]\e[0m\""),
-	Command("@mkdir -p $(@D)"),
+	Command("@mkdir -p $(dir $@)"),
 	Command("@$(CC) -c -o $@ $< $(COPTS) -MMD")
 	}, 0));
 
@@ -153,16 +167,16 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
     std::string command = "";
     switch (config.type)
     {
-      case makeit::ExternConfig::MAKEIT: command = "makeit $(notdir $@)"; break;
-      case makeit::ExternConfig::CMAKE: command = "cmake $(notdir $@)"; break;
-      case makeit::ExternConfig::PREMAKE: command = "premake $(notdir $@)"; break;
-      case makeit::ExternConfig::GNUMAKE: command = "make -f $(notdir $@)"; break;
-      case makeit::ExternConfig::SHELL: command = "shell $(notdir $@)"; break;
+      case makeit::ExternConfig::MAKEIT: command = "makeit $(notdir $<)"; break;
+      case makeit::ExternConfig::CMAKE: command = "cmake $(notdir $<)"; break;
+      case makeit::ExternConfig::PREMAKE: command = "premake $(notdir $<)"; break;
+      case makeit::ExternConfig::GNUMAKE: command = "make -f $(notdir $<)"; break;
+      case makeit::ExternConfig::SHELL: command = "shell $(notdir $<)"; break;
     }
 
-    makefile.put_element(new Rule(config.target, "", {
-	  Command("@echo \"\e[97mbuilding external target '$@'\e[0m\""),
-	  Command("{ cd $(dir $@); " + command + (config.args.empty() ? "" : " " + config.args) + "}")
+    makefile.put_element(new Rule(config.name, config.target, {
+	  Command("@echo \"\e[97mbuilding external target '$<'\e[0m\""),
+	  Command("@( cd $(dir $<); " + command + (config.args.empty() ? "" : " " + config.args) + ")")
 	  }, 0));
 
     /* empty line */
@@ -170,8 +184,13 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   }
 
   /* cleaning rule */
+  std::string output_name = project.name;
+  if (project.config.output_type == makeit::BuildConfig::STATIC_LIBRARY)
+    output_name.append(".a");
+  else if (project.config.output_type == makeit::BuildConfig::SHARED_LIBRARY)
+    output_name.append(".so");
   makefile.put_element(new Rule("clean", "", {
-	Command("rm -f $(OBJECTS) $(DEPENDS)")
+	Command("rm -f " + output_name + " $(OBJECTS) $(DEPENDS)")
 	}, Rule::PHONY));
 
   for (Element* element : elements)

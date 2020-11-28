@@ -19,6 +19,7 @@ makeit::Config config = {
   .file = "MIBuild",
   .print_all = false,
   .block_all = false,
+  .execute_output = false,
   .debug = false
 };
 
@@ -33,6 +34,7 @@ void makeit::usage(const char* arg)
   const char* FLAG_VERSION_SHORT = _("Print compiler and this version");
   const char* FLAG_PRINT_ALL_SHORT = _("Print changes on the system");
   const char* FLAG_BLOCK_ALL_SHORT = _("Confirm when making system changes");
+  const char* FLAG_EXECUTE_SHORT = _("Execute output");
   const char* FLAG_DEBUG_SHORT = _("Enable debug level L");
   const char* FLAG_FILE_SHORT = _("Specify file to be read");
 
@@ -40,6 +42,7 @@ void makeit::usage(const char* arg)
   const char* FLAG_VERSION_LONG = _("View the compiler version the program was compiled in and the current software version");
   const char* FLAG_PRINT_ALL_LONG = _("If print all flag is specified then the software will print changes to the system (file being written/read or a command being executed)");
   const char* FLAG_BLOCK_ALL_LONG = _("If block all flag is specified then the software will ask before making changes to the system (file being written/read or a command being executed)");
+  const char* FLAG_EXECUTE_LONG = _("Execute the output script when generating a build script");
   const char* FLAG_DEBUG_LONG = _("Higher level = more debuging");
   const char* FLAG_FILE_LONG = _("Change the file target. Default is 'MIBuild'");
 
@@ -53,6 +56,7 @@ void makeit::usage(const char* arg)
     printf("  -v, --version                %s\n", FLAG_VERSION_SHORT);
     printf("  -p, --print-all              %s\n", FLAG_PRINT_ALL_SHORT);
     printf("  -b, --block-all              %s\n", FLAG_BLOCK_ALL_SHORT);
+    printf("  -e, --execute                %s\n", FLAG_EXECUTE_SHORT);
     printf("  -d [L], --debug=[L]          %s\n", FLAG_DEBUG_SHORT);
     printf("  -f, --file                   %s\n", FLAG_FILE_SHORT);
     printf("%s <https://github.com/Ficklampan/MakeIt/issues>\n", TEXT_REPORT);
@@ -68,6 +72,9 @@ void makeit::usage(const char* arg)
   }else if (strcmp("block-all", arg) == 0)
   {
     printf("  %s --block-all: %s\n", NAME, FLAG_BLOCK_ALL_LONG);
+  }else if (strcmp("execute", arg) == 0)
+  {
+    printf("  %s --execute: %s\n", NAME, FLAG_EXECUTE_LONG);
   }else if (strcmp("debug", arg) == 0)
   {
     printf("  %s --debug: %s\n", NAME, FLAG_DEBUG_LONG);
@@ -100,13 +107,14 @@ int makeit::parseArgs(int argc, char** argv)
     {"version", no_argument, 0, 'v'},
     {"print-all", no_argument, 0, 'p'},
     {"block-all", no_argument, 0, 'b'},
+    {"execute", no_argument, 0, 'e'},
     {"debug", optional_argument, 0, 'd'},
     {"warn", required_argument, 0, 'W'},
   };
 
   int index = 0;
   int c;
-  while ((c = getopt_long(argc, argv, "h::vf:pbd::", long_options, &index)) != -1)
+  while ((c = getopt_long(argc, argv, "h::vf:pbed::", long_options, &index)) != -1)
   {
     switch (c)
     {
@@ -121,9 +129,13 @@ int makeit::parseArgs(int argc, char** argv)
 	return 1;
 
       /* print all */
-      case 'e': config.print_all = true; break;
+      case 'p': config.print_all = true; break;
+
       /* block all */
       case 'b': config.block_all = true; break;
+
+      /* execute output */
+      case 'e': config.execute_output = true; break;
 
       /* debug */
       case 'd':
