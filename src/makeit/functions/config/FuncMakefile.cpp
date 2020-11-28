@@ -84,7 +84,7 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   std::vector<std::string> extern_configs;
   for (const makeit::ExternConfig &config : project.config.extern_configs)
   {
-    extern_configs.push_back(config.name);
+    extern_configs.push_back(config.target);
   }
   makefile.put_element(new Variable("EXT", extern_configs));
 
@@ -153,16 +153,16 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
     std::string command = "";
     switch (config.type)
     {
-      case makeit::ExternConfig::MAKEIT: command = "makeit $(notdir $<)"; break;
-      case makeit::ExternConfig::CMAKE: command = "cmake $(notdir $<)"; break;
-      case makeit::ExternConfig::PREMAKE: command = "premake $(notdir $<)"; break;
-      case makeit::ExternConfig::GNUMAKE: command = "make -f $(notdir $<)"; break;
-      case makeit::ExternConfig::SHELL: command = "shell $(notdir $<)"; break;
+      case makeit::ExternConfig::MAKEIT: command = "makeit $(notdir $@)"; break;
+      case makeit::ExternConfig::CMAKE: command = "cmake $(notdir $@)"; break;
+      case makeit::ExternConfig::PREMAKE: command = "premake $(notdir $@)"; break;
+      case makeit::ExternConfig::GNUMAKE: command = "make -f $(notdir $@)"; break;
+      case makeit::ExternConfig::SHELL: command = "shell $(notdir $@)"; break;
     }
 
-    makefile.put_element(new Rule(config.name, config.target, {
+    makefile.put_element(new Rule(config.target, "", {
 	  Command("@echo \"\e[97mbuilding external target '$@'\e[0m\""),
-	  Command("{ cd $(dir $<); " + command + (config.args.empty() ? "" : " " + config.args) + "}")
+	  Command("{ cd $(dir $@); " + command + (config.args.empty() ? "" : " " + config.args) + "}")
 	  }, 0));
 
     /* empty line */

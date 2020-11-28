@@ -13,8 +13,6 @@ sources = []
 source: "$(DIR)/src/makeit/MIConfig"
 source: "$(DIR)/src/util/MIConfig"
 
-source: "$(DIR)/external/melib/MIBuild"
-
 include_path: [ "$(DIR)/external/melib/include" "$(DIR)/src/util" ]
 define: [
   { name "LOCALEDIR" value $LOCALEDIR }
@@ -29,7 +27,7 @@ extern: {
 
 flags: [ "-std=c++17" ]
 files: $sources
-makefile: "Makefile2" { pos -1 lines [ "# Copyright something" ] } { 
+makefile: "Makefile" { pos -1 lines [ "# Copyright something" ] } { 
   lines [
     "" 
     ".PHONY: install" 

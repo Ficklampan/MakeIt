@@ -8,7 +8,7 @@ LIBS =
 INCS = 
 LPATHS = 
 IPATHS = -I./external/melib/include -I./src/util
-DEFS = LOCALEDIR=\"/usr/share/locale\" PACKAGE=\"makeit\"
+DEFS = -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"makeit\"
 EXT = 
 
 COPTS = $(FLAGS) $(INCS) $(IPATHS) $(DEFS)
