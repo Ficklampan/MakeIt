@@ -69,9 +69,9 @@ $(BUILD)/%.o: %
 	@$(CC) -c -o $@ $< $(COPTS) -MMD
 
 .PHONY: libme
-libme: ./libme/MIBuild
+libme: ./libme/Makefile
 	@echo "[97mbuilding external target '$<'[0m"
-	@( cd $(dir $<); makeit $(notdir $<) --execute)
+	@( cd $(dir $<); make -f $(notdir $<))
 
 .PHONY: clean
 clean:

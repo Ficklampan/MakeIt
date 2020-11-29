@@ -24,10 +24,9 @@ define: [
 ]
 
 extern: {
-  type "makeit"
+  type "gnumake"
   name "libme"
-  target "$(DIR)/libme/MIBuild"
-  args "--execute"
+  target "$(DIR)/libme/Makefile"
 }
 
 flags: [ "-std=c++17" ]
