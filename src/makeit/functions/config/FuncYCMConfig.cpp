@@ -40,7 +40,7 @@ static void GENERATE_YCMCONFIG(makeit::ycm::YCMConfig &ycm, makeit::Project &pro
 {
   using namespace makeit::ycm;
 
-  ycm.put_flag(new Flag("", project.config.flags));
+  ycm.put_flag(new Flag("", project.config.cflags));
   ycm.put_flag(new Flag("-I", project.config.include_paths));
   ycm.put_flag(new Flag("--include=", project.config.includes));
   ycm.put_flag(new Flag("-D", project.config.definitions));

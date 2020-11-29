@@ -29,7 +29,7 @@ extern: {
   target "$(DIR)/libme/Makefile"
 }
 
-flags: [ "-std=c++17" ]
+lflags: [ "-std=c++17" ]
 files: $sources
 makefile: "Makefile" { pos -1 lines [ "# Copyright something" ] } { 
   lines [

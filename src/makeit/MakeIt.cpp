@@ -190,7 +190,8 @@ int makeit::init()
   storage->functions["include"] = makeit::function::make_include();
   storage->functions["include_path"] = makeit::function::make_include_path();
   storage->functions["define"] = makeit::function::make_define();
-  storage->functions["flags"] = makeit::function::make_flags();
+  storage->functions["cflags"] = makeit::function::make_cflags();
+  storage->functions["lflags"] = makeit::function::make_lflags();
   storage->functions["source"] = makeit::function::make_source();
   storage->functions["extern"] = makeit::function::make_extern();
   storage->functions["files"] = makeit::function::make_files();

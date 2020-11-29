@@ -16,7 +16,8 @@ namespace makeit { namespace function {
   int exec_include(void* ptr, std::vector<Variable*> &args);
   int exec_include_path(void* ptr, std::vector<Variable*> &args);
   int exec_define(void* ptr, std::vector<Variable*> &args);
-  int exec_flags(void* ptr, std::vector<Variable*> &args);
+  int exec_cflags(void* ptr, std::vector<Variable*> &args);
+  int exec_lflags(void* ptr, std::vector<Variable*> &args);
   int exec_source(void* ptr, std::vector<Variable*> &args);
   int exec_extern(void* ptr, std::vector<Variable*> &args);
   int exec_files(void* ptr, std::vector<Variable*> &args);
@@ -36,7 +37,8 @@ namespace makeit { namespace function {
   makeit::Function* make_include();
   makeit::Function* make_include_path();
   makeit::Function* make_define();
-  makeit::Function* make_flags();
+  makeit::Function* make_cflags();
+  makeit::Function* make_lflags();
   makeit::Function* make_source();
   makeit::Function* make_extern();
   makeit::Function* make_files();

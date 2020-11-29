@@ -22,7 +22,8 @@ namespace makeit {
     std::string out_name = "";
     OutType out_type = EXECUTABLE;
 
-    std::vector<std::string> flags;
+    std::vector<std::string> cflags;
+    std::vector<std::string> lflags;
     std::vector<std::string> libraries;
     std::vector<std::string> includes;
     std::vector<std::string> library_paths;

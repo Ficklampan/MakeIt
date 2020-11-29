@@ -100,8 +100,10 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   /* --------------------------------------------------- */
 
 
-  /* flags */
-  makefile.put_element(new Variable("FLAGS", project.config.flags));
+  /* cflags */
+  makefile.put_element(new Variable("CFLAGS", project.config.cflags));
+  /* lflags */
+  makefile.put_element(new Variable("LFLAGS", project.config.lflags));
   /* libraries */
   makefile.put_element(new Variable("LIBS", libs));
   /* includes */
@@ -128,9 +130,9 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
 
 
   /* compiler options */
-  makefile.put_element(new Variable("COPTS", { "$(FLAGS)", "$(INCS)", "$(IPATHS)", "$(DEFS)" }));
+  makefile.put_element(new Variable("COPTS", { "$(CFLAGS)", "$(INCS)", "$(IPATHS)", "$(DEFS)" }));
   /* linker options */
-  makefile.put_element(new Variable("LOPTS", { "$(FLAGS)", "$(LIBS)", "$(LPATHS)" }));
+  makefile.put_element(new Variable("LOPTS", { "$(LFLAGS)", "$(LIBS)", "$(LPATHS)" }));
 
 
   /* empty line */

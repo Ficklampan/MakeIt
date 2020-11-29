@@ -60,7 +60,8 @@ static void GENERATE_PKGCONFIG(makeit::pc::PkgConfig &pkg, makeit::Project &proj
   pkg.put_flag(new Flag("Version", project.version));
   pkg.put_flag(new Flag("Libs", libs));
   //pkg.put_flag(new Flag("Incs", incs));
-  pkg.put_flag(new Flag("Cflags", project.config.flags));
+  pkg.put_flag(new Flag("Cflags", project.config.cflags));
+  pkg.put_flag(new Flag("Lflags", project.config.lflags));
 }
 
 static void WRITE_PKGCONFIG(const me::File &file, makeit::pc::PkgConfig &pkg)

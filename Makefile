@@ -4,7 +4,8 @@ BUILD = build
 OUTNAME = makeit
 CC = g++
 
-FLAGS = -std=c++17
+CFLAGS = 
+LFLAGS = -std=c++17
 LIBS = -lme
 INCS = 
 LPATHS = -L./libme
@@ -12,8 +13,8 @@ IPATHS = -I./libme/include -I./src/util
 DEFS = -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"makeit\"
 EXT = libme
 
-COPTS = $(FLAGS) $(INCS) $(IPATHS) $(DEFS)
-LOPTS = $(FLAGS) $(LIBS) $(LPATHS)
+COPTS = $(CFLAGS) $(INCS) $(IPATHS) $(DEFS)
+LOPTS = $(LFLAGS) $(LIBS) $(LPATHS)
 
 SOURCES = ./src/makeit/MakeIt.cpp \
 	./src/makeit/Text.cpp \
