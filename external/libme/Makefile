@@ -1,4 +1,5 @@
 NAME = libme
+OUTPUT = libme.a
 CC = g++
 BUILD = build
 
@@ -19,10 +20,10 @@ OBJECTS = $(SOURCES:%=$(BUILD)/%.o)
 DEPENDS = $(OBJECTS:%.o=%.d)
 
 .PHONY: build
-build: $(EXT) $(NAME)
+build: $(EXT) $(OUTPUT)
 
-$(NAME): $(OBJECTS)
-	@ar rcs $@.a $^
+$(OUTPUT): $(OBJECTS)
+	@ar rcs $@ $^
 
 $(BUILD)/%.o: %
 	@echo "[32m==> compiling source [33m[$<][0m"
@@ -31,4 +32,4 @@ $(BUILD)/%.o: %
 
 .PHONY: clean
 clean:
-	rm -f libme.a $(OBJECTS) $(DEPENDS)
+	rm -f $(OUTPUT) $(OBJECTS) $(DEPENDS)

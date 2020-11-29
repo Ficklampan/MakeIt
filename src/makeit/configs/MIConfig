@@ -1,1 +1,1 @@
-sources += [ "$(DIR)/make/Makefile.cpp" "$(DIR)/YCM.cpp" ]
+sources += [ "$(DIR)/make/Makefile.cpp" "$(DIR)/pc/PkgConfig.cpp" "$(DIR)/YCM.cpp" ]

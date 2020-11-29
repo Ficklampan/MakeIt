@@ -10,3 +10,4 @@ sources = [ "$(DIR)/src/file.cpp" "$(DIR)/src/util.cpp" ]
 flags: [ "-std=c++17" ]
 files: $sources
 makefile: "Makefile"
+pkg_config: "libme.pc"

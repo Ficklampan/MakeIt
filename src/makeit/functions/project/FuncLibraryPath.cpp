@@ -19,7 +19,7 @@ int makeit::function::exec_library_path(void* ptr, std::vector<Variable*> &args)
   Project* project = (Project*) storage->variables["project"]->as_pointer();
 
   for (Variable* v : args)
-    GET_STRINGS(v, project->config.library_paths, "-L");
+    GET_STRINGS(v, project->config.library_paths);
   return 1;
 }
 

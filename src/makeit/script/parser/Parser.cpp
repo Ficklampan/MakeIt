@@ -4,7 +4,6 @@
 
 #include "../../Config.hpp"
 #include "Common.hpp"
-#include "Util.hpp"
 
 #include <cstring>
 
@@ -139,7 +138,7 @@ int makeit::Parser::parse_token(Token* token, me::BasicIterator<Token*> &tokens,
   {
     if (!parse_function(token, tokens, storage, flags))
       return 0;
-  }else if (!get_bit_flag(flags, NO_WARNING))
+  }else if ((flags & NO_WARNING) == 0)
   {
     print_warning(&token->location, get_warning(WWILD_TOKEN));
   }
@@ -173,7 +172,7 @@ int makeit::Parser::get_variable(Token* token, me::BasicIterator<Token*> &tokens
     variable = new Variable(&token->location, Variable::INTEGER, new int(found));
   }
 
-  if (variable == nullptr && !get_bit_flag(flags, NO_ERROR))
+  if (variable == nullptr && (flags & NO_ERROR) == 0)
   {
     throw Exception(&token->location, EEXPECTED_VALUE, { });
   }else if (variable != nullptr)

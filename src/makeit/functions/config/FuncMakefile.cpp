@@ -3,6 +3,7 @@
 #include "../FuncUtils.hpp"
 
 #include "../../configs/make/Makefile.hpp"
+#include "../../configs/pc/PkgConfig.hpp"
 
 #include "../../Project.hpp"
 #include "../../System.hpp"
@@ -10,6 +11,8 @@
 extern makeit::Config config;
 
 static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Project &project, std::vector<makeit::gnu_make::Element*> &elements);
+
+static void WRITE_MAKEFILE(const me::File &file, makeit::gnu_make::Makefile &makefile);
 
 makeit::Function* makeit::function::make_makefile()
 {
@@ -46,14 +49,12 @@ int makeit::function::exec_makefile(void* ptr, std::vector<Variable*> &args)
     elements.push_back(new gnu_make::Text(lines, false, pos));
   }
 
+  /* generate the Makefile */
   gnu_make::Makefile makefile;
   GENERATE_MAKEFILE(makefile, *project, elements);
 
-  std::string makefile_data;
-  makefile_data.reserve(4096);
-  makefile.write(makefile_data);
-
-  makeit::writeFile(file, makefile_data.data(), makefile_data.size());
+  /* wrtie the Makefile */
+  WRITE_MAKEFILE(file, makefile);
 
   /* execute the Makefile */
   if (config.execute_output)
@@ -66,26 +67,52 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
 {
   using namespace makeit::gnu_make;
 
+  /* output file */
+  std::string output_name = project.name;
+  if (project.config.output_type == makeit::BuildConfig::STATIC_LIBRARY)
+    output_name.append(".a");
+  else if (project.config.output_type == makeit::BuildConfig::SHARED_LIBRARY)
+    output_name.append(".so");
+
   makefile.put_element(new Variable("NAME", project.name));
+  makefile.put_element(new Variable("OUTPUT", output_name));
   makefile.put_element(new Variable("CC", project.config.cc));
   makefile.put_element(new Variable("BUILD", project.config.build.getPath()));
 
   /* empty line */
   makefile.put_element(new Text({""}, false));
 
+
+  /* adding a flag prefix to the libraries, includes... */
+#define ADD_PREFIX(p, v, o) { \
+  for (const std::string &str : v) \
+    o.push_back(p + str); \
+}
+
+  std::vector<std::string> libs, incs, lib_paths, inc_paths, defs;
+  ADD_PREFIX("-l", project.config.libraries, libs);
+  ADD_PREFIX("-i", project.config.includes, incs);
+  ADD_PREFIX("-L", project.config.library_paths, lib_paths);
+  ADD_PREFIX("-I", project.config.include_paths, inc_paths);
+  ADD_PREFIX("-D", project.config.definitions, defs);
+
+#undef ADD_PREFIX
+  /* --------------------------------------------------- */
+
+
   /* flags */
   makefile.put_element(new Variable("FLAGS", project.config.flags));
   /* libraries */
-  makefile.put_element(new Variable("LIBS", project.config.libraries));
+  makefile.put_element(new Variable("LIBS", libs));
   /* includes */
-  makefile.put_element(new Variable("INCS", project.config.includes));
+  makefile.put_element(new Variable("INCS", incs));
   /* library paths */
-  makefile.put_element(new Variable("LPATHS", project.config.library_paths));
+  makefile.put_element(new Variable("LPATHS", lib_paths));
   /* include paths */
-  makefile.put_element(new Variable("IPATHS", project.config.include_paths));
-
+  makefile.put_element(new Variable("IPATHS", inc_paths));
   /* definitions */
-  makefile.put_element(new Variable("DEFS", project.config.definitions));
+  makefile.put_element(new Variable("DEFS", defs));
+
 
   /* external configs */
   std::vector<std::string> extern_configs;
@@ -95,13 +122,16 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   }
   makefile.put_element(new Variable("EXT", extern_configs));
 
+
   /* empty line */
   makefile.put_element(new Text({""}, false));
 
+
   /* compiler options */
-  makefile.put_element(new Variable("COPTS", "$(FLAGS) $(INCS) $(IPATHS) $(DEFS)"));
+  makefile.put_element(new Variable("COPTS", { "$(FLAGS)", "$(INCS)", "$(IPATHS)", "$(DEFS)" }));
   /* linker options */
-  makefile.put_element(new Variable("LOPTS", "$(FLAGS) $(LIBS) $(LPATHS)"));
+  makefile.put_element(new Variable("LOPTS", { "$(FLAGS)", "$(LIBS)", "$(LPATHS)" }));
+
 
   /* empty line */
   makefile.put_element(new Text({""}, false));
@@ -117,11 +147,12 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   /* dependency files */
   makefile.put_element(new Variable("DEPENDS", "$(OBJECTS:%.o=%.d)"));
 
+
   /* empty line */
   makefile.put_element(new Text({""}, false));
 
   /* build rule */
-  makefile.put_element(new Rule("build", "$(EXT) $(NAME)", {
+  makefile.put_element(new Rule("build", "$(EXT) $(OUTPUT)", {
 	}, Rule::PHONY));
 
   /* empty line */
@@ -130,22 +161,22 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   /* linking rule */
   if (project.config.output_type == makeit::BuildConfig::EXECUTABLE)
   {
-    makefile.put_element(new Rule("$(NAME)", "$(OBJECTS)", {
+    makefile.put_element(new Rule("$(OUTPUT)", "$(OBJECTS)", {
 	  Command("@$(CC) -o $@ $^ $(LOPTS)")
 	  }, 0));
 
   /* static library rule */
   }else if (project.config.output_type == makeit::BuildConfig::STATIC_LIBRARY)
   {
-    makefile.put_element(new Rule("$(NAME)", "$(OBJECTS)", {
-	Command("@ar rcs $@.a $^")
+    makefile.put_element(new Rule("$(OUTPUT)", "$(OBJECTS)", {
+	Command("@ar rcs $@ $^")
 	}, 0));
 
   /* shared library rule */
   }else if (project.config.output_type == makeit::BuildConfig::SHARED_LIBRARY)
   {
-    makefile.put_element(new Rule("$(NAME)", "$(OBJECTS)", {
-	Command("@$(CC) -shared -o $@.so $^")
+    makefile.put_element(new Rule("$(OUTPUT)", "$(OBJECTS)", {
+	Command("@$(CC) -shared -o $@ $^ $(LOPTS)")
 	}, 0));
   }
 
@@ -184,17 +215,20 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   }
 
   /* cleaning rule */
-  std::string output_name = project.name;
-  if (project.config.output_type == makeit::BuildConfig::STATIC_LIBRARY)
-    output_name.append(".a");
-  else if (project.config.output_type == makeit::BuildConfig::SHARED_LIBRARY)
-    output_name.append(".so");
   makefile.put_element(new Rule("clean", "", {
-	Command("rm -f " + output_name + " $(OBJECTS) $(DEPENDS)")
+	Command("rm -f $(OUTPUT) $(OBJECTS) $(DEPENDS)")
 	}, Rule::PHONY));
 
   for (Element* element : elements)
   {
     makefile.put_element(element);
   }
+}
+
+static void WRITE_MAKEFILE(const me::File &file, makeit::gnu_make::Makefile &makefile)
+{
+  std::string makefile_data;
+  makefile_data.reserve(4096);
+  makefile.write(makefile_data);
+  makeit::writeFile(file, makefile_data.data(), makefile_data.size());
 }

@@ -14,8 +14,8 @@ source: "$(DIR)/src/makeit/MIConfig"
 source: "$(DIR)/src/util/MIConfig"
 
 library: [ "me" ]
-library_path: [ "$(DIR)/external/melib" ]
-include_path: [ "$(DIR)/external/melib/include" "$(DIR)/src/util" ]
+library_path: [ "$(DIR)/external/libme" ]
+include_path: [ "$(DIR)/external/libme/include" "$(DIR)/src/util" ]
 define: [
   { name "LOCALEDIR" value $LOCALEDIR }
   { name "PACKAGE" value $PACKAGE }
@@ -23,8 +23,8 @@ define: [
 
 extern: {
   type "makeit"
-  name "melib"
-  target "$(DIR)/external/melib/MIBuild"
+  name "libme"
+  target "$(DIR)/external/libme/MIBuild"
   args "--execute"
 }
 

@@ -1,15 +1,16 @@
 # Copyright something
 NAME = MakeIt
+OUTPUT = MakeIt
 CC = g++
 BUILD = build
 
 FLAGS = -std=c++17
 LIBS = -lme
 INCS = 
-LPATHS = -L./external/melib
-IPATHS = -I./external/melib/include -I./src/util
+LPATHS = -L./external/libme
+IPATHS = -I./external/libme/include -I./src/util
 DEFS = -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"makeit\"
-EXT = melib
+EXT = libme
 
 COPTS = $(FLAGS) $(INCS) $(IPATHS) $(DEFS)
 LOPTS = $(FLAGS) $(LIBS) $(LPATHS)
@@ -30,6 +31,7 @@ SOURCES = ./src/makeit/MakeIt.cpp \
 	./src/makeit/script/parser/StatementParser.cpp \
 	./src/makeit/functions/Functions.cpp \
 	./src/makeit/functions/config/FuncMakefile.cpp \
+	./src/makeit/functions/config/FuncPkgConfig.cpp \
 	./src/makeit/functions/config/FuncYCM.cpp \
 	./src/makeit/functions/project/FuncDefine.cpp \
 	./src/makeit/functions/project/FuncExtern.cpp \
@@ -45,6 +47,7 @@ SOURCES = ./src/makeit/MakeIt.cpp \
 	./src/makeit/functions/system/FuncSearch.cpp \
 	./src/makeit/functions/system/FuncSystem.cpp \
 	./src/makeit/configs/make/Makefile.cpp \
+	./src/makeit/configs/pc/PkgConfig.cpp \
 	./src/makeit/configs/YCM.cpp \
 	./src/util/Common.cpp \
 	./src/util/Util.cpp
@@ -53,9 +56,9 @@ OBJECTS = $(SOURCES:%=$(BUILD)/%.o)
 DEPENDS = $(OBJECTS:%.o=%.d)
 
 .PHONY: build
-build: $(EXT) $(NAME)
+build: $(EXT) $(OUTPUT)
 
-$(NAME): $(OBJECTS)
+$(OUTPUT): $(OBJECTS)
 	@$(CC) -o $@ $^ $(LOPTS)
 
 $(BUILD)/%.o: %
@@ -63,13 +66,13 @@ $(BUILD)/%.o: %
 	@mkdir -p $(dir $@)
 	@$(CC) -c -o $@ $< $(COPTS) -MMD
 
-melib: ./external/melib/MIBuild
+libme: ./external/libme/MIBuild
 	@echo "[97mbuilding external target '$<'[0m"
 	@( cd $(dir $<); makeit $(notdir $<) --execute)
 
 .PHONY: clean
 clean:
-	rm -f MakeIt $(OBJECTS) $(DEPENDS)
+	rm -f $(OUTPUT) $(OBJECTS) $(DEPENDS)
 
 .PHONY: install
 install:

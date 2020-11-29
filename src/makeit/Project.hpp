@@ -7,7 +7,8 @@ namespace makeit {
 
   struct Project {
 
-    std::string name = "untitled_project";
+    std::string name;
+    std::string description = "";
     std::string version = "";
     std::string language = "c";
 

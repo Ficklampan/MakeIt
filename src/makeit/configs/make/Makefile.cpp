@@ -1,5 +1,7 @@
 #include "Makefile.hpp"
 
+#include "Util.hpp"
+
 #include <algorithm>
 
 using namespace makeit::gnu_make;
@@ -44,7 +46,10 @@ void Makefile::write_variable(std::string &str, const Variable* var)
   const std::vector<std::string> &value = var->get_value();
   for (uint32_t i = 0; i < value.size(); i++)
   {
-    str.append(value.at(i));
+    std::string element = value.at(i);
+    makeit::string_replace(element, " ", "\\ ");
+    makeit::string_replace(element, "\"", "\\\"");
+    str.append(element);
     if (i < value.size() - 1)
       str.append(value.size() > 4 ? " \\\n\t" : " ");
   }

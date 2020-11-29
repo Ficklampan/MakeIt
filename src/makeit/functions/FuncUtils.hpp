@@ -8,15 +8,15 @@
 
 namespace makeit { namespace function {
 
-  static inline void GET_STRINGS(Variable* variable, std::vector<std::string> &strs, const std::string &prefix = "", const std::string &suffix = "")
+  static inline void GET_STRINGS(Variable* variable, std::vector<std::string> &strs)
   {
     if (variable->type == Variable::LIST)
     {
       strs.reserve(variable->as_list()->size());
       for (Variable* v : *variable->as_list())
-        GET_STRINGS(v, strs, prefix, suffix);
+        GET_STRINGS(v, strs);
     }else if (variable->type == makeit::Variable::STRING)
-      strs.push_back(prefix + *variable->as_string() + suffix);
+      strs.push_back(*variable->as_string());
   }
 
   static inline int LOOP_VARIABLES(Variable* variable, std::function<int(Variable*)> callback)
