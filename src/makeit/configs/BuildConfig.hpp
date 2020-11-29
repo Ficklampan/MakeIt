@@ -13,13 +13,14 @@ namespace makeit {
 
   struct BuildConfig {
 
-    enum OutputType {
+    enum OutType {
       EXECUTABLE, STATIC_LIBRARY, SHARED_LIBRARY
     };
 
     std::string cc = "gcc";
     me::File build = std::string("build");
-    OutputType output_type = EXECUTABLE;
+    std::string out_name = "";
+    OutType out_type = EXECUTABLE;
 
     std::vector<std::string> flags;
     std::vector<std::string> libraries;

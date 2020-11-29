@@ -48,17 +48,18 @@ static void GENERATE_PKGCONFIG(makeit::pc::PkgConfig &pkg, makeit::Project &proj
   for (const std::string &lib_path : project.config.library_paths)
     libs.push_back("-L" + lib_path);
 
-  /* append includes */
+  /*
   for (const std::string &inc : project.config.includes)
-    libs.push_back("-i" + inc);
+    libs.push_back("--include=" + inc);
   for (const std::string &inc_path : project.config.include_paths)
     libs.push_back("-I" + inc_path);
+  */
 
   pkg.put_flag(new Flag("Name", project.name));
   pkg.put_flag(new Flag("Description", project.description));
   pkg.put_flag(new Flag("Version", project.version));
   pkg.put_flag(new Flag("Libs", libs));
-  pkg.put_flag(new Flag("Incs", incs));
+  //pkg.put_flag(new Flag("Incs", incs));
   pkg.put_flag(new Flag("Cflags", project.config.flags));
 }
 

@@ -1,8 +1,10 @@
 project: {
   name "MakeIt"
+  version "2020"
   lang "C++"
   cc "g++"
   build "build"
+  outname "makeit"
 }
 
 LOCALEDIR = "/usr/share/locale"
@@ -14,8 +16,8 @@ source: "$(DIR)/src/makeit/MIConfig"
 source: "$(DIR)/src/util/MIConfig"
 
 library: [ "me" ]
-library_path: [ "$(DIR)/external/libme" ]
-include_path: [ "$(DIR)/external/libme/include" "$(DIR)/src/util" ]
+library_path: [ "$(DIR)/libme" ]
+include_path: [ "$(DIR)/libme/include" "$(DIR)/src/util" ]
 define: [
   { name "LOCALEDIR" value $LOCALEDIR }
   { name "PACKAGE" value $PACKAGE }
@@ -24,7 +26,7 @@ define: [
 extern: {
   type "makeit"
   name "libme"
-  target "$(DIR)/external/libme/MIBuild"
+  target "$(DIR)/libme/MIBuild"
   args "--execute"
 }
 
@@ -35,6 +37,6 @@ makefile: "Makefile" { pos -1 lines [ "# Copyright something" ] } {
     "" 
     ".PHONY: install" 
     "install:" 
-    "\tcp MakeIt /bin/makeit"
+    "\tcp makeit /bin/makeit"
   ]
 }

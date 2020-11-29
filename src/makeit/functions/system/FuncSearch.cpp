@@ -35,22 +35,22 @@ int makeit::function::exec_search(void* ptr, std::vector<Variable*> &args)
   for (const std::string &loc : locations)
   {
     me::File file(loc);
-    if (!file.exists() || !file.isDirectory())
+    if (!file.exists() || !file.is_directory())
     {
-      throw Exception(0, EDIR_NOT_FOUND, { file.getPath().c_str() });
+      throw Exception(0, EDIR_NOT_FOUND, { file.get_path().c_str() });
     }
 
     std::function<int(me::File&)> callback = [storage, output, patterns](me::File& file) -> int {
       for (const std::string &pattern : patterns)
       {
-	const std::string &file_path = file.getPath();
+	const std::string &file_path = file.get_path();
 	if (fnmatch(pattern.c_str(), file_path.c_str(), 0) == 0)
 	  (*output) += new Variable(nullptr, Variable::STRING, new std::string(file_path));
       }
       return 1;
     };
 
-    size_t files = file.listFiles(sub_dirs, callback);
+    size_t files = file.list_files(sub_dirs, callback);
   }
 
   return 1;

@@ -20,9 +20,9 @@ int makeit::function::exec_source(void* ptr, std::vector<Variable*> &args)
 #define PROJECT_READ_SCRIPT() { \
   if (!file.exists()) \
   { \
-    throw Exception((int) i, EFILE_NOT_FOUND, { file.getPath().c_str() }); \
+    throw Exception((int) i, EFILE_NOT_FOUND, { file.get_path().c_str() }); \
   }else if (!read_script(&file, (makeit::Storage*) ptr)) \
-    throw Exception((int) i, EFAILED_TO_READ_FILE, { file.getPath().c_str() }); \
+    throw Exception((int) i, EFAILED_TO_READ_FILE, { file.get_path().c_str() }); \
 }
 
   for (uint32_t i = 0; i < args.size(); i++)

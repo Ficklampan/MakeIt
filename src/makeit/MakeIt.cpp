@@ -241,10 +241,10 @@ int makeit::readFile(const me::File &file, void* &data, uint32_t &size)
   bool execute = true;
 
   if (config.print_all)
-    printf("\e[33m==> reading data from '%s'\e[0m\n", file.getPath().c_str());
+    printf("\e[33m==> reading data from '%s'\e[0m\n", file.get_path().c_str());
 
   if (config.block_all)
-    execute = yesno(":: do you want to read data from file[%s]?", file.getPath().c_str());
+    execute = yesno(":: do you want to read data from file[%s]?", file.get_path().c_str());
 
   if (execute)
     return me::File::read(file, data, size);
@@ -256,12 +256,12 @@ int makeit::writeFile(const me::File &file, void* data, uint32_t size)
   bool execute = true;
 
   if (config.print_all)
-    printf("\e[33m==> writing data[%uB] to '%s'\e[0m\n", size, file.getPath().c_str());
+    printf("\e[33m==> writing data[%uB] to '%s'\e[0m\n", size, file.get_path().c_str());
 
   if (config.block_all)
-    execute = yesno(_(":: do you want to write data to file[%s]?"), file.getPath().c_str());
+    execute = yesno(_(":: do you want to write data to file[%s]?"), file.get_path().c_str());
 
-  if (!config.block_all && (file.isAbsolutePath()))
+  if (!config.block_all && (file.is_absolute_path()))
     execute = noyes(_(":: do you want to write data to file[%s] outside working directory?"));
 
   if (execute)

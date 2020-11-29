@@ -1,7 +1,0 @@
-
-Name: libme
-Description: 
-Version: 
-Libs: 
-Incs: 
-Cflags: -std=c++17

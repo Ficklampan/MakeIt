@@ -15,7 +15,7 @@ int makeit::read_script(me::File* file, Storage* storage)
   void* data;
   uint32_t size;
 
-  MIDEBUG(1, "reading data from file('%s')\n", file->getPath().c_str());
+  MIDEBUG(1, "reading data from file('%s')\n", file->get_path().c_str());
   if (!readFile(*file, data, size))
     return 0;
   std::string source((char*) data, size);
@@ -85,7 +85,7 @@ static inline void printLocation(const makeit::TokenLocation &loc)
 void makeit::print_error(const TokenLocation* loc, const char* format, ...)
 {
   if (loc != nullptr)
-    printf("\e[97m%s:%u:%u:\e[0m ", loc->file->getPath().c_str(), loc->line, loc->column);
+    printf("\e[97m%s:%u:%u:\e[0m ", loc->file->get_path().c_str(), loc->line, loc->column);
 
   va_list args;
   va_start(args, format);
@@ -99,7 +99,7 @@ void makeit::print_error(const TokenLocation* loc, const char* format, ...)
 void makeit::print_warning(const TokenLocation* loc, const char* format, ...)
 {
   if (loc != nullptr)
-    printf("\e[97m%s:%u:%u:\e[0m ", loc->file->getPath().c_str(), loc->line, loc->column);
+    printf("\e[97m%s:%u:%u:\e[0m ", loc->file->get_path().c_str(), loc->line, loc->column);
 
   va_list args;
   va_start(args, format);

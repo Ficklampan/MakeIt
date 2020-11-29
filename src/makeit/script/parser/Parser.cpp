@@ -46,8 +46,8 @@ static inline int PARSER_FIX_STRING(makeit::Token* token, std::string &str, make
 
 	MIDEBUG(2, "[Parser] > referance found inside string '%s'\n", ref_name.c_str());
 
-	if (ref_name.compare("DIR") == 0) str.replace(start - 2, end + 1, token->location.file->directoryPath());
-	else if (ref_name.compare("FILE") == 0) str.replace(start - 2, end + 1, token->location.file->getPath());
+	if (ref_name.compare("DIR") == 0) str.replace(start - 2, end + 1, token->location.file->directory_path());
+	else if (ref_name.compare("FILE") == 0) str.replace(start - 2, end + 1, token->location.file->get_path());
 	else
 	{
 	  makeit::Variable* var = storage->variables[ref_name];

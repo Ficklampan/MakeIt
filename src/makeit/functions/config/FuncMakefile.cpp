@@ -58,7 +58,7 @@ int makeit::function::exec_makefile(void* ptr, std::vector<Variable*> &args)
 
   /* execute the Makefile */
   if (config.execute_output)
-    makeit::system(std::string("make -f " + file.getPath()).c_str());
+    makeit::system(std::string("make -f " + file.get_path()).c_str());
 
   return 1;
 }
@@ -68,16 +68,16 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   using namespace makeit::gnu_make;
 
   /* output file */
-  std::string output_name = project.name;
-  if (project.config.output_type == makeit::BuildConfig::STATIC_LIBRARY)
-    output_name.append(".a");
-  else if (project.config.output_type == makeit::BuildConfig::SHARED_LIBRARY)
-    output_name.append(".so");
+  std::string outname = project.config.out_name.empty() ? project.name : project.config.out_name;
+  if (project.config.out_type == makeit::BuildConfig::STATIC_LIBRARY)
+    outname.append(".a");
+  else if (project.config.out_type == makeit::BuildConfig::SHARED_LIBRARY)
+    outname.append(".so");
 
-  makefile.put_element(new Variable("NAME", project.name));
-  makefile.put_element(new Variable("OUTPUT", output_name));
+  makefile.put_element(new Variable("NAME", project.name + "-" + project.version));
+  makefile.put_element(new Variable("BUILD", project.config.build.get_path()));
+  makefile.put_element(new Variable("OUTNAME", outname));
   makefile.put_element(new Variable("CC", project.config.cc));
-  makefile.put_element(new Variable("BUILD", project.config.build.getPath()));
 
   /* empty line */
   makefile.put_element(new Text({""}, false));
@@ -91,7 +91,7 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
 
   std::vector<std::string> libs, incs, lib_paths, inc_paths, defs;
   ADD_PREFIX("-l", project.config.libraries, libs);
-  ADD_PREFIX("-i", project.config.includes, incs);
+  ADD_PREFIX("--include=", project.config.includes, incs);
   ADD_PREFIX("-L", project.config.library_paths, lib_paths);
   ADD_PREFIX("-I", project.config.include_paths, inc_paths);
   ADD_PREFIX("-D", project.config.definitions, defs);
@@ -152,33 +152,39 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
   makefile.put_element(new Text({""}, false));
 
   /* build rule */
-  makefile.put_element(new Rule("build", "$(EXT) $(OUTPUT)", {
+  makefile.put_element(new Rule("$(NAME)", "$(EXT) $(OUTNAME)", {
 	}, Rule::PHONY));
 
   /* empty line */
   makefile.put_element(new Text({""}, false));
 
   /* linking rule */
-  if (project.config.output_type == makeit::BuildConfig::EXECUTABLE)
+  if (project.config.out_type == makeit::BuildConfig::EXECUTABLE)
   {
-    makefile.put_element(new Rule("$(OUTPUT)", "$(OBJECTS)", {
+    makefile.put_element(new Rule("$(OUTNAME)", "$(OBJECTS)", {
 	  Command("@$(CC) -o $@ $^ $(LOPTS)")
 	  }, 0));
 
   /* static library rule */
-  }else if (project.config.output_type == makeit::BuildConfig::STATIC_LIBRARY)
+  }else if (project.config.out_type == makeit::BuildConfig::STATIC_LIBRARY)
   {
-    makefile.put_element(new Rule("$(OUTPUT)", "$(OBJECTS)", {
+    makefile.put_element(new Rule("$(OUTNAME)", "$(OBJECTS)", {
 	Command("@ar rcs $@ $^")
 	}, 0));
 
   /* shared library rule */
-  }else if (project.config.output_type == makeit::BuildConfig::SHARED_LIBRARY)
+  }else if (project.config.out_type == makeit::BuildConfig::SHARED_LIBRARY)
   {
-    makefile.put_element(new Rule("$(OUTPUT)", "$(OBJECTS)", {
+    makefile.put_element(new Rule("$(OUTNAME)", "$(OBJECTS)", {
 	Command("@$(CC) -shared -o $@ $^ $(LOPTS)")
 	}, 0));
   }
+
+  /* empty line */
+  makefile.put_element(new Text({""}, false));
+
+  /* include */
+  makefile.put_element(new Text({"-include $(DEPENDS)"}, false));
 
   /* empty line */
   makefile.put_element(new Text({""}, false));
@@ -208,7 +214,7 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
     makefile.put_element(new Rule(config.name, config.target, {
 	  Command("@echo \"\e[97mbuilding external target '$<'\e[0m\""),
 	  Command("@( cd $(dir $<); " + command + (config.args.empty() ? "" : " " + config.args) + ")")
-	  }, 0));
+	  }, Rule::PHONY));
 
     /* empty line */
     makefile.put_element(new Text({""}, false));
@@ -216,7 +222,7 @@ static void GENERATE_MAKEFILE(makeit::gnu_make::Makefile &makefile, makeit::Proj
 
   /* cleaning rule */
   makefile.put_element(new Rule("clean", "", {
-	Command("rm -f $(OUTPUT) $(OBJECTS) $(DEPENDS)")
+	Command("rm -f $(OUTNAME) $(OBJECTS) $(DEPENDS)")
 	}, Rule::PHONY));
 
   for (Element* element : elements)

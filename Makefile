@@ -1,14 +1,14 @@
 # Copyright something
-NAME = MakeIt
-OUTPUT = MakeIt
-CC = g++
+NAME = MakeIt-2020
 BUILD = build
+OUTNAME = makeit
+CC = g++
 
 FLAGS = -std=c++17
 LIBS = -lme
 INCS = 
-LPATHS = -L./external/libme
-IPATHS = -I./external/libme/include -I./src/util
+LPATHS = -L./libme
+IPATHS = -I./libme/include -I./src/util
 DEFS = -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"makeit\"
 EXT = libme
 
@@ -55,25 +55,28 @@ SOURCES = ./src/makeit/MakeIt.cpp \
 OBJECTS = $(SOURCES:%=$(BUILD)/%.o)
 DEPENDS = $(OBJECTS:%.o=%.d)
 
-.PHONY: build
-build: $(EXT) $(OUTPUT)
+.PHONY: $(NAME)
+$(NAME): $(EXT) $(OUTNAME)
 
-$(OUTPUT): $(OBJECTS)
+$(OUTNAME): $(OBJECTS)
 	@$(CC) -o $@ $^ $(LOPTS)
+
+-include $(DEPENDS)
 
 $(BUILD)/%.o: %
 	@echo "[32m==> compiling source [33m[$<][0m"
 	@mkdir -p $(dir $@)
 	@$(CC) -c -o $@ $< $(COPTS) -MMD
 
-libme: ./external/libme/MIBuild
+.PHONY: libme
+libme: ./libme/MIBuild
 	@echo "[97mbuilding external target '$<'[0m"
 	@( cd $(dir $<); makeit $(notdir $<) --execute)
 
 .PHONY: clean
 clean:
-	rm -f $(OUTPUT) $(OBJECTS) $(DEPENDS)
+	rm -f $(OUTNAME) $(OBJECTS) $(DEPENDS)
 
 .PHONY: install
 install:
-	cp MakeIt /bin/makeit
+	cp makeit /bin/makeit
