@@ -4,7 +4,7 @@
 
 #include "../../Config.hpp"
 
-int makeit::Parser::parse_literial(Token* token, me::BasicIterator<Token*> &tokens, Storage* storage, uint8_t flags)
+int makeit::Parser::parse_literial(Token* token, me::Iterator<Token*> &tokens, Storage* storage, uint8_t flags)
 {
   std::string* name = token->value.s;
 

@@ -107,9 +107,9 @@ static inline int PARSER_FIX_VARIABLE(makeit::Token* token, makeit::Variable* &v
 
 
 
-int makeit::Parser::parse_tokens(me::BasicIterator<Token*> &tokens, Storage* storage, uint8_t flags)
+int makeit::Parser::parse_tokens(me::Iterator<Token*> &tokens, Storage* storage, uint8_t flags)
 {
-  while (tokens.hasNext())
+  while (tokens.has_next())
   {
     Token* token = tokens.next();
 
@@ -119,7 +119,7 @@ int makeit::Parser::parse_tokens(me::BasicIterator<Token*> &tokens, Storage* sto
   return 1;
 }
 
-int makeit::Parser::parse_token(Token* token, me::BasicIterator<Token*> &tokens, Storage* storage, uint8_t flags)
+int makeit::Parser::parse_token(Token* token, me::Iterator<Token*> &tokens, Storage* storage, uint8_t flags)
 {
   MIDEBUG(2, "[Parser] > parsing %s token\n", Token::type_name(token->type));
 
@@ -145,9 +145,9 @@ int makeit::Parser::parse_token(Token* token, me::BasicIterator<Token*> &tokens,
   return 1;
 }
 
-int makeit::Parser::get_args(me::BasicIterator<Token*> &tokens, Storage* storage, std::vector<Variable*> &args, uint8_t flags)
+int makeit::Parser::get_args(me::Iterator<Token*> &tokens, Storage* storage, std::vector<Variable*> &args, uint8_t flags)
 {
-  while (tokens.hasNext())
+  while (tokens.has_next())
   {
     Token* token = tokens.next();
 
@@ -162,7 +162,7 @@ int makeit::Parser::get_args(me::BasicIterator<Token*> &tokens, Storage* storage
   return 1;
 }
 
-int makeit::Parser::get_variable(Token* token, me::BasicIterator<Token*> &tokens, Storage* storage, Variable* &variable, uint8_t flags)
+int makeit::Parser::get_variable(Token* token, me::Iterator<Token*> &tokens, Storage* storage, Variable* &variable, uint8_t flags)
 {
   if (token->type == Token::CONSTANT)
     variable = token->value.c;

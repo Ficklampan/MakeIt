@@ -4,13 +4,13 @@
 
 #include "../../Config.hpp"
 
-static inline int GET_BOOLEAN(me::BasicIterator<makeit::Token*> &tokens, makeit::Storage* storage, bool &out, uint8_t flags)
+static inline int GET_BOOLEAN(me::Iterator<makeit::Token*> &tokens, makeit::Storage* storage, bool &out, uint8_t flags)
 {
 #define SET_OUT(b) { if (invert) out = !(b); else out = (b); }
   uint32_t i = 0;
   makeit::Token* token = nullptr;
   bool invert = false;
-  while (tokens.hasNext())
+  while (tokens.has_next())
   {
     token = tokens.peek();
 
@@ -86,10 +86,10 @@ static inline int GET_BOOLEAN(me::BasicIterator<makeit::Token*> &tokens, makeit:
   return 1;
 }
 
-static inline int PARSER_PARSE_SCOPE(bool b, me::BasicIterator<makeit::Token*> &tokens, makeit::Storage* storage, uint8_t flags)
+static inline int PARSER_PARSE_SCOPE(bool b, me::Iterator<makeit::Token*> &tokens, makeit::Storage* storage, uint8_t flags)
 {
   bool sleep = false;
-  while (tokens.hasNext())
+  while (tokens.has_next())
   {
     makeit::Token* token = tokens.next();
 
@@ -108,7 +108,7 @@ static inline int PARSER_PARSE_SCOPE(bool b, me::BasicIterator<makeit::Token*> &
 	continue;
       }
 
-      while (tokens.hasNext())
+      while (tokens.has_next())
       {
 	token = tokens.next();
 
@@ -129,7 +129,7 @@ static inline int PARSER_PARSE_SCOPE(bool b, me::BasicIterator<makeit::Token*> &
   return 1;
 }
 
-int makeit::Parser::parse_statement(Token* token, me::BasicIterator<Token*> &tokens, Storage* storage, uint8_t flags)
+int makeit::Parser::parse_statement(Token* token, me::Iterator<Token*> &tokens, Storage* storage, uint8_t flags)
 {
   bool b = false;
   if (!GET_BOOLEAN(tokens, storage, b, flags))

@@ -33,7 +33,7 @@ int makeit::read_script(me::File* file, Storage* storage)
 
   storage->scripts.push_back(*file);
 
-  me::BasicIterator<Token*> token_iter(tokens.data(), tokens.size());
+  me::Iterator<Token*> token_iter(tokens.data(), tokens.size());
 
   MIDEBUG(1, "parsing tokens[%lu]\n", tokens.size());
   try {

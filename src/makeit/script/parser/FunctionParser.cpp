@@ -8,7 +8,7 @@
 
 extern makeit::Config config;
 
-int makeit::Parser::parse_function(Token* token, me::BasicIterator<Token*> &tokens, Storage* storage, uint8_t flags)
+int makeit::Parser::parse_function(Token* token, me::Iterator<Token*> &tokens, Storage* storage, uint8_t flags)
 {
   Function* func = storage->functions[*token->value.s];
 
