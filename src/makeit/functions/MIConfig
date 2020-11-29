@@ -3,7 +3,7 @@ sources += [
 
   "$(DIR)/config/FuncMakefile.cpp"
   "$(DIR)/config/FuncPkgConfig.cpp"
-  "$(DIR)/config/FuncYCM.cpp"
+  "$(DIR)/config/FuncYCMConfig.cpp"
 
   "$(DIR)/project/FuncDefine.cpp"
   "$(DIR)/project/FuncExtern.cpp"

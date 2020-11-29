@@ -22,7 +22,7 @@ namespace makeit { namespace function {
   int exec_files(void* ptr, std::vector<Variable*> &args);
   int exec_makefile(void* ptr, std::vector<Variable*> &args);
   int exec_pkg_config(void* ptr, std::vector<Variable*> &args);
-  int exec_ycm(void* ptr, std::vector<Variable*> &args);
+  int exec_ycm_config(void* ptr, std::vector<Variable*> &args);
 
   void usage(const std::string &func);
 
@@ -42,7 +42,7 @@ namespace makeit { namespace function {
   makeit::Function* make_files();
   makeit::Function* make_makefile();
   makeit::Function* make_pkg_config();
-  makeit::Function* make_YCM();
+  makeit::Function* make_ycm_config();
   
 } }
 

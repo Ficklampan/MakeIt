@@ -1,5 +1,7 @@
 #include "PkgConfig.hpp"
 
+#include "Util.hpp"
+
 makeit::pc::PkgConfig::PkgConfig()
 {
 }
@@ -41,7 +43,11 @@ void makeit::pc::PkgConfig::write_flag(std::string &str, const Flag* flag)
   const std::vector<std::string> &value = flag->get_value();
   for (uint32_t i = 0; i < value.size(); i++)
   {
-    str.append(value.at(i));
+    std::string element = value.at(i);
+    makeit::string_replace(element, " ", "\\ ");
+    makeit::string_replace(element, "\"", "\\\"");
+
+    str.append(element);
     if (i < value.size() - 1)
       str += ' ';
   }

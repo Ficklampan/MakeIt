@@ -32,7 +32,7 @@ SOURCES = ./src/makeit/MakeIt.cpp \
 	./src/makeit/functions/Functions.cpp \
 	./src/makeit/functions/config/FuncMakefile.cpp \
 	./src/makeit/functions/config/FuncPkgConfig.cpp \
-	./src/makeit/functions/config/FuncYCM.cpp \
+	./src/makeit/functions/config/FuncYCMConfig.cpp \
 	./src/makeit/functions/project/FuncDefine.cpp \
 	./src/makeit/functions/project/FuncExtern.cpp \
 	./src/makeit/functions/project/FuncFiles.cpp \
@@ -48,7 +48,7 @@ SOURCES = ./src/makeit/MakeIt.cpp \
 	./src/makeit/functions/system/FuncSystem.cpp \
 	./src/makeit/configs/make/Makefile.cpp \
 	./src/makeit/configs/pc/PkgConfig.cpp \
-	./src/makeit/configs/YCM.cpp \
+	./src/makeit/configs/ycm/YCMConfig.cpp \
 	./src/util/Common.cpp \
 	./src/util/Util.cpp
 

@@ -49,6 +49,7 @@ void Makefile::write_variable(std::string &str, const Variable* var)
     std::string element = value.at(i);
     makeit::string_replace(element, " ", "\\ ");
     makeit::string_replace(element, "\"", "\\\"");
+
     str.append(element);
     if (i < value.size() - 1)
       str.append(value.size() > 4 ? " \\\n\t" : " ");

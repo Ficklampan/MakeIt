@@ -196,7 +196,7 @@ int makeit::init()
   storage->functions["files"] = makeit::function::make_files();
   storage->functions["makefile"] = makeit::function::make_makefile();
   storage->functions["pkg_config"] = makeit::function::make_pkg_config();
-  storage->functions["ycm"] = makeit::function::make_YCM();
+  storage->functions["ycm_config"] = makeit::function::make_ycm_config();
 
   for (std::string &cfg : config.configs)
   {

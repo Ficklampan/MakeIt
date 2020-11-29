@@ -39,3 +39,4 @@ makefile: "Makefile" { pos -1 lines [ "# Copyright something" ] } {
     "\tcp makeit /bin/makeit"
   ]
 }
+ycm_config: ".ycm_extra_conf.py"
