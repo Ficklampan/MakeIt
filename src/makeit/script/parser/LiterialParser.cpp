@@ -9,7 +9,7 @@ int makeit::Parser::parse_literial(Token* token, me::Iterator<Token*> &tokens, S
   std::string* name = token->value.s;
 
 
-  if (tokens.peek()->type == Token::PUNCTUATOR)
+  if (tokens.has_next() && tokens.peek()->type == Token::PUNCTUATOR)
   {
     token = tokens.next();
     Variable* variable_a = storage->variables[*name];

@@ -1,20 +1,28 @@
 # Copyright something
 NAME = MakeIt-2020
 BUILD = build
-OUTNAME = makeit
+OUTNAME = MakeIt
 CC = g++
 
-CFLAGS = 
-LFLAGS = -std=c++17
+CFLAGS = -O3 -std=c++17
 LIBS = -lme
 INCS = 
 LPATHS = -L./libme
 IPATHS = -I./libme/include -I./src/util
 DEFS = -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"makeit\"
-EXT = libme
 
-COPTS = $(CFLAGS) $(INCS) $(IPATHS) $(DEFS)
-LOPTS = $(LFLAGS) $(LIBS) $(LPATHS)
+PKG_CONFIG_PATH = ./libme:./libme/include:./src/util:
+CPKG = $$(env PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags libme)
+LPKG = $$(env PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --static --libs libme)
+
+EXTERN = ./libme/libme.a
+
+COPTS = $(CFLAGS) \
+	$(IPATHS) \
+	$(INCS) \
+	$(DEFS) \
+	$(CPKG)
+LOPTS = $(LPATHS) $(LIBS) $(LPKG)
 
 SOURCES = ./src/makeit/MakeIt.cpp \
 	./src/makeit/Text.cpp \
@@ -34,6 +42,7 @@ SOURCES = ./src/makeit/MakeIt.cpp \
 	./src/makeit/functions/config/FuncMakefile.cpp \
 	./src/makeit/functions/config/FuncPkgConfig.cpp \
 	./src/makeit/functions/config/FuncYCMConfig.cpp \
+	./src/makeit/functions/project/FuncConfigure.cpp \
 	./src/makeit/functions/project/FuncDefine.cpp \
 	./src/makeit/functions/project/FuncExtern.cpp \
 	./src/makeit/functions/project/FuncFiles.cpp \
@@ -57,7 +66,7 @@ OBJECTS = $(SOURCES:%=$(BUILD)/%.o)
 DEPENDS = $(OBJECTS:%.o=%.d)
 
 .PHONY: $(NAME)
-$(NAME): $(EXT) $(OUTNAME)
+$(NAME): $(EXTERN) $(OUTNAME)
 
 $(OUTNAME): $(OBJECTS)
 	@$(CC) -o $@ $^ $(LOPTS)
@@ -69,10 +78,10 @@ $(BUILD)/%.o: %
 	@mkdir -p $(dir $@)
 	@$(CC) -c -o $@ $< $(COPTS) -MMD
 
-.PHONY: libme
-libme: ./libme/Makefile
-	@echo "[97mbuilding external target '$<'[0m"
-	@( cd $(dir $<); make -f $(notdir $<))
+# [./libme/libme.a]
+./libme/libme.a: ./libme/MIBuild
+	@echo "[97mexternal target '$<'[0m"
+	(cd ./libme;makeit -f MIBuild;make -f Makefile)
 
 .PHONY: clean
 clean:

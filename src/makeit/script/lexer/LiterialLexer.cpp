@@ -9,7 +9,7 @@ int makeit::Lexer::tokenize_literial(char c, Iterator &source, Token* &token, St
   MIDEBUG(2, "[Lexer] > next token is LITERIAL\n");
 
   uint32_t length = 1;
-  LEXER_NEXT_STRING(if (!LEXER_IS_NAME(c)) { break; });
+  LEXER_NEXT_STRING(if (!LEXER_IS_NAME(c) && !LEXER_IS_DIGIT(c)) { break; });
 
   std::string* literial = new std::string(&source.peek() - length, length);
 
@@ -18,11 +18,14 @@ int makeit::Lexer::tokenize_literial(char c, Iterator &source, Token* &token, St
 
   if (bt || bf)
   {
-    LEXER_NEW_TOKEN(Token::CONSTANT, new Variable(&token->location, Variable::INTEGER, new int(bt)));
+    LEXER_NEW_TOKEN(Token::CONSTANT, new Variable(nullptr, Variable::INTEGER, new int(bt)));
   }else if (c == ':')
   {
     source.next();
     LEXER_NEW_TOKEN(Token::CALL, literial);
+  }else if (literial->compare("foreach") == 0)
+  {
+    LEXER_NEW_TOKEN(Token::FOREACH, nullptr);
   }else if (literial->compare("if") == 0)
   {
     LEXER_NEW_TOKEN(Token::IF, nullptr);
@@ -35,6 +38,9 @@ int makeit::Lexer::tokenize_literial(char c, Iterator &source, Token* &token, St
   }else if (literial->compare("end") == 0)
   {
     LEXER_NEW_TOKEN(Token::END, nullptr);
+  }else if (storage->definitions.find(*literial) != storage->definitions.end())
+  {
+    LEXER_NEW_TOKEN(Token::CONSTANT, new Variable(nullptr, Variable::LITERIAL, literial));
   }else
     LEXER_NEW_TOKEN(Token::LITERIAL, literial);
 

@@ -8,9 +8,8 @@ namespace makeit {
   struct Project {
 
     std::string name;
-    std::string description = "";
-    std::string version = "";
-    std::string language = "c";
+    std::string description;
+    std::string version;
 
     BuildConfig config;
 

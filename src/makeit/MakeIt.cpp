@@ -180,18 +180,44 @@ int makeit::init()
   }
 
   std::shared_ptr<makeit::Storage> storage = std::make_shared<makeit::Storage>();
+
+  storage->definitions["EXECUTABLE"] = "";
+  storage->definitions["STATIC_LIBRARY"] = "";
+  storage->definitions["SHARED_LIBRARY"] = "";
+
+  storage->definitions["O0"] = "";
+  storage->definitions["O1"] = "";
+  storage->definitions["O3"] = "";
+  storage->definitions["Os"] = "";
+  storage->definitions["Ofast"] = "";
+  storage->definitions["Og"] = "";
+  storage->definitions["Oz"] = "";
+
+  storage->definitions["STD98"] = "";
+  storage->definitions["STD11"] = "";
+  storage->definitions["STD14"] = "";
+  storage->definitions["STD17"] = "";
+  storage->definitions["STD20"] = "";
+
+  storage->definitions["C"] = "";
+  storage->definitions["CPP"] = "";
+  storage->definitions["CXX"] = "";
+
+  storage->definitions["GNU"] = "";
+  storage->definitions["LLVM"] = "";
+
   storage->functions["print"] = makeit::function::make_print();
   storage->functions["system"] = makeit::function::make_system();
   storage->functions["search"] = makeit::function::make_search();
 
   storage->functions["project"] = makeit::function::make_project();
+  storage->functions["configure"] = makeit::function::make_configure();
   storage->functions["library"] = makeit::function::make_library();
   storage->functions["library_path"] = makeit::function::make_library_path();
   storage->functions["include"] = makeit::function::make_include();
   storage->functions["include_path"] = makeit::function::make_include_path();
   storage->functions["define"] = makeit::function::make_define();
-  storage->functions["cflags"] = makeit::function::make_cflags();
-  storage->functions["lflags"] = makeit::function::make_lflags();
+  storage->functions["flags"] = makeit::function::make_flags();
   storage->functions["source"] = makeit::function::make_source();
   storage->functions["extern"] = makeit::function::make_extern();
   storage->functions["files"] = makeit::function::make_files();

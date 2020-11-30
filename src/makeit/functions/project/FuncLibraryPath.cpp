@@ -18,8 +18,14 @@ int makeit::function::exec_library_path(void* ptr, std::vector<Variable*> &args)
 
   Project* project = (Project*) storage->variables["project"]->as_pointer();
 
-  for (Variable* v : args)
-    GET_STRINGS(v, project->config.library_paths);
+  Variable::v_list &list = *args.at(0)->as_list();
+
+  for (const Variable* var : list)
+  {
+    const std::string &lib = *var->as_string();
+    project->config.library_paths.push_back(lib);
+  }
+
   return 1;
 }
 

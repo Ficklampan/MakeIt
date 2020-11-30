@@ -40,7 +40,29 @@ static void GENERATE_YCMCONFIG(makeit::ycm::YCMConfig &ycm, makeit::Project &pro
 {
   using namespace makeit::ycm;
 
-  ycm.put_flag(new Flag("", project.config.cflags));
+  std::vector<std::string> flags;
+
+  for (const std::string &flag : project.config.flags)
+    flags.push_back(flag);
+
+  /* check if project is C++ */
+  if (project.config.lang == makeit::BuildConfig::CPP)
+  {
+    /* append cpp version flag */
+    if (project.config.cpp_version == makeit::BuildConfig::CPP_98)
+      flags.push_back("-std=c++98");
+    else if (project.config.cpp_version == makeit::BuildConfig::CPP_11)
+      flags.push_back("-std=c++11");
+    else if (project.config.cpp_version == makeit::BuildConfig::CPP_14)
+      flags.push_back("-std=c++14");
+    else if (project.config.cpp_version == makeit::BuildConfig::CPP_17)
+      flags.push_back("-std=c++17");
+    else if (project.config.cpp_version == makeit::BuildConfig::CPP_20)
+      flags.push_back("-std=c++20");
+    /* ------------------------ */
+  }
+
+  ycm.put_flag(new Flag("", flags));
   ycm.put_flag(new Flag("-I", project.config.include_paths));
   ycm.put_flag(new Flag("--include=", project.config.includes));
   ycm.put_flag(new Flag("-D", project.config.definitions));

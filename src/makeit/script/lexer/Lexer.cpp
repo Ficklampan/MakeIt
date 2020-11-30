@@ -32,7 +32,7 @@ int makeit::Lexer::tokenize_token(Iterator &source, Token* &token, Storage* stor
 
   char c = source.next();
 
-  /* Token::LITERIAL / Token::CALL / Token::IF / Token::ELSE / Token::END / Token::CONSTANT BOOLEAN */
+  /* Token::LITERIAL / Token::CALL / Token::FOREACH / Token::IF / Token::ELSE / Token::END / Token::CONSTANT BOOLEAN */
   if (LEXER_IS_NAME(c))
   {
     tokenize_literial(c, source, token, storage, flags);

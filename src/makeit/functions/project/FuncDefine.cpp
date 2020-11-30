@@ -35,6 +35,7 @@ int makeit::function::exec_define(void* ptr, std::vector<Variable*> &args)
     else if (value->type == Variable::STRING)
     {
       std::string value_str = std::string("\"" + *value->as_string() + "\"");
+      makeit::string_replace(value_str, "\"", "\\\"");
       project->config.definitions.push_back(*name->as_string() + "=" + value_str);
     }
   }

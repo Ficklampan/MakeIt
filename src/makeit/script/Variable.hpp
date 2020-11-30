@@ -13,7 +13,7 @@ namespace makeit {
   struct Variable {
 
     enum Type : uint8_t {
-      VOID = 1 /* used as 'any' type */, STRING = 2, INTEGER = 3, LIST = 4, STRUCT = 5, POINTER = 6, REFERENCE = 7
+      VOID = 1 /* used as 'any' type */, STRING = 2, INTEGER = 3, LIST = 4, STRUCT = 5, POINTER = 6, REFERENCE = 7, LITERIAL = 8
     };
 
     /* variable value types */
@@ -23,6 +23,7 @@ namespace makeit {
     typedef std::map<std::string, Variable*> v_struct;
     typedef void* v_pointer;
     typedef std::string v_reference;
+    typedef std::string v_literial;
     /* -------------------- */
 
     TokenLocation* location;
@@ -43,6 +44,7 @@ namespace makeit {
     v_struct* as_struct() const { VARIABLE_CHECK_TYPE(STRUCT); return (v_struct*) value; }
     /* useless */ v_pointer* as_pointer() const { VARIABLE_CHECK_TYPE(POINTER); return (v_pointer*) value; }
     v_reference* as_reference() const { VARIABLE_CHECK_TYPE(REFERENCE); return (v_reference*) value; }
+    v_literial* as_literial() const { VARIABLE_CHECK_TYPE(LITERIAL); return (v_literial*) value; }
 #undef VARIABLE_CHECK_TYPE
 
     /* equals (v)ariable */ bool operator==(Variable* v);

@@ -40,7 +40,30 @@ static void GENERATE_PKGCONFIG(makeit::pc::PkgConfig &pkg, makeit::Project &proj
 {
   using namespace makeit::pc;
 
+
+
+  std::vector<std::string> flags;
   std::vector<std::string> libs, incs;
+
+  for (const std::string &flag : project.config.flags)
+    flags.push_back(flag);
+
+  /* check if project is C++ */
+  if (project.config.lang == makeit::BuildConfig::CPP)
+  {
+    /* append cpp version flag */
+    if (project.config.cpp_version == makeit::BuildConfig::CPP_98)
+      flags.push_back("-std=c++98");
+    else if (project.config.cpp_version == makeit::BuildConfig::CPP_11)
+      flags.push_back("-std=c++11");
+    else if (project.config.cpp_version == makeit::BuildConfig::CPP_14)
+      flags.push_back("-std=c++14");
+    else if (project.config.cpp_version == makeit::BuildConfig::CPP_17)
+      flags.push_back("-std=c++17");
+    else if (project.config.cpp_version == makeit::BuildConfig::CPP_20)
+      flags.push_back("-std=c++20");
+    /* ------------------------ */
+  }
 
   /* append libraries */
   for (const std::string &lib : project.config.libraries)
@@ -55,13 +78,14 @@ static void GENERATE_PKGCONFIG(makeit::pc::PkgConfig &pkg, makeit::Project &proj
     libs.push_back("-I" + inc_path);
   */
 
+
+
   pkg.put_flag(new Flag("Name", project.name));
   pkg.put_flag(new Flag("Description", project.description));
   pkg.put_flag(new Flag("Version", project.version));
   pkg.put_flag(new Flag("Libs", libs));
   //pkg.put_flag(new Flag("Incs", incs));
-  pkg.put_flag(new Flag("Cflags", project.config.cflags));
-  pkg.put_flag(new Flag("Lflags", project.config.lflags));
+  pkg.put_flag(new Flag("Cflags", flags));
 }
 
 static void WRITE_PKGCONFIG(const me::File &file, makeit::pc::PkgConfig &pkg)

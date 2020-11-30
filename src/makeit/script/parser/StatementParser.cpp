@@ -131,20 +131,26 @@ static inline int PARSER_PARSE_SCOPE(bool b, me::Iterator<makeit::Token*> &token
 
 int makeit::Parser::parse_statement(Token* token, me::Iterator<Token*> &tokens, Storage* storage, uint8_t flags)
 {
-  bool b = false;
-  if (!GET_BOOLEAN(tokens, storage, b, flags))
-    return 0;
-
-  token = tokens.next();
-
-  /* [Error] expected token */
-  if (token == nullptr || token->type != Token::THEN)
+  if (token->type == Token::FOREACH)
   {
-    throw Exception(&tokens.last()->location, EEXPECTED_TOKEN, { Token::type_name(Token::THEN) });
+  }else if (token->type == Token::IF)
+  {
+    bool b = false;
+    if (!GET_BOOLEAN(tokens, storage, b, flags))
+      return 0;
+
+    token = tokens.next();
+
+    /* [Error] expected token */
+    if (token == nullptr || token->type != Token::THEN)
+    {
+      throw Exception(&tokens.last()->location, EEXPECTED_TOKEN, { Token::type_name(Token::THEN) });
+    }
+
+    /* execute stuff under the if statement */
+    if (!PARSER_PARSE_SCOPE(b, tokens, storage, flags))
+      return 0;
   }
 
-  /* execute stuff under the if statement */
-  if (!PARSER_PARSE_SCOPE(b, tokens, storage, flags))
-    return 0;
   return 1;
 }

@@ -3,14 +3,14 @@
 
 #include "../../Project.hpp"
 
-makeit::Function* makeit::function::make_cflags()
+makeit::Function* makeit::function::make_flags()
 {
   return new Function({
       new ListArg(new Argument(Variable::STRING))
-      }, exec_cflags);
+      }, exec_flags);
 }
 
-int makeit::function::exec_cflags(void* ptr, std::vector<Variable*> &args)
+int makeit::function::exec_flags(void* ptr, std::vector<Variable*> &args)
 {
   Storage* storage = (Storage*) ptr;
 
@@ -18,27 +18,7 @@ int makeit::function::exec_cflags(void* ptr, std::vector<Variable*> &args)
 
   Project* project = (Project*) storage->variables["project"]->as_pointer();
 
-  GET_STRINGS(args.at(0), project->config.cflags);
-
-  return 1;
-}
-
-makeit::Function* makeit::function::make_lflags()
-{
-  return new Function({
-      new ListArg(new Argument(Variable::STRING))
-      }, exec_lflags);
-}
-
-int makeit::function::exec_lflags(void* ptr, std::vector<Variable*> &args)
-{
-  Storage* storage = (Storage*) ptr;
-
-  REQUIRE_VARIABLE("project", Variable::POINTER, storage);
-
-  Project* project = (Project*) storage->variables["project"]->as_pointer();
-
-  GET_STRINGS(args.at(0), project->config.lflags);
+  GET_STRINGS(args.at(0), project->config.flags);
 
   return 1;
 }

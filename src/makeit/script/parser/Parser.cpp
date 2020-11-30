@@ -4,6 +4,7 @@
 
 #include "../../Config.hpp"
 #include "Common.hpp"
+#include "Util.hpp"
 
 #include <cstring>
 
@@ -11,55 +12,62 @@ extern makeit::Config config;
 
 static inline int PARSER_FIX_STRING(makeit::Token* token, std::string &str, makeit::Storage* storage)
 {
-  bool paren = false;
-
-  for (uint32_t i = 0; i < str.size(); i++)
+  uint32_t index = 0;
+  while (index < str.size())
   {
-    char c = str.at(i);
-
-    if (c == '$')
+    if (str.at(index) == '$' && index + 3 < str.size())
     {
-      i++;
+      uint32_t start = index;
 
-      uint32_t start = 0, end = 0;
+      index++;
+      char next = str.at(index);
+      index++;
 
-      do {
+      uint32_t name_start = index;
 
-	c = str.at(i);
-
-	if (c == '(' || c == '{')
-	{
-	  paren = true;
-	  start = i + 1;
-	}else if (c == ')' || c == '}')
-	{
-	  paren = false;
-	  end = i;
-	}
-	i++;
-
-      }while (paren);
-
-      if (end > start)
+      if (next == '(' || next == '{')
       {
-	std::string ref_name(&str.at(0) + start, end - start);
-
-	MIDEBUG(2, "[Parser] > referance found inside string '%s'\n", ref_name.c_str());
-
-	if (ref_name.compare("DIR") == 0) str.replace(start - 2, end + 1, token->location.file->directory_path());
-	else if (ref_name.compare("FILE") == 0) str.replace(start - 2, end + 1, token->location.file->get_path());
-	else
+	uint32_t end = 0;
+	for (uint32_t i = name_start; i < str.size(); i++)
 	{
-	  makeit::Variable* var = storage->variables[ref_name];
-	  if (var != nullptr)
+	  char c = str.at(i);
+	  if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_'))
 	  {
-	    if (var->type == makeit::Variable::STRING)
-	      str.replace(start - 2, end + 1, *var->as_string());
+	    if (c == ')' || c == '}')
+	      end = i;
+	    break;
 	  }
 	}
-      }
 
+	if (end == 0)
+	  continue;
+
+	std::string_view name(str.c_str() + name_start, end - name_start);
+	std::string value;
+	if (name.compare("DIR") == 0)
+	  value = token->location.file->directory_path();
+	else if (name.compare("FILE") == 0)
+	  value = token->location.file->get_path();
+	else
+	{
+	  for (auto const &[var_name, var] : storage->variables)
+	  {
+	    /* skip every variable that is not a string */
+	    if (var->type != makeit::Variable::STRING)
+	      continue;
+
+	    if (name.compare(var_name) == 0)
+	    {
+	      value = *var->as_string();
+	      break;
+	    }
+	  }
+	}
+
+	str.replace(start, end - start + 1, value);
+      }
     }
+    index++;
   }
   return 1;
 }
@@ -130,7 +138,7 @@ int makeit::Parser::parse_token(Token* token, me::Iterator<Token*> &tokens, Stor
   {
     if (!parse_literial(token, tokens, storage, flags))
       return 0;
-  }else if (token->type == Token::IF)
+  }else if (token->type == Token::FOREACH || token->type == Token::IF)
   {
     if (!parse_statement(token, tokens, storage, flags))
       return 0;

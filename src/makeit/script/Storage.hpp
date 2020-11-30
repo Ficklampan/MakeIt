@@ -14,6 +14,7 @@ namespace makeit {
   /* Storage for all the variables and functions */
   struct Storage {
 
+    std::map<std::string, std::string> definitions;
     std::map<std::string, Variable*> variables;
     std::map<std::string, Function*> functions;
     std::vector<me::File> scripts;

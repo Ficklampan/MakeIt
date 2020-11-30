@@ -89,6 +89,7 @@ const char* makeit::Variable::type_name(Type type)
     case STRUCT: return "struct";
     case POINTER: return "pointer";
     case REFERENCE: return "reference";
+    case LITERIAL: return "literial";
   }
   return "";
 }

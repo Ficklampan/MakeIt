@@ -33,6 +33,7 @@ namespace makeit {
       LITERIAL,
       CONSTANT,
       CALL,
+      FOREACH,
       IF,
       THEN,
       ELSE,
